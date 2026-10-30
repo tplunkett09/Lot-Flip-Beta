@@ -49,6 +49,8 @@ h1{font-size:20px;margin:0;font-weight:800;color:var(--gold)}
 @keyframes op{50%{box-shadow:0 0 12px var(--blue)}}
 @media(hover:hover){.lot:hover{border-color:#fff}}
 .lot svg{width:100%;height:84px;display:block;flex-shrink:0;pointer-events:none;transform-origin:50% 100%;position:relative;z-index:2}
+.lot .iso-flag{display:none;position:absolute;top:4px;left:4px;z-index:20;padding:3px 5px;border-radius:4px;background:#0759d1;color:#fff;border:1px solid #fff;font-size:9px;line-height:1;font-weight:1000;letter-spacing:.35px;box-shadow:0 1px 5px #0009;pointer-events:none}
+.lot.iso-prototype .iso-flag{display:block}
 .drive-art{pointer-events:none}
 /* Parking is anchored to the lot edge. Driveway connectors stop at the gray sidewalk before the road. */
 .lot.has-parking::before{content:"";position:absolute;left:calc(50% - 20px);width:40px;height:26px;background:#777b75;border:1px solid #545954;border-radius:3px;box-sizing:border-box;z-index:1;pointer-events:none}
@@ -166,7 +168,7 @@ h1{font-size:20px;margin:0;font-weight:800;color:var(--gold)}
 #money{transform-origin:left center}
 @keyframes flash{30%{transform:scale(1.1);color:#fff}}
 </style>
-<meta name="lotflip-build" content="isometric-lot1-prototype-v2"><meta name="lotflip-save-namespace" content="lot_flip_iso_test_">
+<meta name="lotflip-build" content="isometric-lot1-prototype-v3-debug"><meta name="lotflip-save-namespace" content="lot_flip_iso_test_">
 </head>
 <body>
 <div id="app">
@@ -283,7 +285,7 @@ function rentOf(i){const l=lots[i];if(!l.hs||S[l.hs].cat==="i"||l.st==="reno_wor
 
 function build(){
   const sc=$("scene");sc.innerHTML="";trk={};traffic={};roadTraffic=[];
-  const row=a=>{const r=document.createElement("div");r.className="row";for(let k=0;k<5;k++){const i=a+k,d=document.createElement("div"),side=Math.floor(i/5)===0?"to-bottom":"to-top";d.className="lot";d.innerHTML='<b class="bb"></b><b class="ab"></b><svg viewBox="0 0 100 90" preserveAspectRatio="none"></svg><div class="act"></div><div class="pb"><i></i></div>';d.onclick=()=>tapLot(i);r.appendChild(d)}return r};
+  const row=a=>{const r=document.createElement("div");r.className="row";for(let k=0;k<5;k++){const i=a+k,d=document.createElement("div"),side=Math.floor(i/5)===0?"to-bottom":"to-top";d.className="lot";d.innerHTML='<b class="bb"></b><b class="ab"></b><b class="iso-flag">2.5D TEST BUILD</b><svg viewBox="0 0 100 90" preserveAspectRatio="none"></svg><div class="act"></div><div class="pb"><i></i></div>';d.onclick=()=>tapLot(i);r.appendChild(d)}return r};
   const rd=document.createElement("div");rd.className="road";
   rd.innerHTML='<div class="cw" style="left:18%"></div><div class="cw" style="left:48%"></div><div class="cw" style="right:18%"></div>';
   sc.append(row(0),rd,row(5));if(lots.length>10){const r2=rd.cloneNode(true);sc.append(r2,row(10))}els=[...sc.querySelectorAll(".lot")];initRoadTraffic();
@@ -593,7 +595,7 @@ function art(l,i){
   // ownership state so save-state variations cannot silently fall back to legacy art.
   // Keep the original construction and demolition animations intact.
   const isoEligibleStates=['ready','rented','listed','ai_owned','ai_for_sale'];
-  const useIso=(i===0 && !!l.hs && S[l.hs] && S[l.hs].cat==='h' && isoEligibleStates.includes(l.st));
+  const useIso=(i===0 && !!l.hs && S[l.hs] && S[l.hs].cat==='h' && !['working','reno_working','demo','sold'].includes(l.st));
   const main=useIso?isometricHomeArt(l,i):houseArt(l,i);
   // Vacant lots stay clear. Add pavement only when a building exists or construction is underway.
   const hasBuilding=!!l.hs&&l.st!=="sold";
@@ -1094,6 +1096,7 @@ function draw(){
     const e=els[i];if(!e)return;
     
     const ai=l.st==="ai_owned"||l.st==="ai_for_sale";
+    e.classList.toggle("iso-prototype",i===0);
     const hasBuilding=!!l.hs&&l.st!=="sold";
     const streetAbove=Math.floor(i/5)>0;
     e.classList.toggle("to-bottom",!streetAbove);e.classList.toggle("to-top",streetAbove);
