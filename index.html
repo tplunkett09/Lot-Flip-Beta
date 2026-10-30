@@ -166,7 +166,7 @@ h1{font-size:20px;margin:0;font-weight:800;color:var(--gold)}
 #money{transform-origin:left center}
 @keyframes flash{30%{transform:scale(1.1);color:#fff}}
 </style>
-<meta name="lotflip-build" content="isometric-test-baseline"><meta name="lotflip-save-namespace" content="lot_flip_iso_test_">
+<meta name="lotflip-build" content="isometric-lot1-prototype"><meta name="lotflip-save-namespace" content="lot_flip_iso_test_">
 </head>
 <body>
 <div id="app">
@@ -536,8 +536,38 @@ function drivewayArt(i,parked,l){
   const parkedCars=parked?car(73,lotY+8,c1)+car(87,lotY+8,c2):'';
   return '<g class="drive-art"><path d="'+roadEdge+'" fill="none" stroke="#777b75" stroke-width="12" stroke-linecap="round"/><path d="'+roadEdge+'" fill="none" stroke="#c7c8bf" stroke-width="8" stroke-linecap="round"/><rect x="64" y="'+lotY+'" width="32" height="27" rx="2.5" fill="#777b75" stroke="#545954" stroke-width="1.2"/><rect x="66" y="'+(lotY+2)+'" width="28" height="23" rx="1.5" fill="#c7c8bf"/><path d="M80 '+(lotY+2)+'v23" stroke="#f7f7ef" stroke-width="1.2" stroke-dasharray="2 1.5"/><path d="M66 '+(lotY+2)+'h28M66 '+(lotY+25)+'h28" stroke="#ecece5" stroke-width=".8"/>'+parkedCars+'</g>';
 }
+function isometricHomeArt(l,i){
+  // Visual-only prototype for Lot 1. Gameplay state, value, rent, and traffic stay unchanged.
+  const kind=l.hs, wall=l.paint||'#e8d6b8';
+  const roof=l.reno.includes('roof')?'#343b46':(kind==='mansion'?'#55404a':'#a8483a');
+  const tall=kind==='colonial'?1:kind==='mansion'?1.08:kind==='apartment'?1.28:0.82;
+  const top=kind==='apartment'?8:kind==='mansion'?13:kind==='colonial'?17:23;
+  const frontBottom=kind==='apartment'?48:kind==='mansion'?48:kind==='colonial'?49:49;
+  const frontTop=top+10;
+  const side='#b5a28b';
+  const windows=kind==='apartment'
+    ? '<g fill="#a9d9e9" stroke="#536873" stroke-width=".8"><rect x="39" y="20" width="7" height="8"/><rect x="52" y="20" width="7" height="8"/><rect x="39" y="33" width="7" height="8"/><rect x="52" y="33" width="7" height="8"/></g>'
+    : '<g fill="#a9d9e9" stroke="#536873" stroke-width=".8"><path d="M34 31h8v9h-8zM49 31h8v9h-8z"/><path d="M34 31v9m4-9v9m-4-5h8M49 31v9m4-9v9m-4-5h8" stroke="#eaf7fb" stroke-width=".6"/></g>';
+  let building='';
+  if(kind==='apartment'){
+    building='<polygon points="29,18 55,7 77,18 51,30" fill="#d9e0e3" stroke="#59656b" stroke-width="1"/><polygon points="51,30 77,18 77,47 51,59" fill="#83949d" stroke="#59656b"/><polygon points="29,18 51,30 51,59 29,47" fill="#c4d0d5" stroke="#59656b"/>'+windows;
+  } else {
+    const width=kind==='mansion'?34:26;
+    const left=kind==='mansion'?25:31, right=left+width;
+    building='<polygon points="'+left+','+frontTop+' '+(left+width*.48)+','+(top-10)+' '+(right+20)+','+frontTop+' '+(left+width*.52+20)+','+(frontTop+9)+'" fill="'+roof+'" stroke="#493b38" stroke-width="1"/><polygon points="'+(left+width*.52+20)+','+(frontTop+9)+' '+(right+20)+','+frontTop+' '+(right+20)+','+(frontBottom-2)+' '+(left+width*.52+20)+','+frontBottom+'" fill="#765b50" stroke="#493b38" stroke-width=".8"/><polygon points="'+left+','+frontTop+' '+(left+width*.52+20)+','+(frontTop+9)+' '+(left+width*.52+20)+','+frontBottom+' '+left+','+frontBottom+'" fill="'+wall+'" stroke="#67584b" stroke-width=".8"/><polygon points="'+left+','+frontTop+' '+(left+width*.48)+','+(top-10)+' '+(right+20)+','+frontTop+' '+(left+width*.52+20)+','+(frontTop+9)+'" fill="'+roof+'" stroke="#493b38" stroke-width="1"/>'+windows+'<rect x="43" y="39" width="8" height="10" fill="#704a35" stroke="#493b38" stroke-width=".7"/>';
+    if(kind==='mansion') building+='<polygon points="24,27 33,21 42,27 33,32" fill="#8f6d60" stroke="#493b38"/><polygon points="62,27 71,21 80,27 71,32" fill="#8f6d60" stroke="#493b38"/>';
+    if(kind==='colonial') building+='<polygon points="45,16 50,11 55,16" fill="#a8483a" stroke="#493b38"/><rect x="47" y="17" width="6" height="6" fill="#a9d9e9" stroke="#536873" stroke-width=".7"/>';
+  }
+  const luxury=l.reno.includes('luxury');
+  const landscaping=l.reno.includes('luxury')
+    ? '<path d="M17 48q7-7 14 0t14 0" fill="none" stroke="#2e7d32" stroke-width="3"/><path d="M68 47q6-7 12 0" fill="none" stroke="#2e7d32" stroke-width="3"/><g><circle cx="18" cy="39" r="5" fill="#2e7d32"/><circle cx="15" cy="36" r="3" fill="#43a047"/><circle cx="21" cy="35" r="3" fill="#388e3c"/><circle cx="83" cy="39" r="5" fill="#2e7d32"/><circle cx="80" cy="36" r="3" fill="#43a047"/><circle cx="86" cy="35" r="3" fill="#388e3c"/><circle cx="25" cy="48" r="1.5" fill="#f6c4d0"/><circle cx="29" cy="46" r="1.5" fill="#fff0a6"/><circle cx="75" cy="48" r="1.5" fill="#f6c4d0"/></g>'
+    : '<circle cx="19" cy="43" r="3.5" fill="#388e3c"/><circle cx="82" cy="43" r="3.5" fill="#388e3c"/>';
+  return '<g class="iso-lot-one"><ellipse cx="52" cy="54" rx="39" ry="7" fill="#23321f" opacity=".23"/><polygon points="10,48 51,31 92,48 51,67" fill="#69ad4d" stroke="#4b8738" stroke-width="1"/><polygon points="54,51 75,42 91,49 70,59" fill="#c8bda7" opacity=".9"/><path d="M51 57l0 9" stroke="#e8dfca" stroke-width="3"/><polygon points="16,47 51,33 87,48 51,63" fill="#79bd5a" opacity=".38"/>'+landscaping+building+'<path d="M42 50l9 4 9-4" fill="none" stroke="#eee3cf" stroke-width="1.5"/><g opacity=".18"><path d="M27 53l8-3m32 5 8-3" stroke="#fff" stroke-width="1.2"/></g></g>';
+}
+
 function art(l,i){
-  const main=houseArt(l,i);
+  const isoStates=['ready','rented','listed','ai_for_sale'];
+  const main=(i===0&&l.hs&&S[l.hs]&&S[l.hs].cat==='h'&&isoStates.includes(l.st))?isometricHomeArt(l,i):houseArt(l,i);
   // Vacant lots stay clear. Add pavement only when a building exists or construction is underway.
   const hasBuilding=!!l.hs&&l.st!=="sold";
   const parked=hasBuilding&&!['working','reno_working','demo','sold','listed','ai_for_sale'].includes(l.st)&&!traffic[i];
