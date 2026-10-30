@@ -168,7 +168,7 @@ h1{font-size:20px;margin:0;font-weight:800;color:var(--gold)}
 #money{transform-origin:left center}
 @keyframes flash{30%{transform:scale(1.1);color:#fff}}
 </style>
-<meta name="lotflip-build" content="isometric-lot1-prototype-v3-debug"><meta name="lotflip-save-namespace" content="lot_flip_iso_test_">
+<meta name="lotflip-build" content="isometric-lot1-ranch-detail-driveway-aligned-v4"><meta name="lotflip-save-namespace" content="lot_flip_iso_test_">
 </head>
 <body>
 <div id="app">
@@ -285,7 +285,7 @@ function rentOf(i){const l=lots[i];if(!l.hs||S[l.hs].cat==="i"||l.st==="reno_wor
 
 function build(){
   const sc=$("scene");sc.innerHTML="";trk={};traffic={};roadTraffic=[];
-  const row=a=>{const r=document.createElement("div");r.className="row";for(let k=0;k<5;k++){const i=a+k,d=document.createElement("div"),side=Math.floor(i/5)===0?"to-bottom":"to-top";d.className="lot";d.innerHTML='<b class="bb"></b><b class="ab"></b><b class="iso-flag">2.5D TEST BUILD</b><svg viewBox="0 0 100 90" preserveAspectRatio="none"></svg><div class="act"></div><div class="pb"><i></i></div>';d.onclick=()=>tapLot(i);r.appendChild(d)}return r};
+  const row=a=>{const r=document.createElement("div");r.className="row";for(let k=0;k<5;k++){const i=a+k,d=document.createElement("div"),side=Math.floor(i/5)===0?"to-bottom":"to-top";d.className="lot";d.innerHTML='<b class="bb"></b><b class="ab"></b><svg viewBox="0 0 100 90" preserveAspectRatio="none"></svg><div class="act"></div><div class="pb"><i></i></div>';d.onclick=()=>tapLot(i);r.appendChild(d)}return r};
   const rd=document.createElement("div");rd.className="road";
   rd.innerHTML='<div class="cw" style="left:18%"></div><div class="cw" style="left:48%"></div><div class="cw" style="right:18%"></div>';
   sc.append(row(0),rd,row(5));if(lots.length>10){const r2=rd.cloneNode(true);sc.append(r2,row(10))}els=[...sc.querySelectorAll(".lot")];initRoadTraffic();
@@ -539,54 +539,72 @@ function drivewayArt(i,parked,l){
   return '<g class="drive-art"><path d="'+roadEdge+'" fill="none" stroke="#777b75" stroke-width="12" stroke-linecap="round"/><path d="'+roadEdge+'" fill="none" stroke="#c7c8bf" stroke-width="8" stroke-linecap="round"/><rect x="64" y="'+lotY+'" width="32" height="27" rx="2.5" fill="#777b75" stroke="#545954" stroke-width="1.2"/><rect x="66" y="'+(lotY+2)+'" width="28" height="23" rx="1.5" fill="#c7c8bf"/><path d="M80 '+(lotY+2)+'v23" stroke="#f7f7ef" stroke-width="1.2" stroke-dasharray="2 1.5"/><path d="M66 '+(lotY+2)+'h28M66 '+(lotY+25)+'h28" stroke="#ecece5" stroke-width=".8"/>'+parkedCars+'</g>';
 }
 function isometricHomeArt(l,i){
-  // Clearly differentiated 2.5D/isometric residential prototype for Lot 1.
-  // This function is visual-only: no property, upgrade, value, rent, or traffic state changes.
+  // Lot 1 visual prototype: richer 2.5D ranch with its front entrance and
+  // walkway aligned to the existing centered driveway/parking bay.
+  // Rendering only; traffic geometry and game-state calculations are untouched.
   const kind=l.hs, wall=l.paint||'#e8d6b8';
-  const roof=l.reno.includes('roof')?'#343b46':(kind==='mansion'?'#55404a':'#a8483a');
-  const sideWall=kind==='ranch'?'#b99d7d':'#aa9279';
-  const front=kind==='ranch'?'#ead8ba':wall;
+  const roof=l.reno.includes('roof')?'#343b46':(kind==='mansion'?'#55404a':'#8e4638');
+  const front=wall, sideWall=kind==='ranch'?'#b99d7d':'#aa9279';
   const luxury=l.reno.includes('luxury');
-  const roofDetail='<path d="M25 29L52 15L81 29" fill="none" stroke="#f4b7a0" stroke-width="1.1" opacity=".55"/><path d="M52 15v5" stroke="#4a3530" stroke-width="1.2"/>';
+  const ranch=kind==='ranch';
   let house='';
-  if(kind==='ranch'){
-    // Broad, low ranch footprint with two visible wall planes and a deep hip roof.
-    house='<polygon points="25,32 52,45 52,69 25,56" fill="'+front+'" stroke="#59483c" stroke-width="1"/>'+
-      '<polygon points="52,45 80,31 80,55 52,69" fill="'+sideWall+'" stroke="#59483c" stroke-width="1"/>'+
-      '<polygon points="21,31 51,15 84,30 53,47" fill="'+roof+'" stroke="#49352f" stroke-width="1.2"/>'+
-      '<polygon points="21,31 53,47 53,51 21,35" fill="#713c32" stroke="#49352f" stroke-width=".8"/>'+
-      '<polygon points="53,47 84,30 84,34 53,51" fill="#612f2a" stroke="#49352f" stroke-width=".8"/>'+
-      '<path d="M51 15L51 19" stroke="#342a28" stroke-width="2"/>'+
-      '<rect x="32" y="39" width="9" height="10" fill="#9ed5e7" stroke="#55483f" stroke-width=".8"/><path d="M36.5 39v10M32 44h9" stroke="#eefaff" stroke-width=".7"/>'+
-      '<rect x="57" y="43" width="9" height="10" fill="#9ed5e7" stroke="#55483f" stroke-width=".8"/><path d="M61.5 43v10M57 48h9" stroke="#eefaff" stroke-width=".7"/>'+
-      '<rect x="43" y="51" width="8" height="17" fill="#69442f" stroke="#49352f" stroke-width=".8"/><circle cx="49" cy="59" r=".8" fill="#f7d36a"/>'+
-      '<path d="M40 68h14l4 3H39z" fill="#c6b7a2" stroke="#786d60" stroke-width=".6"/>'+
-      '<rect x="73" y="22" width="4" height="11" fill="#8a7664" stroke="#49352f" stroke-width=".7"/>';
+  if(ranch){
+    house=
+      // Foundation and two wall planes
+      '<polygon points="24,33 52,47 52,70 24,56" fill="#75695b" stroke="#4d4036" stroke-width="1"/>'+
+      '<polygon points="52,47 81,32 81,55 52,70" fill="#665747" stroke="#4d4036" stroke-width="1"/>'+
+      '<polygon points="25,31 52,45 52,48 25,34" fill="#f1e6d3" opacity=".8"/>'+
+      '<path d="M26 57L52 70L80 56" fill="none" stroke="#51473d" stroke-width="1.4"/>'+
+      // Deep hip roof with fascia, ridge and individual shingle seams
+      '<polygon points="19,31 51,13 87,30 53,49" fill="'+roof+'" stroke="#382e2b" stroke-width="1.4"/>'+
+      '<polygon points="19,31 53,49 53,53 19,35" fill="#60372f" stroke="#382e2b" stroke-width=".9"/>'+
+      '<polygon points="53,49 87,30 87,34 53,53" fill="#4c302d" stroke="#382e2b" stroke-width=".9"/>'+
+      '<path d="M24 30L51 15L81 29M29 33L51 21M36 37L51 29M44 41L51 37M59 45L82 32M67 41L82 36" fill="none" stroke="#d7b4a0" stroke-width=".65" opacity=".48"/>'+
+      '<path d="M20 31L53 49L86 31" fill="none" stroke="#d9c0a8" stroke-width="1.1" opacity=".8"/>'+
+      // Siding on both visible elevations
+      '<path d="M27 39L49 50M27 44L49 55M27 49L49 60M27 54L49 65" stroke="#fff4df" stroke-width=".65" opacity=".5"/>'+
+      '<path d="M56 51L77 40M56 56L77 45M56 61L77 50M56 66L77 55" stroke="#ead4b8" stroke-width=".65" opacity=".45"/>'+
+      // Front-facing windows with trim, mullions and sill depth
+      '<polygon points="31,40 40,44.5 40,55 31,50.5" fill="#6c5140" stroke="#493b32" stroke-width=".8"/>'+
+      '<polygon points="32,41 39,44.5 39,53.5 32,50" fill="#9ed8ed" stroke="#f4eadb" stroke-width=".8"/>'+
+      '<path d="M35.5 42.8V52M32 46.2L39 49.7" stroke="#f5f4e9" stroke-width=".7"/>'+
+      '<polygon points="59,48 69,43 69,53 59,58" fill="#6c5140" stroke="#493b32" stroke-width=".8"/>'+
+      '<polygon points="60,48.5 68,44.5 68,52.5 60,56.5" fill="#9ed8ed" stroke="#f4eadb" stroke-width=".8"/>'+
+      '<path d="M64 46.5V54.5M60 52.5L68 48.5" stroke="#f5f4e9" stroke-width=".7"/>'+
+      // Front door moved to the driveway-facing corner/centerline
+      '<polygon points="45,52 51,55 51,69 45,66" fill="#553a2b" stroke="#38291f" stroke-width=".9"/>'+
+      '<polygon points="46,53 50,55 50,67 46,65" fill="#8b5a3c"/>'+
+      '<circle cx="49" cy="61" r=".75" fill="#f5d17a"/>'+
+      '<path d="M43 52L51 56L53 55L45 51Z" fill="#e8e0d1" stroke="#66594c" stroke-width=".6"/>'+
+      // Chimney, downspout and gutter details
+      '<polygon points="72,19 78,16 78,29 72,32" fill="#8b6a58" stroke="#493b32" stroke-width=".8"/>'+
+      '<polygon points="71,18 78,14.5 80,16 73,20" fill="#c7b7a4" stroke="#493b32" stroke-width=".6"/>'+
+      '<path d="M81 33L81 54L78 56" fill="none" stroke="#d2c5ae" stroke-width="1.2"/>';
   } else {
     const width=kind==='mansion'?38:31;
     house='<polygon points="'+(52-width/2)+',30 52,43 52,68 '+(52-width/2)+',55" fill="'+front+'" stroke="#59483c"/>'+
       '<polygon points="52,43 '+(52+width/2)+',30 '+(52+width/2)+',55 52,68" fill="'+sideWall+'" stroke="#59483c"/>'+
       '<polygon points="'+(48-width/2)+',29 52,12 '+(56+width/2)+',29 52,46" fill="'+roof+'" stroke="#49352f" stroke-width="1.2"/>'+
-      '<polygon points="'+(48-width/2)+',29 52,46 52,50 '+(48-width/2)+',33" fill="#713c32"/>'+
-      '<polygon points="52,46 '+(56+width/2)+',29 '+(56+width/2)+',33 52,50" fill="#612f2a"/>'+
       '<rect x="39" y="45" width="8" height="9" fill="#9ed5e7" stroke="#55483f"/><rect x="59" y="42" width="8" height="9" fill="#9ed5e7" stroke="#55483f"/>'+
       '<rect x="47" y="52" width="8" height="16" fill="#69442f" stroke="#49352f"/>';
     if(kind==='colonial') house+='<polygon points="48,19 52,10 56,19" fill="#a8483a" stroke="#49352f"/><rect x="50" y="19" width="4" height="6" fill="#9ed5e7" stroke="#55483f"/>';
     if(kind==='mansion') house+='<polygon points="24,34 33,25 42,34 33,39" fill="#8d5142" stroke="#49352f"/><polygon points="62,34 71,25 80,34 71,39" fill="#8d5142" stroke="#49352f"/>';
   }
   const landscaping=luxury
-    ? '<g><circle cx="15" cy="43" r="6" fill="#246b31"/><circle cx="12" cy="40" r="3.5" fill="#3b9848"/><circle cx="19" cy="39" r="3.5" fill="#55ad55"/><circle cx="87" cy="43" r="6" fill="#246b31"/><circle cx="84" cy="40" r="3.5" fill="#3b9848"/><circle cx="91" cy="39" r="3.5" fill="#55ad55"/><path d="M10 53q6-5 12 0m60 0q6-5 12 0" stroke="#2d7837" stroke-width="3" fill="none"/><circle cx="25" cy="53" r="1.5" fill="#f6c4d0"/><circle cx="29" cy="51" r="1.5" fill="#fff0a6"/><circle cx="73" cy="53" r="1.5" fill="#f6c4d0"/><circle cx="77" cy="51" r="1.5" fill="#fff0a6"/></g>'
-    : '<g><circle cx="16" cy="47" r="3.5" fill="#388e3c"/><circle cx="88" cy="47" r="3.5" fill="#388e3c"/></g>';
-  return '<g class="iso-lot-one">'+
-    '<g transform="translate(3 5)"><rect x="0" y="0" width="24" height="7" rx="2" fill="#173b68" stroke="#fff" stroke-width=".6"/><text x="12" y="5" text-anchor="middle" font-size="4.2" font-weight="900" fill="#fff">2.5D TEST</text></g>'+
-    '<ellipse cx="53" cy="65" rx="43" ry="8" fill="#1e2b1a" opacity=".27"/>'+
+    ? '<g><circle cx="14" cy="45" r="6" fill="#246b31"/><circle cx="11" cy="41" r="3.5" fill="#3b9848"/><circle cx="18" cy="40" r="3.5" fill="#55ad55"/><circle cx="88" cy="45" r="6" fill="#246b31"/><circle cx="85" cy="41" r="3.5" fill="#3b9848"/><circle cx="92" cy="40" r="3.5" fill="#55ad55"/><path d="M9 54q7-6 14 0m60 0q7-6 14 0" stroke="#2d7837" stroke-width="3" fill="none"/><circle cx="25" cy="55" r="1.5" fill="#f6c4d0"/><circle cx="29" cy="53" r="1.5" fill="#fff0a6"/><circle cx="73" cy="55" r="1.5" fill="#f6c4d0"/><circle cx="77" cy="53" r="1.5" fill="#fff0a6"/></g>'
+    : '<g><circle cx="15" cy="48" r="3.5" fill="#388e3c"/><circle cx="88" cy="48" r="3.5" fill="#388e3c"/></g>';
+  // Diamond-shaped lot pad. The concrete walk runs straight from the front
+  // door (x≈50) to the centered street-side parking connector (x=50).
+  const path='<polygon points="46,68 52,71 56,77 50,80 45,76" fill="#c8bda9" stroke="#958a78" stroke-width=".65"/>'+
+    '<path d="M49 70L50 78" stroke="#eee5d6" stroke-width="1.1" opacity=".9"/>';
+  const lawn='<ellipse cx="53" cy="68" rx="43" ry="8" fill="#1e2b1a" opacity=".25"/>'+
     '<polygon points="7,51 51,29 95,51 52,75" fill="#5fa747" stroke="#3e7e32" stroke-width="1.2"/>'+
     '<polygon points="7,51 52,75 52,78 7,54" fill="#4d913c" opacity=".7"/>'+
     '<polygon points="52,75 95,51 95,54 52,78" fill="#3f8034" opacity=".7"/>'+
-    '<polygon points="51,62 68,53 77,58 59,68" fill="#c9b99d" stroke="#a4947b" stroke-width=".7"/>'+
-    '<path d="M59 68l-7 4" stroke="#eee3cf" stroke-width="2.5"/>'+
-    '<path d="M23 58l8-4m-5 8 8-4m40-4 7-4" stroke="#8ac96d" stroke-width="1.2" opacity=".7"/>'+
-    landscaping+house+roofDetail+
-    '<path d="M46 68l6 3 6-3" fill="none" stroke="#e9ddc9" stroke-width="1.3"/>'+
+    '<path d="M14 53l5-3m-2 8 6-3m54-7 6-4m-4 10 6-3" stroke="#8ac96d" stroke-width="1.1" opacity=".7"/>';
+  return '<g class="iso-lot-one">'+
+    '<ellipse cx="53" cy="70" rx="38" ry="7" fill="#1e2b1a" opacity=".22"/>'+lawn+landscaping+path+house+
+    '<path d="M24 31L51 13L87 30" fill="none" stroke="#e6c9b5" stroke-width=".7" opacity=".55"/>'+
     '</g>';
 }
 
@@ -1096,7 +1114,7 @@ function draw(){
     const e=els[i];if(!e)return;
     
     const ai=l.st==="ai_owned"||l.st==="ai_for_sale";
-    e.classList.toggle("iso-prototype",i===0);
+    e.classList.toggle("iso-prototype",false);
     const hasBuilding=!!l.hs&&l.st!=="sold";
     const streetAbove=Math.floor(i/5)>0;
     e.classList.toggle("to-bottom",!streetAbove);e.classList.toggle("to-top",streetAbove);
