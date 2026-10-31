@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Lot Flip — Smooth Traffic Following — Isometric Test Build</title>
+<title>Lot Flip — Smooth Traffic Following</title>
 <style>
 :root{--bg:#1a2417;--card:#263622;--hov:#32462d;--text:#f0f7ec;--mut:#a0b894;--acc:#4caf50;--line:#3a5032;--warn:#e53935;--gold:#ffb300;--blue:#29b6f6;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
@@ -28,19 +28,20 @@ h1{font-size:20px;margin:0;font-weight:800;color:var(--gold)}
 .bar{height:7px;background:var(--line);border-radius:4px;overflow:hidden}
 .bar i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
 #bonus,#evt{font-size:12px;font-weight:700;text-align:center;color:var(--gold);min-height:0}
+#campaign{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:5px 9px;display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:11px;font-weight:800}#campaign b{color:var(--gold)}#campaign small{color:var(--mut);font-size:10px;font-weight:700;text-align:right}
 #evt{color:var(--blue)}
-#scene{isolation:isolate;background:repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 2px,transparent 2px 8px),linear-gradient(145deg,#6eb657,#4d963e);border:3px solid #4d8837;border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:12px;box-shadow:inset 0 2px 12px rgba(0,0,0,.3);position:relative;overflow:hidden}
+#scene{isolation:isolate;background:#62aa48;border:3px solid #4d8837;border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:12px;box-shadow:inset 0 2px 12px rgba(0,0,0,.3);position:relative;overflow:hidden}
 #scene.pz *{animation-play-state:paused!important}
 .row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;position:relative;z-index:2}
-.road{height:48px;background:linear-gradient(180deg,#555b5d 0 5px,#303638 5px 43px,#555b5d 43px 48px);border-radius:5px;position:relative;z-index:1;overflow:hidden;border:1px solid #252b2c;box-shadow:inset 0 1px rgba(255,255,255,.13),inset 0 -2px rgba(0,0,0,.25),0 2px 0 #c5c5b9}
-.road::before{content:"";position:absolute;left:0;right:0;top:22px;border-top:2px dashed #f5d061;opacity:.95}.road::after{content:"";position:absolute;left:0;right:0;top:5px;height:1px;background:#a9ada7;box-shadow:0 37px #a9ada7;opacity:.75}
+.road{height:38px;background:#33383b;border-radius:6px;position:relative;z-index:1;overflow:hidden;border:2px solid #222;border-top:4px solid #a7aaa1;border-bottom:4px solid #a7aaa1;box-shadow:inset 0 4px rgba(255,255,255,.035),inset 0 -4px rgba(0,0,0,.12)}
+.road::before{content:"";position:absolute;left:0;right:0;top:15px;border-top:2px dashed #f5d061}
 .cw{position:absolute;top:0;bottom:0;width:16px;background:repeating-linear-gradient(0deg,#fff,#fff 4px,transparent 4px,transparent 8px);opacity:.7}
 .traffic-car,.road-traffic-car{position:absolute;left:0;top:0;width:20px;height:11.25px;pointer-events:none;will-change:left,top,transform;filter:drop-shadow(0 1px 1px rgba(0,0,0,.45))}
 .traffic-car{z-index:65}
 .road-traffic-car{z-index:60}
 .traffic-car svg,.road-traffic-car svg{display:block;width:20px;height:11.25px;overflow:visible}
 .lot{background:#73b853;border:2px dashed #488433;border-radius:10px;padding:5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:space-between;position:relative;height:142px;overflow:visible;user-select:none;-webkit-user-select:none;transition:transform .15s}
-.lot.purchased{background:linear-gradient(135deg,rgba(255,193,7,.18) 0 16px,var(--card) 16px);border:3px solid #d6a400;box-shadow:inset 0 0 0 2px rgba(255,193,7,.16),0 0 0 1px rgba(0,0,0,.12)}
+.lot.purchased{background:linear-gradient(135deg,rgba(255,193,7,.18) 0 16px,var(--card) 16px);border:3px solid #d6a400;outline:2px solid #d6a400;outline-offset:-3px;box-shadow:inset 0 0 0 2px rgba(255,193,7,.16),0 0 0 1px rgba(0,0,0,.12)}
 .lot.ai-owned{background:#33261a;border:2px solid #8d6e63}
 .lot.tap{transform:scale(.93)}
 .lot.hot{border-color:var(--gold);animation:pulse 1.5s infinite}
@@ -48,9 +49,7 @@ h1{font-size:20px;margin:0;font-weight:800;color:var(--gold)}
 @keyframes pulse{50%{border-color:var(--acc)}}
 @keyframes op{50%{box-shadow:0 0 12px var(--blue)}}
 @media(hover:hover){.lot:hover{border-color:#fff}}
-.lot svg{width:100%;height:92px;display:block;flex-shrink:0;pointer-events:none;transform-origin:50% 100%;position:relative;z-index:2}
-.lot .iso-flag{display:none;position:absolute;top:4px;left:4px;z-index:20;padding:3px 5px;border-radius:4px;background:#0759d1;color:#fff;border:1px solid #fff;font-size:9px;line-height:1;font-weight:1000;letter-spacing:.35px;box-shadow:0 1px 5px #0009;pointer-events:none}
-.lot.iso-prototype .iso-flag{display:block}
+.lot svg{width:100%;height:84px;display:block;flex-shrink:0;pointer-events:none;transform-origin:50% 100%;position:relative;z-index:2}
 .drive-art{pointer-events:none}
 /* Parking is anchored to the lot edge. Driveway connectors stop at the gray sidewalk before the road. */
 .lot.has-parking::before{content:"";position:absolute;left:calc(50% - 20px);width:40px;height:26px;background:#777b75;border:1px solid #545954;border-radius:3px;box-sizing:border-box;z-index:1;pointer-events:none}
@@ -59,12 +58,14 @@ h1{font-size:20px;margin:0;font-weight:800;color:var(--gold)}
 .lot.has-parking.to-bottom::after{bottom:-12px;height:36px}
 .lot.has-parking.to-top::before{top:5px}
 .lot.has-parking.to-top::after{top:-12px;height:17px}
-.lot.has-parking.business-parking::before{left:calc(50% - 34px);width:68px;height:34px;background:repeating-linear-gradient(90deg,#aeb2a9 0 12px,#f8f8ef 12px 13px,#aeb2a9 13px 23px);}
+.lot.has-parking.business-parking::before{left:50%;transform:translateX(-50%);width:calc(100% - 16px);max-width:68px;height:34px;box-sizing:border-box;border:1px solid #f8f8ef;border-radius:2px;background:linear-gradient(90deg,transparent calc(50% - .7px),#f8f8ef calc(50% - .7px),#f8f8ef calc(50% + .7px),transparent calc(50% + .7px)),linear-gradient(0deg,transparent 2px,#f8f8ef 2px,#f8f8ef 3px,transparent 3px,transparent calc(100% - 3px),#f8f8ef calc(100% - 3px),#f8f8ef calc(100% - 2px),transparent calc(100% - 2px)),#aeb2a9;}
 .lot.has-parking.business-parking.to-bottom::before{bottom:20px}
 .lot.has-parking.business-parking.to-top::before{top:3px}
 .lot.has-parking.business-parking::after{left:calc(50% - 12px);width:24px}
 .lot.has-parking.business-parking.to-bottom::after{bottom:-12px;height:32px}
 .lot.has-parking.business-parking.to-top::after{top:-12px;height:15px}
+.lot .ownership-frame{display:none;position:absolute;inset:-1px;border:3px solid #d6a400;border-radius:10px;z-index:8;pointer-events:none}
+.lot.purchased.business-parking .ownership-frame{display:block}
 .lot .act,.lot .pb{position:relative;z-index:3}
 .pi{animation:pi .5s}
 @keyframes pi{0%{transform:scale(.7)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
@@ -74,6 +75,9 @@ h1{font-size:20px;margin:0;font-weight:800;color:var(--gold)}
 .pb i{display:block;height:100%;background:var(--gold);width:0}
 .bb,.ab{position:absolute;top:3px;font-size:10px;font-weight:800;padding:1px 4px;border-radius:4px;color:#fff;z-index:5;pointer-events:none;display:none}
 .bb{left:3px;background:rgba(171,71,188,.95)}
+.lot.business-parking .bb{z-index:70}
+.lot.business-parking.to-bottom .bb{top:3px;bottom:auto}
+.lot.business-parking.to-top .bb{top:auto;bottom:3px}
 .ab{right:3px;background:#d84315;font-size:9px}
 .pop{position:absolute;top:6px;right:6px;font-weight:800;color:#fff;background:var(--acc);border-radius:10px;padding:1px 6px;font-size:11px;animation:popa 1.1s ease-out forwards;pointer-events:none;z-index:40}
 .pop.big{font-size:14px;background:var(--gold);color:#000}
@@ -141,7 +145,7 @@ h1{font-size:20px;margin:0;font-weight:800;color:var(--gold)}
 .mbtn{background:var(--acc);color:#fff;border:0;border-radius:10px;min-height:48px;font:inherit;font-size:15px;font-weight:800}
 .mbtn.blue{background:#0288d1}.mbtn.gold{background:#f57c00}.mbtn.line{background:var(--line)}
 .stars{font-size:34px;letter-spacing:4px}
-@media(max-width:768px){.lot{height:124px}.lot svg{height:82px}}
+@media(max-width:768px){.lot{height:124px}.lot svg{height:76px}}
 
 /* compact pinned HUD */
 .hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--bg);display:flex;flex-direction:column;gap:3px;padding:2px 0 4px}
@@ -168,7 +172,6 @@ h1{font-size:20px;margin:0;font-weight:800;color:var(--gold)}
 #money{transform-origin:left center}
 @keyframes flash{30%{transform:scale(1.1);color:#fff}}
 </style>
-<meta name="lotflip-build" content="isometric-neighborhood-ranch-colonial-mansion-v6"><meta name="lotflip-save-namespace" content="lot_flip_iso_test_">
 </head>
 <body>
 <div id="app">
@@ -183,7 +186,7 @@ h1{font-size:20px;margin:0;font-weight:800;color:var(--gold)}
     <div class="hsub"><span>Builders <b id="bld">0/0</b></span><span>Income <b id="rent" style="color:var(--acc)">$0/s</b></span><span>Goal <b id="pct">0%</b></span></div>
     <div class="bar"><i id="gbar"></i></div>
   </div>
-  <div id="bonus"></div><div id="evt"></div><div id="tut"></div>
+  <div id="campaign"><b id="chapter">CHAPTER 1</b><small id="mission">The First Flip</small></div><div id="bonus"></div><div id="evt"></div><div id="tut"></div>
   <div id="scene"></div>
   <div class="shop">
     <button class="b" id="hire"></button>
@@ -237,6 +240,59 @@ shopping:{n:"Shopping Center",cost:2500,val:2400,rm:0,dur:12,rev:45,cat:"i",ic:"
 fire:{n:"Fire Station",cost:1600,val:1600,rm:0,dur:9,streetBoost:.15,cat:"i",ic:"🚒",unlock:24,d:"+15% home value along its street"},
 bank:{n:"Bank",cost:3000,val:3000,rm:0,dur:14,rev:50,cat:"i",ic:"🏦",unlock:30,d:"Generates $50 every 3 seconds"}};
 const BUILDING_LIMITS={park:3,apartment:3,pool:2,civic:1,school:1,hospital:1,shopping:1,fire:1,bank:1};
+
+const CAMPAIGN=[
+ {chapter:"The First Flip",theme:["#62aa48","#4d8837"],levels:[
+  ["New Beginnings","ranch","Complete your first profitable flip."],
+  ["Green Acres","park","Bring the first green space to the neighborhood."],
+  ["The Neighborhood","civic","Build a civic hub and grow the local economy."],
+  ["Quick Turnaround","colonial","Move up to a more valuable home."],
+  ["Rental Row","apartment","Add the neighborhood's first apartment building."]
+ ]},
+ {chapter:"Building a Community",theme:["#4f9e80","#34765e"],levels:[
+  ["Room to Grow","ranch","Keep adding homes as the neighborhood expands."],
+  ["Good Neighbors","mansion","Raise the standard with a premium home."],
+  ["Backyard Paradise","pool","Give the neighborhood its first pool."],
+  ["Community Pride","park","Add another green space to the community."],
+  ["Neighborhood Mogul","apartment","Build another source of steady rental income."]
+ ]},
+ {chapter:"The Growing Market",theme:["#5895b5","#376d8c"],levels:[
+  ["New Horizons","colonial","Develop a stronger residential block."],
+  ["Education Matters","school","Build a school for the growing population."],
+  ["Market Shift","mansion","Invest in a high-value property."],
+  ["Apartment Rush","apartment","Expand the rental market."],
+  ["Healthy Community","hospital","Add essential community infrastructure."]
+ ]},
+ {chapter:"Urban Development",theme:["#858b91","#5b626a"],levels:[
+  ["City Expansion","pool","Improve the value of nearby properties."],
+  ["Prime Location","mansion","Make a premium investment in a tight market."],
+  ["Urban Renewal","school","Bring a community anchor to an older district."],
+  ["Business District","civic","Strengthen the city center."],
+  ["Shopping District","shopping","Open the district's first shopping center."]
+ ]},
+ {chapter:"The Luxury Market",theme:["#a58b50","#80652f"],levels:[
+  ["High Society","mansion","Build for buyers looking for luxury."],
+  ["Luxury Buyers","colonial","Add a refined home to the district."],
+  ["The Big Investment","apartment","Scale up your income-producing portfolio."],
+  ["Public Safety","fire","Protect the neighborhood with a fire station."],
+  ["Million Dollar District","mansion","Raise the bar with another luxury property."]
+ ]},
+ {chapter:"The Real Estate Empire",theme:["#8568a8","#5c467b"],levels:[
+  ["City Planner","hospital","Invest in essential city services."],
+  ["The Market Dip","ranch","Keep the portfolio moving through a market slowdown."],
+  ["Urban Expansion","shopping","Expand the commercial district."],
+  ["The Perfect City","fire","Build a safer, more complete city."],
+  ["Real Estate Tycoon","bank","Complete the empire with a bank."]
+ ]}
+];
+const DIFFICULTY=["Relaxed","Strategic","Challenge","Relaxed","Challenge",
+ "Strategic","Relaxed","Challenge","Strategic","Challenge",
+ "Relaxed","Strategic","Challenge","Relaxed","Challenge",
+ "Strategic","Challenge","Relaxed","Challenge","Strategic",
+ "Relaxed","Challenge","Strategic","Challenge","Relaxed",
+ "Strategic","Challenge","Relaxed","Challenge","Challenge"];
+function campaignInfo(n){const c=Math.max(0,Math.min(5,Math.floor((n-1)/5))),entry=CAMPAIGN[c].levels[(n-1)%5];return {chapter:CAMPAIGN[c].chapter,theme:CAMPAIGN[c].theme,name:entry[0],building:entry[1],description:entry[2],number:c+1,difficulty:DIFFICULTY[n-1]||"Strategic"};}
+
 const buildingCount=k=>lots.filter(l=>l&&l.hs===k&&!['sold','ai_owned','ai_for_sale'].includes(l.st)).length;
 const buildingLimit=k=>BUILDING_LIMITS[k]??Infinity;
 const unlocked=k=>lv>=(S[k]?.unlock||1);
@@ -244,9 +300,9 @@ const availableBuildings=()=>Object.keys(S).filter(unlocked);
 const R={paint:{n:"Fresh Paint",cost:150,vb:120,dur:4},roof:{n:"Modern Roof",cost:300,vb:280,dur:7},luxury:{n:"Luxury Interior",cost:500,vb:500,dur:10}};
 const ORD=["paint","roof","luxury"],PAINT=["#aed581","#81d4fa","#ffcc80","#ce93d8","#ffab91","#fff59d"];
 const EV={boom:"📈 Market boom! Buyer offers +25% for 15s",crash:"📉 Market dip! Buyer offers −20% for 15s",rent:"💸 Rent surge! Rents +50% for 15s"};
-let KEY,BKEY,PKEY,N=10;let asv=5,traffic={},roadTraffic=[];
+let KEY,BKEY,PKEY,BOOSTKEY,N=10;let asv=5,traffic={},roadTraffic=[];
 const CP=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences;const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){let ok=false;try{localStorage.setItem(k,v);ok=true}catch(e){}if(CP)try{CP.set({key:k,value:v})}catch(e){}return ok||!!CP},del(k){try{localStorage.removeItem(k)}catch(e){}if(CP)try{CP.remove({key:k})}catch(e){}}};
-let lv=1,money=0,goal=0,timeVal=0,total=0,elapsed=0,builders=2,speed=1,lots=[],els=[],last=0,run=false,paused=false,sellMode=false,mode="timed",sel=null,bonus=null,objective=null,ev={k:null,t:0,next:30},best={},tt;
+let lv=1,money=0,goal=0,timeVal=0,total=0,elapsed=0,builders=2,speed=1,lots=[],els=[],last=0,run=false,paused=false,sellMode=false,mode="timed",sel=null,bonus=null,objective=null,ev={k:null,t:0,next:30},best={},tt,buildBoostRemaining=0;
 
 const done=l=>l.hs&&["rented","listed","ready","ai_owned","ai_for_sale"].includes(l.st);
 const mkLot=()=>({st:"empty",hs:null,p:0,dur:0,wait:0,marketWait:18+Math.random()*32,offer:null,rent:0,rt:0,land:Math.round(120+Math.random()*80),pt:3+Math.random()*4,aiP:0,aiW:0,aiT:0,reno:[],rp:0,rd:0,pend:null,paint:"#e8d8c3",soldT:0,sp:0,disc:false});
@@ -285,50 +341,56 @@ function rentOf(i){const l=lots[i];if(!l.hs||S[l.hs].cat==="i"||l.st==="reno_wor
 
 function build(){
   const sc=$("scene");sc.innerHTML="";trk={};traffic={};roadTraffic=[];
-  const row=a=>{const r=document.createElement("div");r.className="row";for(let k=0;k<5;k++){const i=a+k,d=document.createElement("div"),side=Math.floor(i/5)===0?"to-bottom":"to-top";d.className="lot";d.innerHTML='<b class="bb"></b><b class="ab"></b><svg viewBox="0 0 100 90" preserveAspectRatio="none"></svg><div class="act"></div><div class="pb"><i></i></div>';d.onclick=()=>tapLot(i);r.appendChild(d)}return r};
+  const row=a=>{const r=document.createElement("div");r.className="row";for(let k=0;k<5;k++){const i=a+k,d=document.createElement("div"),side=Math.floor(i/5)===0?"to-bottom":"to-top";d.className="lot";d.innerHTML='<b class="bb"></b><b class="ab"></b><svg viewBox="0 0 100 90" preserveAspectRatio="none"></svg><div class="act"></div><div class="pb"><i></i></div><div class="ownership-frame"></div>';d.onclick=()=>tapLot(i);r.appendChild(d)}return r};
   const rd=document.createElement("div");rd.className="road";
   rd.innerHTML='<div class="cw" style="left:18%"></div><div class="cw" style="left:48%"></div><div class="cw" style="right:18%"></div>';
   sc.append(row(0),rd,row(5));if(lots.length>10){const r2=rd.cloneNode(true);sc.append(r2,row(10))}els=[...sc.querySelectorAll(".lot")];initRoadTraffic();
 }
 
 function startLevel(){
-  N=lv>=4?15:10;tutOn=lv===1&&!store.get("lot_flip_iso_test_tut");lots=Array.from({length:N},mkLot);closeSheet();
+  N=lv>=4?15:10;tutOn=lv===1&&!store.get("lot_flip_tut");lots=Array.from({length:N},mkLot);closeSheet();
   const goalOrder=[{lv:1,k:"ranch"},{lv:2,k:"park"},{lv:3,k:"civic"},{lv:5,k:"apartment"},{lv:8,k:"pool"},{lv:12,k:"school"},{lv:15,k:"hospital"},{lv:20,k:"shopping"},{lv:24,k:"fire"},{lv:30,k:"bank"}];
-  const requiredBuilding=goalOrder.filter(x=>lv>=x.lv).at(-1).k;
-  // The objective building is always affordable at the start, with a small
-  // operating reserve. This avoids mathematically impossible timed starts.
+  const requiredBuilding=campaignInfo(lv).building;
+  // Keep every mission's required building affordable at the start.
   money=Math.max(800+lv*75,S[requiredBuilding].cost+500);
-  goal=1600+lv*300;
-  total=mode==="timed"?240+lv*20:0;timeVal=total;elapsed=0;
+  const earnedBoost=Number(store.get(BOOSTKEY))===lv;
+  buildBoostRemaining=earnedBoost?10:0;
+  if(earnedBoost)store.del(BOOSTKEY);
+  $("scene").style.background=CAMPAIGN[Math.floor((lv-1)/5)].theme[0];
+  $("scene").style.borderColor=CAMPAIGN[Math.floor((lv-1)/5)].theme[1];
+  const levelDifficulty=campaignInfo(lv).difficulty;
+  goal=Math.round((1600+lv*300)*(levelDifficulty==="Relaxed"?.9:levelDifficulty==="Challenge"?1.15:1));
+  total=mode==="timed"?Math.round((240+lv*20)*(levelDifficulty==="Relaxed"?1.2:levelDifficulty==="Challenge"?.88:1)):0;timeVal=total;elapsed=0;
   const n=Math.min(4,2+Math.floor(lv/3)),ix=[],ht=["ranch","colonial","mansion"];
   while(ix.length<n){const r=Math.floor(Math.random()*N);if(!ix.includes(r))ix.push(r)}
   ix.forEach(k=>{const l=lots[k];l.st="ai_owned";l.hs=ht[Math.floor(Math.random()*3)];l.aiW=3+Math.random()*6});
   const ks=availableBuildings(),k=ks[Math.floor(Math.random()*ks.length)];
   bonus={k,n:S[k].cat==="h"?Math.min(3,1+Math.floor(lv/3)):1,r:200+lv*50,c:0,done:false};
-  objective={k:requiredBuilding,done:false};
+  objective={k:requiredBuilding,done:false,count:1};
+  const ci=campaignInfo(lv);$("chapter").textContent="CHAPTER "+ci.number+" · "+ci.chapter.toUpperCase();$("mission").textContent="LEVEL "+lv+" · "+ci.name+" · "+ci.difficulty.toUpperCase();
   builders=2;speed=1;sellMode=false;paused=false;ev={k:null,t:0,next:30};
   build();run=true;last=performance.now();
   ["ov","pz","end"].forEach(x=>$(x).style.display="none");$("scene").classList.remove("pz");
   $("tl").textContent=mode==="timed"?"Time":"Elapsed";
-  toast("Level "+lv+": reach "+fmt(goal)+" and build a "+S[objective.k].n+"!"+(lv===4?" New row of lots unlocked!":""));setProg(lv);snap();asv=5;draw();
+  toast("Level "+lv+" · "+ci.name+": "+ci.description);if(buildBoostRemaining>0)toast("⚡ 3-star reward active: faster building for 10 seconds!");setProg(lv);snap();asv=5;draw();
 }
 
 function togglePause(){if(!run)return;paused=!paused;$("pz").style.display=paused?"flex":"none";$("scene").classList.toggle("pz",paused);if(!paused)last=performance.now()}
-function snap(){return store.set(KEY,JSON.stringify({lv,money,goal,timeVal,total,elapsed,builders,speed,mode,sellMode,lots,bonus,objective}))}
+function snap(){return store.set(KEY,JSON.stringify({lv,money,goal,timeVal,total,elapsed,builders,speed,mode,sellMode,lots,bonus,objective,buildBoostRemaining}))}
 function autosave(){if(run&&!paused&&lots.length)snap()}
 function getProg(){try{return JSON.parse(store.get(PKEY))}catch(e){return null}}
 function setProg(n){const p=getProg();if(!p||n>p.lv)store.set(PKEY,JSON.stringify({lv:n,mode}))}
 function saveGame(){toast(snap()?"Game saved!":"Couldn’t save in this browser.")}
 function loadGame(){
-  try{const d=JSON.parse(store.get(KEY));lv=d.lv;money=d.money;goal=d.goal;timeVal=d.timeVal;total=d.total||0;elapsed=d.elapsed||0;builders=d.builders;speed=d.speed;mode=d.mode;sellMode=false;lots=d.lots;N=lots.length;bonus=d.bonus;const milestones=[{lv:1,k:"ranch"},{lv:2,k:"park"},{lv:3,k:"civic"},{lv:5,k:"apartment"},{lv:8,k:"pool"},{lv:12,k:"school"},{lv:15,k:"hospital"},{lv:20,k:"shopping"},{lv:24,k:"fire"},{lv:30,k:"bank"}];const expected=(milestones.filter(x=>lv>=x.lv).at(-1)||{k:"ranch"}).k;objective=d.objective||{k:expected,done:false};if(objective.k&&typeof objective.k==="object")objective.k=objective.k.k;if(objective.k!==expected)objective={k:expected,done:lots.some(l=>l.hs===expected&&["rented","listed","ready"].includes(l.st))};
-    ev={k:null,t:0,next:30};setMode(mode);build();lots.forEach((l,i)=>{if(l.st==="listed"&&l.offer)startBuyerArrival(i)});run=true;paused=false;last=performance.now();
+  try{const d=JSON.parse(store.get(KEY));lv=d.lv;money=d.money;goal=d.goal;timeVal=d.timeVal;total=d.total||0;elapsed=d.elapsed||0;builders=d.builders;speed=d.speed;mode=d.mode;sellMode=false;lots=d.lots;N=lots.length;bonus=d.bonus;const expected=campaignInfo(lv).building;objective=d.objective||{k:expected,done:false};buildBoostRemaining=d.buildBoostRemaining||0;if(objective.k&&typeof objective.k==="object")objective.k=objective.k.k;if(objective.k!==expected)objective={k:expected,done:lots.some(l=>l.hs===expected&&["rented","listed","ready"].includes(l.st))};
+    ev={k:null,t:0,next:30};setMode(mode);const ci=campaignInfo(lv);$("chapter").textContent="CHAPTER "+ci.number+" · "+ci.chapter.toUpperCase();$("mission").textContent="LEVEL "+lv+" · "+ci.name+" · "+ci.difficulty.toUpperCase();$("scene").style.background=ci.theme[0];$("scene").style.borderColor=ci.theme[1];build();lots.forEach((l,i)=>{if(l.st==="listed"&&l.offer)startBuyerArrival(i)});run=true;paused=false;last=performance.now();
     ["ov","pz","end"].forEach(x=>$(x).style.display="none");$("tl").textContent=mode==="timed"?"Time":"Elapsed";toast("Loaded Level "+lv);draw();return true}catch(e){toast("Couldn’t load save.");return false}
 }
 let wipe=false;
 function updMenu(){wipe=false;let p=null,k=null;try{p=JSON.parse(store.get(PKEY));k=JSON.parse(store.get(KEY))}catch(e){}const s=!!(k||p);$("bc").textContent="▶ Continue · "+(mode==="timed"?"Timed":"Relaxed")+" Lv "+(k?k.lv:p?p.lv:1);$("bc").style.display=s?"flex":"none";$("bl").style.display=s?"flex":"none";$("go").textContent=s?"🎮 Start New Game":"Start Level 1"}
-function setMode(m){mode=m;KEY="lot_flip_iso_test_save_v3_"+m;PKEY="lot_flip_iso_test_progress_v2_"+m;BKEY="lot_flip_iso_test_best_v2_"+m;best={};try{best=JSON.parse(store.get(BKEY)||"{}")}catch(e){}$("mt").classList.toggle("active",m==="timed");$("mr").classList.toggle("active",m==="relaxed");updMenu()}
+function setMode(m){mode=m;KEY="lot_flip_save_v2_"+m;PKEY="lot_flip_progress_v1_"+m;BKEY="lot_flip_best_v1_"+m;BOOSTKEY="lot_flip_build_boost_v1_"+m;best={};try{best=JSON.parse(store.get(BKEY)||"{}")}catch(e){}$("mt").classList.toggle("active",m==="timed");$("mr").classList.toggle("active",m==="relaxed");updMenu()}
 
-let snd=store.get("lot_flip_iso_test_snd")!=="0",AC=null;
+let snd=store.get("lot_flip_snd")!=="0",AC=null;
 function ctx(){AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();return AC}
 function tone(f,d,ty,v,dl,f2){if(!snd)return;try{const c=ctx(),t=c.currentTime+(dl||0),o=c.createOscillator(),g=c.createGain();o.type=ty||"sine";o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v||.08,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+d)}catch(e){}}
 function noise(d,v){if(!snd)return;try{const c=ctx(),n=Math.floor(c.sampleRate*d),b=c.createBuffer(1,n,c.sampleRate),a=b.getChannelData(0);for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*(1-i/n);const s=c.createBufferSource(),g=c.createGain();g.gain.value=v||.1;s.buffer=b;s.connect(g);g.connect(c.destination);s.start()}catch(e){}}
@@ -404,7 +466,7 @@ function reno(i){const l=lots[i],k=ORD.find(x=>!l.reno.includes(x));if(!k)return
 function spawnOffer(i){const l=lots[i],t=7+Math.random()*3,f=ev.k==="boom"?1.25:ev.k==="crash"?.8:1;l.offer={price:Math.round(val(i)*(.88+Math.random()*.42)*f),ttl:t,max:t};startBuyerArrival(i);sfx.offer();buzz(30);toast("💰 Lot "+(i+1)+" offer: "+fmt(l.offer.price)+". A buyer is pulling in to look at the house.");draw()}
 function resolveOffer(i,acc){
   const l=lots[i];if(!l.offer)return;const p=l.offer.price;sendBuyerAway(i);l.offer=null;
-  if(acc&&run){money+=p;l.st="sold";l.sp=p;l.soldT=1.6;fx(i,"sold");pop(i,"+"+fmt(p),1);flash();if(tutOn){tutOn=false;store.set("lot_flip_iso_test_tut","1");setTimeout(()=>toast("🎓 Tutorial done! Chase the ⭐ tags for 3 stars."),2500)}toast("Sold Lot "+(i+1)+" for "+fmt(p)+"!")}
+  if(acc&&run){money+=p;l.st="sold";l.sp=p;l.soldT=1.6;fx(i,"sold");pop(i,"+"+fmt(p),1);flash();if(tutOn){tutOn=false;store.set("lot_flip_tut","1");setTimeout(()=>toast("🎓 Tutorial done! Chase the ⭐ tags for 3 stars."),2500)}toast("Sold Lot "+(i+1)+" for "+fmt(p)+"!")}
   else{l.wait=2+Math.random()*3;toast("Offer rejected. Waiting for the next buyer…")}
   closeSheet();draw();
 }
@@ -412,7 +474,7 @@ function resolveOffer(i,acc){
 function tick(now){
   const dt=Math.min(.1,(now-last)/1000);last=now;
   if(run&&!paused){
-    elapsed+=dt;if(mode==="timed")timeVal-=dt;asv-=dt;if(asv<=0){asv=5;autosave()}
+    elapsed+=dt;if(mode==="timed")timeVal-=dt;if(buildBoostRemaining>0)buildBoostRemaining=Math.max(0,buildBoostRemaining-dt);asv-=dt;if(asv<=0){asv=5;autosave()}
     if(ev.k){ev.t-=dt;if(ev.t<=0){ev.k=null;toast("Market is back to normal.")}}
     else{ev.next-=dt;if(ev.next<=0){ev.k=["boom","crash","rent"][Math.floor(Math.random()*3)];ev.t=15;ev.next=35+Math.random()*20;toast(EV[ev.k])}}
     updateTraffic(dt);
@@ -421,9 +483,20 @@ function tick(now){
         const visitor=traffic[i];
         if(visitor&&visitor.visitor&&visitor.kind==="parked"){
           visitor.parkUntil=(visitor.parkUntil==null?10+Math.random()*12:visitor.parkUntil)-dt;
-          if(visitor.parkUntil<=5&&!visitor.secondParked){visitor.secondParked=true;visitor.secondSide=-(visitor.side||1);visitor.secondLeaveIn=5;}
-          if(visitor.secondParked){visitor.secondLeaveIn-=dt;if(visitor.secondLeaveIn<=0)beginTrafficDeparture(i,visitor,trafficGeometry(i));}
-          else if(visitor.parkUntil<=0)beginTrafficDeparture(i,visitor,trafficGeometry(i));
+          if(visitor.parkUntil<=5&&!visitor.secondParked){
+            visitor.secondParked=true;
+            visitor.secondSide=-(visitor.side||1);
+            visitor.secondArriveT=0;
+            visitor.secondArriveDur=2.4;
+          }
+          if(visitor.secondParked&&visitor.secondArriveT<visitor.secondArriveDur){
+            visitor.secondArriveT=Math.min(visitor.secondArriveDur,visitor.secondArriveT+dt);
+          }
+          if(visitor.parkUntil<=0&&visitor.secondParked&&visitor.secondArriveT>=visitor.secondArriveDur){
+            beginTrafficDeparture(i,visitor,trafficGeometry(i));
+          }else if(visitor.parkUntil<=0&&!visitor.secondParked){
+            beginTrafficDeparture(i,visitor,trafficGeometry(i));
+          }
         }else if(!visitor){
           l.visitorWait=(l.visitorWait==null?2+Math.random()*5:l.visitorWait)-dt;
           if(l.visitorWait<=0)startBusinessVisitorArrival(i);
@@ -448,8 +521,8 @@ function tick(now){
         if(l.wait<=0){l.wait=2+Math.random()*2;l.aiP=Math.round(Math.max(100,l.sp?l.sp*(l.disc?.8:1):0,l.aiP+(Math.random()-.48)*35));if(sel===i)sheet(i)}
         if(l.aiT<=0){l.st="ai_owned";l.aiW=10+Math.random()*12;if(sel===i)closeSheet()}}
       else if(l.st==="rented"){l.rent=rentOf(i);l.rt-=dt;if(l.rt<=0){l.rt+=3;money+=l.rent;pop(i,"+"+fmt(l.rent))}}
-      else if(l.st==="working"){l.p+=dt/l.dur;if(l.p>=1){l.p=0;l.rt=3;if(S[l.hs].cat==="i"){l.st="ready";if(visitorBusiness(l))l.visitorWait=2+Math.random()*5;toast(S[l.hs].n+" finished on Lot "+(i+1)+"!")}else{l.st="rented";l.rent=rentOf(i);toast(S[l.hs].n+" finished! Renting for "+fmt(l.rent)+"/3s.")}fx(i,"done")}}
-      else if(l.st==="reno_working"){l.rp+=dt/l.rd;if(l.rp>=1){l.reno.push(l.pend);if(l.pend==="paint")l.paint=PAINT[Math.floor(Math.random()*PAINT.length)];toast(R[l.pend].n+" done on Lot "+(i+1)+"!");l.pend=null;l.rp=0;l.st="rented";l.rent=rentOf(i);l.rt=3;fx(i,"done")}}
+      else if(l.st==="working"){l.p+=dt*(buildBoostRemaining>0?2:1)/l.dur;if(l.p>=1){l.p=0;l.rt=3;if(S[l.hs].cat==="i"){l.st="ready";if(visitorBusiness(l))l.visitorWait=2+Math.random()*5;toast(S[l.hs].n+" finished on Lot "+(i+1)+"!")}else{l.st="rented";l.rent=rentOf(i);toast(S[l.hs].n+" finished! Renting for "+fmt(l.rent)+"/3s.")}fx(i,"done")}}
+      else if(l.st==="reno_working"){l.rp+=dt*(buildBoostRemaining>0?2:1)/l.rd;if(l.rp>=1){l.reno.push(l.pend);if(l.pend==="paint")l.paint=PAINT[Math.floor(Math.random()*PAINT.length)];toast(R[l.pend].n+" done on Lot "+(i+1)+"!");l.pend=null;l.rp=0;l.st="rented";l.rent=rentOf(i);l.rt=3;fx(i,"done")}}
       else if(l.st==="listed"){
         if(!l.offer){l.wait-=dt;if(l.wait<=0)spawnOffer(i)}
         else{l.offer.ttl-=dt;if(l.offer.ttl<=0){sendBuyerAway(i);l.offer=null;l.wait=2+Math.random()*3;toast("Offer on Lot "+(i+1)+" expired. The buyer is heading back to the street.");if(sel===i)sheet(i)}}}
@@ -466,8 +539,10 @@ function tick(now){
 
 function endGame(win){
   closeSheet();store.del(KEY);setProg(win?lv+1:lv);let h;win?sfx.win():sfx.lose();
-  if(win){const st=1+(bonus&&bonus.done?1:0)+(elapsed<=90+lv*10?1:0);best[lv]=Math.max(best[lv]||0,st);store.set(BKEY,JSON.stringify(best));
-    h='<h2>🎉 Level '+lv+' Complete!</h2><div class="stars">'+"⭐".repeat(st)+"☆".repeat(3-st)+'</div><p>Finished in '+Math.round(elapsed)+'s · Bonus '+(bonus&&bonus.done?"✔ done":"✘ missed")+'<br>⭐ for clearing · ⭐ for bonus · ⭐ for beating '+(90+lv*10)+'s<br>Best: '+best[lv]+"/3</p>"}
+  if(win){const st=1+(bonus&&bonus.done?1:0)+(elapsed<=90+lv*10?1:0);const previousBest=best[lv]||0;best[lv]=Math.max(previousBest,st);store.set(BKEY,JSON.stringify(best));
+    const earnedThreeStars=st===3&&previousBest<3;
+    if(earnedThreeStars){store.set(BOOSTKEY,String(lv+1));}
+    h='<h2>🎉 Level '+lv+' Complete!</h2><div class="stars">'+"⭐".repeat(st)+"☆".repeat(3-st)+'</div><p>Finished in '+Math.round(elapsed)+'s · Bonus '+(bonus&&bonus.done?"✔ done":"✘ missed")+'<br>⭐ for clearing · ⭐ for bonus · ⭐ for beating '+(90+lv*10)+'s<br>Best: '+best[lv]+"/3"+(earnedThreeStars?'<br>⚡ Reward unlocked: 10 seconds of 2× build speed on the next level!':"")+'</p>'}
   else h='<h2>⏰ Time’s Up</h2><p>You made '+fmt(money)+' of '+fmt(goal)+'.<br>Building goal: '+(objective&&objective.done?'complete':'build '+S[objective?objective.k:"ranch"].n)+'.</p>';
   h+='<button class="mbtn" id="nx">'+(win?"Next Level":"Retry Level "+lv)+'</button><button class="mbtn blue" id="el">🗺️ Levels</button><button class="mbtn line" id="em">🏠 Main Menu</button>';
   $("endbox").innerHTML=h;$("end").style.display="flex";
@@ -538,56 +613,8 @@ function drivewayArt(i,parked,l){
   const parkedCars=parked?car(73,lotY+8,c1)+car(87,lotY+8,c2):'';
   return '<g class="drive-art"><path d="'+roadEdge+'" fill="none" stroke="#777b75" stroke-width="12" stroke-linecap="round"/><path d="'+roadEdge+'" fill="none" stroke="#c7c8bf" stroke-width="8" stroke-linecap="round"/><rect x="64" y="'+lotY+'" width="32" height="27" rx="2.5" fill="#777b75" stroke="#545954" stroke-width="1.2"/><rect x="66" y="'+(lotY+2)+'" width="28" height="23" rx="1.5" fill="#c7c8bf"/><path d="M80 '+(lotY+2)+'v23" stroke="#f7f7ef" stroke-width="1.2" stroke-dasharray="2 1.5"/><path d="M66 '+(lotY+2)+'h28M66 '+(lotY+25)+'h28" stroke="#ecece5" stroke-width=".8"/>'+parkedCars+'</g>';
 }
-function isometricHomeArt(l,i){
-  // Shared isometric 2.5D residential family. All three home types use the
-  // same camera, lot pad, driveway axis and lighting; only the architecture changes.
-  const kind=l.hs, wall=l.paint||'#e8dfd0';
-  const roof=l.reno.includes('roof')?'#343b46':'#45484b';
-  const premium=l.reno.includes('luxury');
-  const trim='#f5f0e7', glass='#9ed8ed', stone='#9b8b78';
-  const shadow='<ellipse cx="53" cy="67" rx="38" ry="7" fill="#172319" opacity=".34"/>';
-  const lawn='<polygon points="6,50 51,27 96,50 52,77" fill="#579b43" stroke="#367a32" stroke-width="1.2"/><polygon points="6,50 52,77 52,80 6,53" fill="#397b34"/><polygon points="52,77 96,50 96,53 52,80" fill="#326d30"/><path d="M13 51l5-3m-2 8 6-3m54-7 6-4m-4 10 6-3" stroke="#8ac96d" stroke-width=".8" opacity=".6"/>';
-  const tree=(x,y)=>'<g><path d="M'+x+' '+(y+3)+'v8" stroke="#75543b" stroke-width="2"/><circle cx="'+x+'" cy="'+y+'" r="5.5" fill="#246b31"/><circle cx="'+(x-2)+'" cy="'+(y-2)+'" r="3.2" fill="#3b9848"/><circle cx="'+(x+2)+'" cy="'+(y-3)+'" r="3" fill="#55ad55"/></g>';
-  const shrub=(x,y)=>'<g><circle cx="'+x+'" cy="'+y+'" r="2.7" fill="#236b32"/><circle cx="'+(x-2)+'" cy="'+(y-1)+'" r="2" fill="#3e9847"/><circle cx="'+(x+2)+'" cy="'+(y-1)+'" r="1.8" fill="#58ad59"/></g>';
-  const window=(x,y,w=6,h=8)=>'<g><rect x="'+(x-.8)+'" y="'+(y-.8)+'" width="'+(w+1.6)+'" height="'+(h+1.6)+'" fill="'+trim+'" stroke="#756b60" stroke-width=".5"/><rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+glass+'" stroke="#607c85" stroke-width=".35"/><path d="M'+(x+w/2)+' '+y+'v'+h+'M'+x+' '+(y+h/2)+'h'+w+'" stroke="#f8f4e9" stroke-width=".65"/></g>';
-  const door=(x,y,h=12)=>'<g><rect x="'+x+'" y="'+y+'" width="6" height="'+h+'" rx=".5" fill="#69442f" stroke="#3d3028" stroke-width=".7"/><rect x="'+(x+1)+'" y="'+(y+1)+'" width="4" height="4" fill="#9ed8ed"/><circle cx="'+(x+4.8)+'" cy="'+(y+h-3)+'" r=".55" fill="#e8c77d"/></g>';
-  const garage=(x,y,w=13,h=11)=>'<g><rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="#f0eee8" stroke="#6f6b63" stroke-width=".8"/><rect x="'+(x+1)+'" y="'+(y+1)+'" width="'+(w-2)+'" height="'+(h-2)+'" fill="#d5d5d0" stroke="#aaa69d" stroke-width=".4"/><path d="'+Array.from({length:3},(_,j)=>'M'+(x+1)+' '+(y+3+j*2.4)+'h'+(w-2)).join(' ')+'" stroke="#99968e" stroke-width=".55"/><path d="M'+(x+w/2)+' '+(y+1)+'v'+(h-2)+'" stroke="#aaa69d" stroke-width=".45"/></g>';
-  let house='';
-  if(kind==='ranch'){
-    // Low, wide suburban ranch; front garage is centered on the driveway.
-    house='<polygon points="25,38 64,54 64,68 25,52" fill="'+wall+'" stroke="#635a4f" stroke-width=".9"/><polygon points="64,54 82,44 82,58 64,68" fill="#b8a58f" stroke="#635a4f" stroke-width=".9"/><polygon points="20,37 42,23 87,42 64,56" fill="'+roof+'" stroke="#292f35" stroke-width="1.1"/><polygon points="42,23 87,42 82,45 42,28" fill="#30363c"/><path d="M25 38l17-11 39 17M30 41l15-10m-8 14 16-10m-7 14 16-10m-7 14 16-10" stroke="#858b91" stroke-width=".55" opacity=".55"/>'+
-      '<polygon points="25,49 64,65 64,68 25,52" fill="'+stone+'" opacity=".9"/>'+garage(43,57,14,10)+door(30,51,12)+window(34,43,6,7)+window(56,52,5,6)+
-      '<path d="M27 49l-2 1v3m39 15 18-10" stroke="'+trim+'" stroke-width="1" fill="none"/><polygon points="27,49 37,53 39,56 29,52" fill="#e9e3d8" stroke="#9a8c79" stroke-width=".5"/>';
-  } else if(kind==='colonial'){
-    // Symmetrical two-story colonial with a centered entry and attached garage.
-    house='<polygon points="26,31 63,47 63,69 26,53" fill="'+wall+'" stroke="#62584c" stroke-width=".9"/><polygon points="63,47 82,36 82,58 63,69" fill="#b5a18a" stroke="#62584c" stroke-width=".9"/><polygon points="21,31 43,16 88,35 63,50" fill="'+roof+'" stroke="#292f35" stroke-width="1.1"/><polygon points="43,16 88,35 82,39 43,21" fill="#30363c"/><path d="M26 31l17-11 39 17M31 34l15-10m-8 14 16-10m-8 14 16-10m-8 14 16-10" stroke="#8b9095" stroke-width=".5" opacity=".55"/>'+
-      window(31,32,6,7)+window(47,39,6,7)+window(34,43,6,7)+window(51,51,6,7)+door(42,52,15)+
-      '<polygon points="39,50 47,53 52,57 44,54" fill="#e9e3d8" stroke="#968875" stroke-width=".5"/><path d="M39 49l7-5 7 3-7 5" fill="#e8e1d4" stroke="#857968" stroke-width=".6"/>'+garage(43,57,14,10)+
-      '<polygon points="40,16 48,10 57,17 48,22" fill="#3b4148" stroke="#292f35" stroke-width=".7"/><rect x="45" y="15" width="5" height="6" fill="'+trim+'" stroke="#756b60" stroke-width=".4"/><rect x="46" y="16" width="3" height="4" fill="'+glass+'"/>';
-  } else if(kind==='mansion'){
-    // Broad luxury estate with layered wings, multiple gables and a grand entry.
-    house='<polygon points="19,34 59,51 59,70 19,53" fill="'+wall+'" stroke="#62584c" stroke-width=".9"/><polygon points="59,51 85,37 85,57 59,70" fill="#b5a18a" stroke="#62584c" stroke-width=".9"/><polygon points="14,34 34,19 64,32 43,47" fill="#3c424a" stroke="#252b32" stroke-width="1"/><polygon points="43,31 64,17 91,29 68,45" fill="'+roof+'" stroke="#252b32" stroke-width="1.1"/><polygon points="34,19 64,32 64,36 34,23" fill="#30363c"/><polygon points="64,17 91,29 85,33 64,22" fill="#30363c"/><polygon points="27,35 40,25 53,36 40,43" fill="#454b53" stroke="#252b32" stroke-width=".8"/><path d="M19 35l15-12 29 12m-40 4 15-10m-8 14 16-10m-8 14 16-10m-8 14 16-10" stroke="#8c9298" stroke-width=".5" opacity=".5"/>'+
-      window(24,38,6,8)+window(38,44,6,8)+window(56,49,6,8)+window(72,42,6,8)+
-      '<polygon points="43,49 57,55 57,69 43,63" fill="#e8e1d4" stroke="#887c6c" stroke-width=".7"/><polygon points="46,53 53,56 53,67 46,64" fill="#69442f" stroke="#3d3028" stroke-width=".6"/><path d="M40 49l10-8 11 5-10 8" fill="#e8e1d4" stroke="#827766" stroke-width=".7"/><path d="M43 48l7-5 7 3-7 5" fill="#454b53" stroke="#252b32" stroke-width=".6"/>'+garage(43,57,15,11)+
-      '<polygon points="18,34 31,25 44,31 31,40" fill="#454b53" stroke="#252b32" stroke-width=".7"/><path d="M31 40v12" stroke="'+trim+'" stroke-width="1"/>';
-  } else {
-    // Future residential categories can use the colonial silhouette as a safe fallback.
-    house='<polygon points="26,31 63,47 63,69 26,53" fill="'+wall+'" stroke="#62584c"/><polygon points="63,47 82,36 82,58 63,69" fill="#b5a18a" stroke="#62584c"/><polygon points="21,31 43,16 88,35 63,50" fill="'+roof+'" stroke="#292f35"/>'+window(32,37)+door(47,53)+garage(64,54,14,11);
-  }
-  const walkway='<polygon points="43,65 57,65 61,82 47,82" fill="#c7c3b8" stroke="#8d887e" stroke-width=".65"/><path d="M47 67l4 13m5-13 2 13" stroke="#e8e5dc" stroke-width=".6"/>';
-  const basePlanting=premium
-    ? tree(13,46)+tree(91,45)+shrub(24,57)+shrub(30,60)+shrub(73,61)+shrub(80,57)+'<circle cx="21" cy="61" r="1.2" fill="#f5c4d0"/><circle cx="27" cy="63" r="1.2" fill="#fff0a6"/><circle cx="77" cy="65" r="1.2" fill="#f5c4d0"/><circle cx="83" cy="62" r="1.2" fill="#fff0a6"/>'
-    : shrub(15,54)+shrub(88,53)+shrub(25,60)+shrub(79,60);
-  const frontWalk='<polygon points="46,65 54,65 58,78 49,78" fill="#d0ccc1" stroke="#989184" stroke-width=".45"/>';
-  return '<g class="iso-home">'+shadow+lawn+basePlanting+walkway+house+frontWalk+
-    '<path d="M24 51l2 1m40 17 17-10" stroke="#f3eee3" stroke-width=".65" opacity=".7"/></g>';
-}
 function art(l,i){
-  // Shared isometric residential art for every completed home, regardless of lot index.
-  // Keep the original construction and demolition animations intact.
-  const isoEligibleStates=['ready','rented','listed','ai_owned','ai_for_sale'];
-  const useIso=(!!l.hs && S[l.hs] && S[l.hs].cat==='h' && !['working','reno_working','demo','sold'].includes(l.st));
-  const main=useIso?isometricHomeArt(l,i):houseArt(l,i);
+  const main=houseArt(l,i);
   // Vacant lots stay clear. Add pavement only when a building exists or construction is underway.
   const hasBuilding=!!l.hs&&l.st!=="sold";
   const parked=hasBuilding&&!['working','reno_working','demo','sold','listed','ai_for_sale'].includes(l.st)&&!traffic[i];
@@ -595,9 +622,7 @@ function art(l,i){
   // This is important because the lot SVG occupies only the upper portion of each tall lot;
   // drawing the driveway inside its 0..90 viewBox leaves a visible gap before the road.
   const streetAbove=Math.floor(i/5)>0;
-  const buddy=traffic[i]&&traffic[i].visitor&&traffic[i].kind==='parked'&&traffic[i].secondParked;
-  const buddyCar=buddy?'<g transform="translate('+(traffic[i].secondSide<0?67:88)+' '+(streetAbove?22:58)+')"><rect x="-5" y="-8" width="10" height="16" rx="2.5" fill="#2878bd" stroke="#263238" stroke-width=".8"/><rect x="-3" y="-4" width="6" height="7" rx="1" fill="#bde3f5"/></g>':'';
-  return '<g transform="translate(0 '+(streetAbove?'40':'14')+')">'+main+'</g>'+buddyCar;
+  return '<g transform="translate(0 '+(streetAbove?'40':'14')+')">'+main+'</g>';
 }
 
 let tutOn=false;
@@ -637,7 +662,7 @@ function trafficGeometry(i){
   // Keep the driveway centerline fixed. Only the final parking position is
   // offset into one of the business bays, after the car has entered the pad.
   const driveX=lotRect.left-ox+lotRect.width/2;
-  const parkX=driveX+(isBusiness?side*21:0);
+  const parkX=driveX+(isBusiness?side*12:0);
   const padTop=streetAbove?3:(isBusiness?lotRect.height-20-34:lotRect.height-24-26);
   const padHeight=isBusiness?34:26;
   const parkY=lotRect.top-oy+padTop+padHeight/2;
@@ -728,7 +753,18 @@ function sendBuyerAway(i){
   traffic[i]={kind:"depart",t:0,dur:trafficDuration(g,dir,"depart"),dir,color:trafficColor(i),speedFactor:1,actualSpeed:0,exitCommitted:false};
 }
 function finishTraffic(i,tr){
+  // If a second visitor has pulled into the opposite bay, keep that same-size
+  // vehicle parked and promote it to the active visitor instead of deleting it.
+  if(tr.visitor&&tr.secondParked&&tr.secondEl&&tr.secondArriveT>=tr.secondArriveDur){
+    if(tr.el)tr.el.remove();
+    const next={kind:"parked",t:0,dur:0,dir:tr.dir,color:tr.secondColor||"#2878bd",el:tr.secondEl,
+      visitor:true,side:tr.secondSide,stay:10+Math.random()*12,parkUntil:10+Math.random()*12};
+    tr.secondEl=null;
+    traffic[i]=next;
+    return;
+  }
   if(tr.el)tr.el.remove();
+  if(tr.secondEl)tr.secondEl.remove();
   const queue=tr.queuedBuyer&&lots[i]&&lots[i].offer;
   if(tr.visitor&&lots[i])lots[i].visitorWait=4+Math.random()*10;
   delete traffic[i];
@@ -745,19 +781,21 @@ function trafficPose(tr,g,timeOverride){
     const {approachX,startX,approach,turn,driveway,total}=metrics;
     const p1=approach/total,p2=(approach+turn)/total,p3=(approach+turn+driveway)/total;
     const startA=dir===1?0:180,endA=dir===1?toward*90:180-toward*90;
+    const parkA=dir===1?0:180;
     let x,y,a;
     if(p<p1){const u=easeTraffic(p/p1);x=startX+(approachX-startX)*u;y=laneY;a=startA}
     else if(p<p2){const u=easeTraffic((p-p1)/(p2-p1));x=approachX+(g.x-approachX)*u;y=laneY+(entryY-laneY)*u;a=startA+angleDelta(startA,endA)*u}
     else if(p<p3){const u=driveway>0?easeTraffic((p-p2)/(p3-p2)):1;x=g.x;y=entryY+(g.parkY-entryY)*u;a=endA}
-    else{const u=shift>0?easeTraffic((p-p3)/(1-p3)):1;x=g.x+(parkX-g.x)*u;y=g.parkY;a=endA}
+    else{const u=shift>0?easeTraffic((p-p3)/(1-p3)):1;x=g.x+(parkX-g.x)*u;y=g.parkY;a=endA+angleDelta(endA,parkA)*u}
     if(tr.kind==="retreat")a+=180;
     return {x,y,a};
   }
   const {driveway,turn,road,exitX,endX,total}=metrics;
   const p0=shift/total,p1=(shift+driveway)/total,p2=(shift+driveway+turn)/total;
   const exitA=-toward*90,endA=dir===1?0:180;
+  const parkA=dir===1?0:180;
   let x,y,a;
-  if(p<p0){const u=shift>0?easeTraffic(p/p0):1;x=parkX+(g.x-parkX)*u;y=g.parkY;a=exitA}
+  if(p<p0){const u=shift>0?easeTraffic(p/p0):1;x=parkX+(g.x-parkX)*u;y=g.parkY;a=parkA+angleDelta(parkA,exitA)*u}
   else if(p<p1){const u=driveway>0?easeTraffic((p-p0)/(p1-p0)):1;x=g.x;y=g.parkY+(entryY-g.parkY)*u;a=exitA}
   else if(p<p2){const u=easeTraffic((p-p1)/(p2-p1));x=g.x+(exitX-g.x)*u;y=entryY+(laneY-entryY)*u;a=exitA+angleDelta(exitA,endA)*u}
   else{const u=road>0?easeTraffic((p-p2)/(1-p2)):1;x=exitX+(endX-exitX)*u;y=laneY;a=endA}
@@ -1059,12 +1097,25 @@ function renderTraffic(){
     const i=+key,tr=traffic[i];if(!tr)return;
     if(!tr.el||!tr.el.isConnected){tr.el=makeVehicle(tr.color,"traffic-car",tr.truck);sc.appendChild(tr.el)}
     if(tr.truck){const ld=tr.el.querySelector(".ld"),L=lots[i];if(ld&&L)ld.style.opacity=L.st==="demo"?Math.min(1,L.dp*1.4):1}
-    if(tr.kind==="parked"){
-      const g=trafficGeometry(i);if(!g)return;const endA=tr.dir===1?(g.towardLot*90):(180-g.towardLot*90);
-      tr.el.style.left=((g.parkX??g.x)-10)+"px";tr.el.style.top=(g.parkY-5.625)+"px";tr.el.style.transform="rotate("+endA+"deg)";return;
-    }
     const g=trafficGeometry(i);if(!g)return;
-    const pose=trafficPose(tr,g);tr.el.style.left=(pose.x-10)+"px";tr.el.style.top=(pose.y-5.625)+"px";tr.el.style.transform="rotate("+pose.a+"deg)";
+    if(tr.kind==="parked"){
+      const endA=tr.dir===1?0:180;
+      tr.el.style.left=((g.parkX??g.x)-10)+"px";tr.el.style.top=(g.parkY-5.625)+"px";tr.el.style.transform="rotate("+endA+"deg)";
+    }else{
+      const pose=trafficPose(tr,g);tr.el.style.left=(pose.x-10)+"px";tr.el.style.top=(pose.y-5.625)+"px";tr.el.style.transform="rotate("+pose.a+"deg)";
+    }
+    if(tr.visitor&&tr.secondParked){
+      if(!tr.secondEl||!tr.secondEl.isConnected){tr.secondColor="#2878bd";tr.secondEl=makeVehicle(tr.secondColor,"traffic-car");sc.appendChild(tr.secondEl)}
+      const progress=clamp01((tr.secondArriveT||0)/(tr.secondArriveDur||1));
+      const entryY=g.roadY+g.towardLot*28;
+      const lateral=easeTraffic(clamp01((progress-.72)/.28));
+      const x=g.x+(g.x+(tr.secondSide||1)*12-g.x)*lateral;
+      const y=entryY+(g.parkY-entryY)*easeTraffic(progress);
+      const approachA=tr.dir===1?(g.towardLot*90):(180-g.towardLot*90);
+      const parkedA=tr.dir===1?0:180;
+      const angle=approachA+angleDelta(approachA,parkedA)*lateral;
+      tr.secondEl.style.left=(x-10)+"px";tr.secondEl.style.top=(y-5.625)+"px";tr.secondEl.style.transform="rotate("+angle+"deg)";
+    }else if(tr.secondEl){tr.secondEl.remove();tr.secondEl=null}
   });
   renderRoadTraffic();
 }
@@ -1079,7 +1130,8 @@ function draw(){
   $("rent").textContent="$"+lots.reduce((a,l,i)=>a+(l.st==="rented"?rentOf(i)/3:0)+(l.hs==="civic"&&l.st==="ready"?S.civic.rev/3:0),0).toFixed(1)+"/s";
   const pc=Math.min(100,Math.round(money/goal*100));$("gbar").style.width=pc+"%";$("pct").textContent=pc+"%";
   $("bonus").textContent=bonus?(bonus.done?"✔ Bonus complete!":"⭐ Bonus: build "+bonus.n+" "+S[bonus.k].n+(bonus.n>1?"s":"")+" ("+bonus.c+"/"+bonus.n+") → +"+fmt(bonus.r)):"";
-  $("tut").textContent=tutText();$("bonus").innerHTML=chips();$("evt").textContent=ev.k?EV[ev.k]+" ("+Math.ceil(ev.t)+"s)":"";
+  if(buildBoostRemaining>0){$("evt").textContent="⚡ 2× BUILD SPEED · "+buildBoostRemaining.toFixed(1)+"s";}else $("evt").textContent=ev.k?EV[ev.k]+" ("+Math.ceil(ev.t)+"s)":"";
+  $("tut").textContent=tutText();$("bonus").innerHTML=chips();
   $("hire").textContent="Hire Builder $300";$("hire").disabled=!run||money<300||builders>=5;
   $("tools").textContent="Better Tools $250 ("+speed+"×)";$("tools").disabled=!run||money<250||speed>=2;
   $("sellmode").textContent=sellMode?"Sell Mode: ON":"Sell Empty Lots";$("sellmode").classList.toggle("active",sellMode);
@@ -1087,7 +1139,6 @@ function draw(){
     const e=els[i];if(!e)return;
     
     const ai=l.st==="ai_owned"||l.st==="ai_for_sale";
-    e.classList.toggle("iso-prototype",false);
     const hasBuilding=!!l.hs&&l.st!=="sold";
     const streetAbove=Math.floor(i/5)>0;
     e.classList.toggle("to-bottom",!streetAbove);e.classList.toggle("to-top",streetAbove);
@@ -1123,20 +1174,20 @@ $("tools").onclick=()=>{if(money>=250){money-=250;speed+=.25;draw()}};
 $("sellmode").onclick=()=>{sellMode=!sellMode;toast(sellMode?"Sell Mode ON: tap a bought, unbuilt lot to sell it.":"Sell Mode OFF.");draw()};
 $("go").onclick=()=>{if($("bc").style.display!=="none"&&!wipe){wipe=true;$("go").textContent="⚠️ Tap again to erase progress";return}store.del(KEY);store.del(PKEY);lv=1;startLevel()};
 document.addEventListener("visibilitychange",()=>{if(document.hidden){autosave();if(run&&!paused)togglePause()}});addEventListener("contextmenu",e=>e.preventDefault());addEventListener("pagehide",autosave);
-function migrate(){try{const o=store.get("lot_flip_iso_test_save_v2");if(o){const m=JSON.parse(o).mode||"timed";if(!store.get("lot_flip_iso_test_save_v3_"+m))store.set("lot_flip_iso_test_save_v3_"+m,o);store.del("lot_flip_iso_test_save_v2")}
-  const p=store.get("lot_flip_iso_test_progress_v1");if(p){const m=JSON.parse(p).mode||"timed";if(!store.get("lot_flip_iso_test_progress_v2_"+m))store.set("lot_flip_iso_test_progress_v2_"+m,p);store.del("lot_flip_iso_test_progress_v1")}
-  const b=store.get("lot_flip_iso_test_best_v1");if(b){if(!store.get("lot_flip_iso_test_best_v2_timed"))store.set("lot_flip_iso_test_best_v2_timed",b);store.del("lot_flip_iso_test_best_v1")}}catch(e){}}
+function migrate(){try{const o=store.get("lot_flip_save_v2");if(o){const m=JSON.parse(o).mode||"timed";if(!store.get("lot_flip_save_v2_"+m))store.set("lot_flip_save_v2_"+m,o);store.del("lot_flip_save_v2")}
+  const p=store.get("lot_flip_progress_v1");if(p){const m=JSON.parse(p).mode||"timed";if(!store.get("lot_flip_progress_v1_"+m))store.set("lot_flip_progress_v1_"+m,p);store.del("lot_flip_progress_v1")}
+  const b=store.get("lot_flip_best_v1");if(b){if(!store.get("lot_flip_best_v1_timed"))store.set("lot_flip_best_v1_timed",b);store.del("lot_flip_best_v1")}}catch(e){}}
 let lvFrom="menu";
 function showLevels(from){lvFrom=from;const p=getProg(),mx=p?p.lv:1,g=$("lgrid");g.innerHTML="";
-  $("lvsub").textContent=(mode==="timed"?"⏱️ Timed":"🧘 Relaxed")+" · 3 stars = reach the goal, finish the bonus, beat the par time."+(store.get(KEY)?" Starting a level replaces your saved game in progress.":"");
-  for(let n=1;n<=mx+2;n++){const b=document.createElement("button"),ok=n<=mx,st=best[n]||0;b.className="lt"+(ok&&n===mx?" cur":"");b.disabled=!ok;
-    b.innerHTML=ok?"<b>Level "+n+"</b><span>"+"⭐".repeat(st)+"☆".repeat(3-st)+"</span><small>Goal "+fmt(1600+n*300)+"</small>":"<b>🔒 "+n+"</b>";
+  $("lvsub").textContent=(mode==="timed"?"⏱️ Timed":"🧘 Relaxed")+" · 6 chapters · 30 missions. Earn 1–3 stars; 3 stars on a level unlocks a 10-second build boost for the next level."+(store.get(KEY)?" Starting a level replaces your saved game in progress.":"");
+  for(let n=1;n<=mx+2;n++){const b=document.createElement("button"),ok=n<=mx,st=best[n]||0,ci=campaignInfo(n);b.className="lt"+(ok&&n===mx?" cur":"");b.disabled=!ok;
+    b.innerHTML=ok?"<b>"+n+". "+ci.name+"</b><span>"+"⭐".repeat(st)+"☆".repeat(3-st)+"</span><small>"+ci.chapter+" · "+ci.difficulty+" · Build "+S[ci.building].n+"</small>":"<b>🔒 "+n+"</b>";
     b.onclick=()=>{$("lvs").style.display="none";lv=n;startLevel()};g.appendChild(b)}
   ["ov","end"].forEach(x=>$(x).style.display="none");$("lvs").style.display="flex"}
 $("lback").onclick=()=>{$("lvs").style.display="none";$(lvFrom==="end"?"end":"ov").style.display="flex"};
 $("bl").onclick=()=>showLevels("menu");
-$("snd").textContent=snd?"🔊":"🔇";$("snd").onclick=()=>{snd=!snd;store.set("lot_flip_iso_test_snd",snd?"1":"0");$("snd").textContent=snd?"🔊":"🔇";if(snd)sfx.tap()};
-function boot(){snd=store.get("lot_flip_iso_test_snd")!=="0";$("snd").textContent=snd?"🔊":"🔇";migrate();setMode(mode);requestAnimationFrame(tick)}
+$("snd").textContent=snd?"🔊":"🔇";$("snd").onclick=()=>{snd=!snd;store.set("lot_flip_snd",snd?"1":"0");$("snd").textContent=snd?"🔊":"🔇";if(snd)sfx.tap()};
+function boot(){snd=store.get("lot_flip_snd")!=="0";$("snd").textContent=snd?"🔊":"🔇";migrate();setMode(mode);requestAnimationFrame(tick)}
 if(CP){CP.keys().then(r=>Promise.all((r.keys||[]).filter(k=>k.indexOf("lot_flip")===0&&store.get(k)===null).map(k=>CP.get({key:k}).then(v=>{if(v&&v.value!=null)try{localStorage.setItem(k,v.value)}catch(e){}})))).catch(()=>{}).then(boot)}else boot();
 </script>
 </body>
