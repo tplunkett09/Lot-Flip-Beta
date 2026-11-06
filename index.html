@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Lot Flip — Freestyle Sandbox City</title>
 <style>
 :root {
@@ -17,14 +17,15 @@
   --gold: #ffb300;
   --blue: #29b6f6;
 }
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
 html, body {
   width: 100%; height: 100%; margin: 0; padding: 0;
   overflow: hidden; background: var(--bg); color: var(--text);
   font-family: system-ui, -apple-system, sans-serif;
+  touch-action: none;
 }
 #app {
-  width: 100vw; height: 100vh; display: flex; flex-direction: column; position: relative;
+  width: 100vw; height: 100vh; display: flex; flex-direction: column; position: relative; overflow: hidden;
 }
 header {
   height: 52px; background: var(--card); border-bottom: 2px solid var(--line);
@@ -33,7 +34,7 @@ header {
 }
 .title { font-size: 18px; font-weight: 800; color: var(--gold); display: flex; align-items: center; gap: 6px; }
 .stats { display: flex; gap: 12px; align-items: center; font-weight: 700; font-size: 13px; }
-.stat-box { background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--line); }
+.stat-box { background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--line); white-space: nowrap; }
 .val-gold { color: var(--gold); }
 .val-green { color: var(--acc); }
 
@@ -46,7 +47,7 @@ header {
 #map-world {
   position: absolute; left: 0; top: 0; width: 3600px; height: 2400px;
   transform-origin: 0 0; will-change: transform; background: #56963e;
-  box-shadow: inset 0 0 100px rgba(0,0,0,0.5);
+  box-shadow: inset 0 0 100px rgba(0,0,0,0.5); pointer-events: auto;
 }
 
 /* Grid & Districts Layout */
@@ -94,7 +95,7 @@ header {
 .lot.locked-lot { opacity: 0.5; cursor: not-allowed; }
 
 .lot-title { font-size: 11px; font-weight: 800; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px; }
-.lot-art { width: 100%; height: 110px; display: flex; align-items: center; justify-content: center; }
+.lot-art { width: 100%; height: 110px; display: flex; align-items: center; justify-content: center; pointer-events: none; }
 .lot-price { font-size: 12px; font-weight: 800; color: var(--gold); background: rgba(0,0,0,0.7); padding: 3px 8px; border-radius: 6px; }
 
 /* Overlay UI Controls */
@@ -117,7 +118,7 @@ header {
 }
 .mini-district {
   position: absolute; width: 33.33%; height: 50%; border: 1px solid rgba(255,255,255,0.1);
-  box-sizing: border-box;
+  box-sizing: border-box; pointer-events: none;
 }
 .mini-district.unlocked { background: rgba(76,175,80,0.25); }
 .mini-district.locked { background: rgba(0,0,0,0.5); }
@@ -210,37 +211,47 @@ let fixedHazards = [];
 let lotsData = Array.from({ length: 150 }, (_, i) => ({
   id: i,
   district: Math.floor(i / 25),
-  status: "empty", // empty, built
+  status: "empty",
   building: null,
   cost: 200 + (Math.floor(i / 25) * 300)
 }));
 
 let selectedLotId = null;
 
-// Pan Zoom Camera Engine
+// Universal Pointer-Based Pan & Pinch Engine
 const viewport = document.getElementById("viewport");
 const world = document.getElementById("map-world");
 const miniViewport = document.getElementById("mini-viewport");
 
-let scale = 0.5;
-let panX = -400;
-let panY = -300;
-let isDragging = false;
-let startX = 0, startY = 0;
+let scale = 0.45;
+let panX = 0;
+let panY = 0;
+
+// Active pointer tracking for multi-touch pinch & drag
+const activePointers = new Map();
+let prevPinchDist = null;
+let isPanning = false;
 
 function updateTransform() {
-  scale = Math.min(Math.max(0.25, scale), 1.5);
-  world.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+  scale = Math.min(Math.max(0.2, scale), 1.6);
   
-  // Update Minimap Viewport Indicator
+  // Boundary constraints so map doesn't float into empty space
   const vpW = viewport.clientWidth;
   const vpH = viewport.clientHeight;
   const mapW = 3600 * scale;
   const mapH = 2400 * scale;
+
+  const minX = Math.min(0, vpW - mapW);
+  const minY = Math.min(0, vpH - mapH);
   
+  panX = Math.max(minX - 300, Math.min(300, panX));
+  panY = Math.max(minY - 300, Math.min(300, panY));
+
+  world.style.transform = `translate3d(${panX}px, ${panY}px, 0px) scale(${scale})`;
+  
+  // Update Minimap Box Indicator
   const miniW = 180;
   const miniH = 120;
-  
   const wRatio = miniW / 3600;
   const hRatio = miniH / 2400;
 
@@ -254,37 +265,78 @@ function updateTransform() {
   miniViewport.style.transform = `translate(${boxX}px, ${boxY}px)`;
 }
 
-// Touch & Mouse Dragging
-viewport.addEventListener("mousedown", (e) => {
-  isDragging = true;
-  startX = e.clientX - panX;
-  startY = e.clientY - panY;
+// Pointer Event Listeners for Touch, Mouse, and Pen
+viewport.addEventListener("pointerdown", (e) => {
+  viewport.setPointerCapture(e.pointerId);
+  activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  isPanning = false;
 });
 
-window.addEventListener("mousemove", (e) => {
-  if (!isDragging) return;
-  panX = e.clientX - startX;
-  panY = e.clientY - startY;
-  updateTransform();
+viewport.addEventListener("pointermove", (e) => {
+  if (!activePointers.has(e.pointerId)) return;
+
+  const prev = activePointers.get(e.pointerId);
+  const deltaX = e.clientX - prev.x;
+  const deltaY = e.clientY - prev.y;
+
+  // Track if mouse/finger actually moved (to distinguish pan from click)
+  if (Math.hypot(deltaX, deltaY) > 2) {
+    isPanning = true;
+  }
+
+  activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+  // Single pointer pan
+  if (activePointers.size === 1) {
+    panX += deltaX;
+    panY += deltaY;
+    updateTransform();
+  }
+  // Two-pointer pinch zoom
+  else if (activePointers.size === 2) {
+    const pts = Array.from(activePointers.values());
+    const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+
+    if (prevPinchDist != null) {
+      const zoomRatio = dist / prevPinchDist;
+      scale *= zoomRatio;
+      updateTransform();
+    }
+    prevPinchDist = dist;
+  }
 });
 
-window.addEventListener("mouseup", () => isDragging = false);
+function endPointer(e) {
+  if (viewport.hasPointerCapture(e.pointerId)) {
+    viewport.releasePointerCapture(e.pointerId);
+  }
+  activePointers.delete(e.pointerId);
+  if (activePointers.size < 2) {
+    prevPinchDist = null;
+  }
+}
 
+viewport.addEventListener("pointerup", endPointer);
+viewport.addEventListener("pointercancel", endPointer);
+
+// Mouse Wheel Zoom
 viewport.addEventListener("wheel", (e) => {
   e.preventDefault();
-  const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+  const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
   scale *= zoomFactor;
   updateTransform();
 }, { passive: false });
 
-document.getElementById("btn-zoom-in").onclick = () => { scale *= 1.2; updateTransform(); };
+document.getElementById("btn-zoom-in").onclick = () => { scale *= 1.25; updateTransform(); };
 document.getElementById("btn-zoom-out").onclick = () => { scale *= 0.8; updateTransform(); };
-document.getElementById("btn-recenter").onclick = () => {
+document.getElementById("btn-recenter").onclick = centerMap;
+
+function centerMap() {
   scale = 0.45;
   panX = (viewport.clientWidth - 3600 * scale) / 2;
   panY = (viewport.clientHeight - 2400 * scale) / 2;
   updateTransform();
-};
+}
 
 // Render City Map & Districts
 function renderCity() {
@@ -333,12 +385,15 @@ function renderCity() {
         content += `<div class="lot-art" style="font-size:36px;">${b.icon}</div>`;
         content += `<div class="lot-price">$${b.rent}/s</div>`;
       } else {
-        content += `<div class="lot-art" style="font-size:20px; color:rgba(255,255,255,0.4);">EMPTY</div>`;
+        content += `<div class="lot-art" style="font-size:18px; color:rgba(255,255,255,0.4);">EMPTY</div>`;
         content += `<div class="lot-price">$${lot.cost}</div>`;
       }
 
       lotEl.innerHTML = content;
+      
+      // Ensure drag doesn't trigger lot click
       lotEl.onclick = (e) => {
+        if (isPanning) return;
         e.stopPropagation();
         if (isUnlocked) openLotSheet(lot.id);
       };
@@ -352,7 +407,6 @@ function renderCity() {
 
 function renderMinimap() {
   const mini = document.getElementById("minimap");
-  // Keep viewport overlay element intact
   const miniBox = document.getElementById("mini-viewport");
   mini.innerHTML = "";
   mini.appendChild(miniBox);
@@ -423,11 +477,8 @@ function buildOnLot(key) {
   lot.status = "built";
   lot.building = key;
 
-  // Check Hazard Fixes
-  if (b.fix) {
-    if (!fixedHazards.includes(lot.district)) {
-      fixedHazards.push(lot.district);
-    }
+  if (b.fix && !fixedHazards.includes(lot.district)) {
+    fixedHazards.push(lot.district);
   }
 
   document.getElementById("sheet").classList.remove("active");
@@ -451,7 +502,6 @@ function updateHUD() {
   lotsData.forEach(l => {
     if (l.status === 'built') {
       let income = BUILDINGS[l.building].rent;
-      // Penalize income if district hazard isn't fixed
       if (DISTRICTS[l.district].hazard && !fixedHazards.includes(l.district)) {
         income = Math.round(income * 0.5);
       }
@@ -463,7 +513,6 @@ function updateHUD() {
   document.getElementById("stat-income").textContent = `$${totalIncome}/s`;
   document.getElementById("stat-lots").textContent = `${builtCount} / 150`;
 
-  // Auto-Unlock Districts based on Developed Lots
   DISTRICTS.forEach(d => {
     if (!unlockedDistricts.includes(d.id) && builtCount >= d.req) {
       unlockedDistricts.push(d.id);
@@ -479,17 +528,17 @@ setInterval(() => {
       if (DISTRICTS[l.district].hazard && !fixedHazards.includes(l.district)) {
         income = Math.round(income * 0.5);
       }
-      money += income / 2; // 500ms tick rate
+      money += income / 2;
     }
   });
   updateHUD();
 }, 500);
 
 // Initialize Map Engine on Load
-window.onload = () => {
+window.addEventListener("load", () => {
   renderCity();
-  document.getElementById("btn-recenter").click();
-};
+  centerMap();
+});
 </script>
 </body>
 </html>
