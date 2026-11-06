@@ -16,6 +16,9 @@
   --warn: #e53935;
   --gold: #ffb300;
   --blue: #29b6f6;
+  --road-main: #33383b;
+  --road-sub: #42484d;
+  --curb: #a7aaa1;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
 html, body {
@@ -30,73 +33,128 @@ html, body {
 header {
   height: 52px; background: var(--card); border-bottom: 2px solid var(--line);
   display: flex; align-items: center; justify-content: space-between; padding: 0 12px;
-  z-index: 100; flex-shrink: 0;
+  z-index: 100; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 .title { font-size: 18px; font-weight: 800; color: var(--gold); display: flex; align-items: center; gap: 6px; }
 .stats { display: flex; gap: 12px; align-items: center; font-weight: 700; font-size: 13px; }
-.stat-box { background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--line); white-space: nowrap; }
+.stat-box { background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--line); white-space: nowrap; }
 .val-gold { color: var(--gold); }
 .val-green { color: var(--acc); }
 
 #viewport {
   flex: 1; width: 100%; height: calc(100vh - 52px); position: relative;
-  overflow: hidden; background: #263820; cursor: grab; touch-action: none;
+  overflow: hidden; background: #1a2717; cursor: grab; touch-action: none;
 }
 #viewport:active { cursor: grabbing; }
 
 #map-world {
   position: absolute; left: 0; top: 0; width: 3600px; height: 2400px;
-  transform-origin: 0 0; will-change: transform; background: #56963e;
-  box-shadow: inset 0 0 100px rgba(0,0,0,0.5); pointer-events: auto;
+  transform-origin: 0 0; will-change: transform; background: #4a8037;
+  box-shadow: inset 0 0 120px rgba(0,0,0,0.6); pointer-events: auto;
 }
 
-/* Grid & Districts Layout */
+/* Ground Details & Decorative Park Areas */
+.terrain-overlay {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 0);
+  background-size: 32px 32px;
+}
+
+/* Major Boulevards & Neighborhood Road Infrastructure */
+.city-roads { position: absolute; inset: 0; pointer-events: none; }
+.main-avenue-h {
+  position: absolute; left: 0; width: 3600px; height: 56px; background: var(--road-main);
+  border-top: 4px solid var(--curb); border-bottom: 4px solid var(--curb);
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+}
+.main-avenue-h::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 25px;
+  border-top: 3px double var(--gold);
+}
+.main-avenue-v {
+  position: absolute; top: 0; height: 2400px; width: 56px; background: var(--road-main);
+  border-left: 4px solid var(--curb); border-right: 4px solid var(--curb);
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+}
+.main-avenue-v::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 25px;
+  border-left: 3px double var(--gold);
+}
+
+/* District Sectors */
 .district-layer {
   position: absolute; inset: 0; display: grid;
-  grid-template-columns: repeat(3, 1200px); grid-template-rows: repeat(2, 1200px);
+  grid-template-columns: 1172px 56px 1172px 56px 1144px;
+  grid-template-rows: 1172px 56px 1172px;
 }
 .district {
-  position: relative; border: 4px dashed rgba(255,255,255,0.15);
-  box-sizing: border-box; padding: 30px;
+  position: relative; box-sizing: border-box; padding: 20px;
+  background: rgba(0,0,0,0.08); border-radius: 16px; margin: 12px;
+  border: 4px solid rgba(0,0,0,0.25);
 }
 .district.locked {
-  background: rgba(0,0,0,0.65); filter: grayscale(0.8);
+  background: rgba(10,15,8,0.78); filter: grayscale(0.85);
 }
+.district.locked::after {
+  content: "🔒 DISTRICT LOCKED"; position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px; font-weight: 900; color: rgba(255,255,255,0.4);
+  letter-spacing: 2px; text-shadow: 0 4px 10px rgba(0,0,0,0.8); z-index: 15;
+}
+
 .district-header {
-  position: absolute; top: 15px; left: 20px; z-index: 10;
-  background: rgba(0,0,0,0.75); border: 2px solid var(--line);
-  padding: 6px 14px; border-radius: 20px; display: flex; align-items: center; gap: 10px;
+  position: absolute; top: 16px; left: 20px; z-index: 20;
+  background: rgba(20,30,18,0.92); border: 2px solid var(--gold);
+  padding: 6px 16px; border-radius: 20px; display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 .district-name { font-size: 16px; font-weight: 800; color: #fff; }
-.district-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 700; background: var(--line); }
-.district.locked .district-badge { background: var(--warn); }
+.district-badge { font-size: 11px; padding: 3px 8px; border-radius: 10px; font-weight: 800; background: var(--line); color: var(--gold); }
 
 .district-hazards {
-  position: absolute; top: 15px; right: 20px; z-index: 10; display: flex; gap: 6px;
+  position: absolute; top: 16px; right: 20px; z-index: 20; display: flex; gap: 6px;
 }
 .hazard-chip {
-  background: rgba(229,57,53,0.85); color: #fff; font-weight: 800; font-size: 11px;
-  padding: 4px 10px; border-radius: 12px; border: 1px solid #ff7961; display: flex; align-items: center; gap: 4px;
+  background: rgba(229,57,53,0.9); color: #fff; font-weight: 800; font-size: 12px;
+  padding: 4px 12px; border-radius: 14px; border: 2px solid #ff7961; display: flex; align-items: center; gap: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
 }
-.hazard-chip.fixed { background: rgba(76,175,80,0.85); border-color: #81c784; }
+.hazard-chip.fixed { background: rgba(76,175,80,0.9); border-color: #81c784; }
 
-.grid-25 {
+/* 25 Lot Block Structure with Local Streets */
+.block-grid {
   display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr);
-  gap: 24px; width: 100%; height: 100%; padding-top: 50px;
+  gap: 16px; width: 100%; height: 100%; padding-top: 50px; position: relative;
+}
+.street-h {
+  position: absolute; left: 0; right: 0; height: 32px; background: var(--road-sub);
+  border-top: 2px solid var(--curb); border-bottom: 2px solid var(--curb); z-index: 1;
+}
+.street-h::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 14px;
+  border-top: 2px dashed #f5d061; opacity: 0.8;
 }
 
+/* Individual Lot Styling */
 .lot {
-  background: #68b04d; border: 3px dashed #478233; border-radius: 12px;
+  background: #5b9e43; border: 3px dashed #3a6b29; border-radius: 10px;
   position: relative; display: flex; flex-direction: column; justify-content: space-between;
-  align-items: center; padding: 8px; cursor: pointer; transition: transform 0.1s;
+  align-items: center; padding: 6px; cursor: pointer; transition: transform 0.15s, border-color 0.15s;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 2;
 }
-.lot:hover { border-color: #fff; }
-.lot.purchased { background: #263622; border: 3px solid var(--gold); }
-.lot.locked-lot { opacity: 0.5; cursor: not-allowed; }
+.lot::before {
+  content: ""; position: absolute; bottom: -12px; width: 18px; height: 14px;
+  background: #777b75; border: 1px solid #545954; border-radius: 2px; z-index: 1;
+}
+.lot:hover { border-color: #fff; transform: scale(1.02); }
+.lot.purchased { background: #263622; border: 3px solid var(--gold); box-shadow: inset 0 0 12px rgba(255,179,0,0.2); }
+.lot.locked-lot { opacity: 0.4; cursor: not-allowed; }
 
-.lot-title { font-size: 11px; font-weight: 800; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px; }
-.lot-art { width: 100%; height: 110px; display: flex; align-items: center; justify-content: center; pointer-events: none; }
-.lot-price { font-size: 12px; font-weight: 800; color: var(--gold); background: rgba(0,0,0,0.7); padding: 3px 8px; border-radius: 6px; }
+.lot-header { width: 100%; display: flex; justify-content: space-between; align-items: center; z-index: 3; }
+.lot-num { font-size: 10px; font-weight: 800; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px; color: var(--mut); }
+.lot-art { width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; position: relative; z-index: 3; }
+.lot-footer { z-index: 3; }
+.lot-price { font-size: 12px; font-weight: 800; color: var(--gold); background: rgba(0,0,0,0.75); padding: 3px 8px; border-radius: 6px; }
 
 /* Overlay UI Controls */
 .controls-hud {
@@ -104,48 +162,50 @@ header {
   display: flex; flex-direction: column; gap: 8px;
 }
 .hud-btn {
-  width: 44px; height: 44px; background: var(--card); border: 2px solid var(--line);
+  width: 46px; height: 46px; background: var(--card); border: 2px solid var(--line);
   color: #fff; border-radius: 12px; font-size: 20px; font-weight: 800;
   display: flex; align-items: center; justify-content: center; cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4); transition: background 0.15s;
 }
-.hud-btn:active { transform: scale(0.95); background: var(--hov); }
+.hud-btn:hover { background: var(--hov); border-color: var(--gold); }
+.hud-btn:active { transform: scale(0.95); }
 
 #minimap {
-  position: absolute; bottom: 20px; left: 20px; width: 180px; height: 120px;
-  background: rgba(20,30,18,0.9); border: 2px solid var(--line); border-radius: 10px;
-  z-index: 90; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  position: absolute; bottom: 20px; left: 20px; width: 200px; height: 134px;
+  background: rgba(20,30,18,0.92); border: 2px solid var(--gold); border-radius: 12px;
+  z-index: 90; overflow: hidden; box-shadow: 0 6px 16px rgba(0,0,0,0.6);
 }
 .mini-district {
-  position: absolute; width: 33.33%; height: 50%; border: 1px solid rgba(255,255,255,0.1);
-  box-sizing: border-box; pointer-events: none;
+  position: absolute; width: 32%; height: 46%; border: 1px solid rgba(255,255,255,0.15);
+  box-sizing: border-box; border-radius: 4px; margin: 1%;
 }
-.mini-district.unlocked { background: rgba(76,175,80,0.25); }
-.mini-district.locked { background: rgba(0,0,0,0.5); }
+.mini-district.unlocked { background: rgba(76,175,80,0.35); border-color: var(--acc); }
+.mini-district.locked { background: rgba(0,0,0,0.6); }
 #mini-viewport {
-  position: absolute; border: 2px solid var(--gold); background: rgba(255,179,0,0.15);
-  pointer-events: none;
+  position: absolute; border: 2px solid var(--gold); background: rgba(255,179,0,0.25);
+  pointer-events: none; border-radius: 2px;
 }
 
 /* Modal Bottom Sheet */
 #sheet {
   position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%) translateY(120%);
-  width: 90%; max-width: 500px; background: var(--card); border: 2px solid var(--gold);
-  border-radius: 16px; padding: 16px; z-index: 200; transition: transform 0.3s ease;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+  width: 90%; max-width: 520px; background: var(--card); border: 2px solid var(--gold);
+  border-radius: 16px; padding: 16px; z-index: 200; transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+  box-shadow: 0 12px 36px rgba(0,0,0,0.85);
 }
 #sheet.active { transform: translateX(-50%) translateY(0); }
 .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .sheet-title { font-size: 16px; font-weight: 800; color: var(--gold); }
-.close-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
-.build-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 250px; overflow-y: auto; }
+.close-btn { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; }
+.build-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 260px; overflow-y: auto; }
 .opt-btn {
-  background: var(--hov); border: 1px solid var(--line); border-radius: 8px; padding: 8px;
+  background: var(--hov); border: 1px solid var(--line); border-radius: 10px; padding: 10px;
   color: #fff; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 2px;
+  transition: border-color 0.15s, background 0.15s;
 }
-.opt-btn:hover { border-color: var(--gold); }
+.opt-btn:hover { border-color: var(--gold); background: rgba(255,179,0,0.1); }
 .opt-btn b { color: var(--gold); font-size: 13px; }
-.opt-btn small { color: var(--mut); font-size: 10px; }
+.opt-btn small { color: var(--mut); font-size: 11px; }
 </style>
 </head>
 <body>
@@ -162,6 +222,15 @@ header {
 
   <div id="viewport">
     <div id="map-world">
+      <div class="terrain-overlay"></div>
+      
+      <!-- Major Connecting Boulevards & Avenues -->
+      <div class="city-roads">
+        <div class="main-avenue-h" style="top: 1172px;"></div>
+        <div class="main-avenue-v" style="left: 1172px;"></div>
+        <div class="main-avenue-v" style="left: 2398px;"></div>
+      </div>
+
       <div class="district-layer" id="district-layer"></div>
     </div>
 
@@ -186,14 +255,14 @@ header {
 </div>
 
 <script>
-// Game State & Data
+// District & Municipal Data Architecture
 const DISTRICTS = [
-  { id: 0, name: "Suburban Springs", req: 0, cost: 0, hazard: null },
-  { id: 1, name: "Downtown Core", req: 10, cost: 25000, hazard: "High Crime" },
-  { id: 2, name: "Industrial Zone", req: 25, cost: 50000, hazard: "Heavy Smog" },
-  { id: 3, name: "Waterfront Bay", req: 45, cost: 100000, hazard: "Bad Plumbing" },
-  { id: 4, name: "Historic Heights", req: 70, cost: 200000, hazard: "Power Outages" },
-  { id: 5, name: "Metropolis Hub", req: 100, cost: 500000, hazard: "Traffic Gridlock" }
+  { id: 0, name: "Suburban Springs", req: 0, hazard: null, gridPos: [0,0] },
+  { id: 1, name: "Downtown Core", req: 10, hazard: "High Crime Rate", gridPos: [0,2] },
+  { id: 2, name: "Industrial Zone", req: 25, hazard: "Heavy Smog", gridPos: [0,4] },
+  { id: 3, name: "Waterfront Bay", req: 45, hazard: "Bad Plumbing", gridPos: [2,0] },
+  { id: 4, name: "Historic Heights", req: 70, hazard: "Power Outages", gridPos: [2,2] },
+  { id: 5, name: "Metropolis Hub", req: 100, hazard: "Traffic Congestion", gridPos: [2,4] }
 ];
 
 const BUILDINGS = {
@@ -213,12 +282,12 @@ let lotsData = Array.from({ length: 150 }, (_, i) => ({
   district: Math.floor(i / 25),
   status: "empty",
   building: null,
-  cost: 200 + (Math.floor(i / 25) * 300)
+  cost: 250 + (Math.floor(i / 25) * 350)
 }));
 
 let selectedLotId = null;
 
-// Universal Pointer-Based Pan & Pinch Engine
+// Universal Pointer Engine (Pan / Zoom / Pinch)
 const viewport = document.getElementById("viewport");
 const world = document.getElementById("map-world");
 const miniViewport = document.getElementById("mini-viewport");
@@ -227,7 +296,6 @@ let scale = 0.45;
 let panX = 0;
 let panY = 0;
 
-// Active pointer tracking for multi-touch pinch & drag
 const activePointers = new Map();
 let prevPinchDist = null;
 let isPanning = false;
@@ -235,7 +303,6 @@ let isPanning = false;
 function updateTransform() {
   scale = Math.min(Math.max(0.2, scale), 1.6);
   
-  // Boundary constraints so map doesn't float into empty space
   const vpW = viewport.clientWidth;
   const vpH = viewport.clientHeight;
   const mapW = 3600 * scale;
@@ -244,14 +311,14 @@ function updateTransform() {
   const minX = Math.min(0, vpW - mapW);
   const minY = Math.min(0, vpH - mapH);
   
-  panX = Math.max(minX - 300, Math.min(300, panX));
-  panY = Math.max(minY - 300, Math.min(300, panY));
+  panX = Math.max(minX - 200, Math.min(200, panX));
+  panY = Math.max(minY - 200, Math.min(200, panY));
 
   world.style.transform = `translate3d(${panX}px, ${panY}px, 0px) scale(${scale})`;
   
-  // Update Minimap Box Indicator
-  const miniW = 180;
-  const miniH = 120;
+  // Minimap Sync
+  const miniW = 200;
+  const miniH = 134;
   const wRatio = miniW / 3600;
   const hRatio = miniH / 2400;
 
@@ -265,7 +332,7 @@ function updateTransform() {
   miniViewport.style.transform = `translate(${boxX}px, ${boxY}px)`;
 }
 
-// Pointer Event Listeners for Touch, Mouse, and Pen
+// Pointer Event Handlers
 viewport.addEventListener("pointerdown", (e) => {
   viewport.setPointerCapture(e.pointerId);
   activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -279,21 +346,17 @@ viewport.addEventListener("pointermove", (e) => {
   const deltaX = e.clientX - prev.x;
   const deltaY = e.clientY - prev.y;
 
-  // Track if mouse/finger actually moved (to distinguish pan from click)
   if (Math.hypot(deltaX, deltaY) > 2) {
     isPanning = true;
   }
 
   activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
-  // Single pointer pan
   if (activePointers.size === 1) {
     panX += deltaX;
     panY += deltaY;
     updateTransform();
-  }
-  // Two-pointer pinch zoom
-  else if (activePointers.size === 2) {
+  } else if (activePointers.size === 2) {
     const pts = Array.from(activePointers.values());
     const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
 
@@ -319,7 +382,6 @@ function endPointer(e) {
 viewport.addEventListener("pointerup", endPointer);
 viewport.addEventListener("pointercancel", endPointer);
 
-// Mouse Wheel Zoom
 viewport.addEventListener("wheel", (e) => {
   e.preventDefault();
   const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
@@ -338,7 +400,7 @@ function centerMap() {
   updateTransform();
 }
 
-// Render City Map & Districts
+// Render City Map & Districts with Streets
 function renderCity() {
   const layer = document.getElementById("district-layer");
   layer.innerHTML = "";
@@ -347,6 +409,8 @@ function renderCity() {
     const isUnlocked = unlockedDistricts.includes(d.id);
     const distEl = document.createElement("div");
     distEl.className = `district ${isUnlocked ? '' : 'locked'}`;
+    distEl.style.gridRow = d.gridPos[0] + 1;
+    distEl.style.gridColumn = d.gridPos[1] + 1;
     
     let hazardHTML = "";
     if (d.hazard) {
@@ -354,7 +418,7 @@ function renderCity() {
       hazardHTML = `
         <div class="district-hazards">
           <div class="hazard-chip ${isFixed ? 'fixed' : ''}">
-            ${isFixed ? '✓ Hazard Fixed' : '⚠️ ' + d.hazard}
+            ${isFixed ? '✓ Hazard Solved' : '⚠️ ' + d.hazard}
           </div>
         </div>`;
     }
@@ -365,12 +429,15 @@ function renderCity() {
         <div class="district-badge">${isUnlocked ? 'Unlocked' : 'Locked'}</div>
       </div>
       ${hazardHTML}
-      <div class="grid-25" id="grid-dist-${d.id}"></div>
+      <div class="block-grid" id="grid-dist-${d.id}">
+        <div class="street-h" style="top: 42%;"></div>
+        <div class="street-h" style="top: 78%;"></div>
+      </div>
     `;
 
     layer.appendChild(distEl);
 
-    // Render 25 Lots inside District Grid
+    // Render Lots inside Block Grid
     const gridEl = distEl.querySelector(`#grid-dist-${d.id}`);
     const startIdx = d.id * 25;
     
@@ -379,19 +446,18 @@ function renderCity() {
       const lotEl = document.createElement("div");
       lotEl.className = `lot ${lot.status === 'built' ? 'purchased' : ''} ${isUnlocked ? '' : 'locked-lot'}`;
       
-      let content = `<div class="lot-title">Lot ${i + 1}</div>`;
+      let content = `<div class="lot-header"><span class="lot-num">#${i + 1}</span></div>`;
       if (lot.status === 'built') {
         const b = BUILDINGS[lot.building];
-        content += `<div class="lot-art" style="font-size:36px;">${b.icon}</div>`;
-        content += `<div class="lot-price">$${b.rent}/s</div>`;
+        content += `<div class="lot-art" style="font-size:38px;">${b.icon}</div>`;
+        content += `<div class="lot-footer"><div class="lot-price">$${b.rent}/s</div></div>`;
       } else {
-        content += `<div class="lot-art" style="font-size:18px; color:rgba(255,255,255,0.4);">EMPTY</div>`;
-        content += `<div class="lot-price">$${lot.cost}</div>`;
+        content += `<div class="lot-art" style="font-size:16px; color:rgba(255,255,255,0.4); font-weight:800;">LOT</div>`;
+        content += `<div class="lot-footer"><div class="lot-price">$${lot.cost}</div></div>`;
       }
 
       lotEl.innerHTML = content;
       
-      // Ensure drag doesn't trigger lot click
       lotEl.onclick = (e) => {
         if (isPanning) return;
         e.stopPropagation();
@@ -415,15 +481,17 @@ function renderMinimap() {
     const isUnlocked = unlockedDistricts.includes(d.id);
     const mDist = document.createElement("div");
     mDist.className = `mini-district ${isUnlocked ? 'unlocked' : 'locked'}`;
-    const col = d.id % 3;
-    const row = Math.floor(d.id / 3);
+    
+    const col = d.gridPos[1] === 0 ? 0 : d.gridPos[1] === 2 ? 1 : 2;
+    const row = d.gridPos[0] === 0 ? 0 : 1;
+    
     mDist.style.left = (col * 33.33) + "%";
     mDist.style.top = (row * 50) + "%";
     mini.appendChild(mDist);
   });
 }
 
-// Bottom Sheet Interactivity
+// Lot Management Bottom Sheet
 function openLotSheet(id) {
   selectedLotId = id;
   const lot = lotsData[id];
@@ -520,7 +588,7 @@ function updateHUD() {
   });
 }
 
-// Game Loop: Auto Income
+// Game Loop: Income Generation
 setInterval(() => {
   lotsData.forEach(l => {
     if (l.status === 'built') {
@@ -534,7 +602,7 @@ setInterval(() => {
   updateHUD();
 }, 500);
 
-// Initialize Map Engine on Load
+// Initialize Map Engine on Window Load
 window.addEventListener("load", () => {
   renderCity();
   centerMap();
