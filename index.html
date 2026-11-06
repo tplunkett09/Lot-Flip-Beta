@@ -120,12 +120,11 @@ header {
 }
 .hazard-chip.fixed { background: rgba(76,175,80,0.9); border-color: #81c784; }
 
-/* 25 Lot Block Grid Layout with Dedicated Road Lanes */
+/* 25 Lot Block Grid Layout */
 .district-canvas {
   width: 100%; height: 100%; padding-top: 44px; display: flex; flex-direction: column; justify-content: space-between; position: relative;
 }
 
-/* Local Road Lines */
 .local-road-h {
   height: 36px; width: 100%; background: var(--road-sub);
   border-top: 2px solid var(--curb); border-bottom: 2px solid var(--curb);
@@ -140,7 +139,7 @@ header {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; width: 100%; height: 160px;
 }
 
-/* Individual Lot Styling & Dynamic Driveway Connectors */
+/* Individual Lot & Side-Aligned Driveway Connection */
 .lot {
   background: #5b9e43; border: 3px dashed #3a6b29; border-radius: 10px;
   position: relative; display: flex; flex-direction: column; justify-content: space-between;
@@ -151,14 +150,32 @@ header {
 .lot.purchased { background: #263622; border: 3px solid var(--gold); box-shadow: inset 0 0 12px rgba(255,179,0,0.2); }
 .lot.locked-lot { opacity: 0.45; cursor: not-allowed; }
 
-/* Driveway Pavements Anchored to Facing Road */
+/* Side-aligned Driveway Extensions */
 .lot.to-bottom::after {
-  content: ""; position: absolute; bottom: -18px; left: calc(50% - 9px);
-  width: 18px; height: 18px; background: #777b75; border-left: 2px solid #545954; border-right: 2px solid #545954; z-index: 4;
+  content: ""; position: absolute; bottom: -18px; right: 14px;
+  width: 16px; height: 18px; background: #777b75;
+  border-left: 2px solid #545954; border-right: 2px solid #545954; z-index: 4;
 }
+.lot.to-bottom::before {
+  content: ""; position: absolute; bottom: -18px; right: 10px;
+  width: 24px; height: 3px; background: var(--curb); z-index: 5;
+}
+
 .lot.to-top::after {
-  content: ""; position: absolute; top: -18px; left: calc(50% - 9px);
-  width: 18px; height: 18px; background: #777b75; border-left: 2px solid #545954; border-right: 2px solid #545954; z-index: 4;
+  content: ""; position: absolute; top: -18px; right: 14px;
+  width: 16px; height: 18px; background: #777b75;
+  border-left: 2px solid #545954; border-right: 2px solid #545954; z-index: 4;
+}
+.lot.to-top::before {
+  content: ""; position: absolute; top: -18px; right: 10px;
+  width: 24px; height: 3px; background: var(--curb); z-index: 5;
+}
+
+/* Commercial / Civic Parking Apron */
+.lot.business-parking::after {
+  right: 50% !important; transform: translateX(50%);
+  width: 60% !important; border: 1px solid #f8f8ef;
+  background: repeating-linear-gradient(90deg, #777b75, #777b75 10px, #f8f8ef 10px, #f8f8ef 12px);
 }
 
 .lot-header { width: 100%; display: flex; justify-content: space-between; align-items: center; z-index: 6; }
@@ -235,7 +252,6 @@ header {
     <div id="map-world">
       <div class="terrain-overlay"></div>
       
-      <!-- Major Connecting Boulevards & Avenues -->
       <div class="city-roads">
         <div class="main-avenue-h" style="top: 1172px;"></div>
         <div class="main-avenue-v" style="left: 1172px;"></div>
@@ -266,7 +282,6 @@ header {
 </div>
 
 <script>
-// Game Data & Config
 const DISTRICTS = [
   { id: 0, name: "Suburban Springs", req: 0, hazard: null, gridPos: [0,0] },
   { id: 1, name: "Downtown Core", req: 10, hazard: "High Crime Rate", gridPos: [0,2] },
@@ -277,12 +292,12 @@ const DISTRICTS = [
 ];
 
 const BUILDINGS = {
-  ranch: { name: "Ranch Home", cost: 500, val: 900, rent: 45, icon: "🏡" },
-  colonial: { name: "Colonial House", cost: 1200, val: 2100, rent: 110, icon: "🏛️" },
-  mansion: { name: "Luxury Mansion", cost: 3500, val: 6500, rent: 320, icon: "🏰" },
-  apartment: { name: "Apartment Block", cost: 8000, val: 14000, rent: 750, icon: "🏢" },
-  park: { name: "City Park", cost: 2000, val: 2000, rent: 0, fix: true, icon: "🌳" },
-  police: { name: "Police Station", cost: 5000, val: 5000, rent: 0, fix: true, icon: "🚓" }
+  ranch: { name: "Ranch Home", cost: 500, val: 900, rent: 45, icon: "🏡", biz: false },
+  colonial: { name: "Colonial House", cost: 1200, val: 2100, rent: 110, icon: "🏛️", biz: false },
+  mansion: { name: "Luxury Mansion", cost: 3500, val: 6500, rent: 320, icon: "🏰", biz: false },
+  apartment: { name: "Apartment Block", cost: 8000, val: 14000, rent: 750, icon: "🏢", biz: true },
+  park: { name: "City Park", cost: 2000, val: 2000, rent: 0, fix: true, icon: "🌳", biz: true },
+  police: { name: "Police Station", cost: 5000, val: 5000, rent: 0, fix: true, icon: "🚓", biz: true }
 };
 
 let money = 15000;
@@ -298,7 +313,7 @@ let lotsData = Array.from({ length: 150 }, (_, i) => ({
 
 let selectedLotId = null;
 
-// Universal Pointer Camera Engine
+// Camera Engine
 const viewport = document.getElementById("viewport");
 const world = document.getElementById("map-world");
 const miniViewport = document.getElementById("mini-viewport");
@@ -327,7 +342,6 @@ function updateTransform() {
 
   world.style.transform = `translate3d(${panX}px, ${panY}px, 0px) scale(${scale})`;
   
-  // Minimap Sync
   const miniW = 200;
   const miniH = 134;
   const wRatio = miniW / 3600;
@@ -343,7 +357,6 @@ function updateTransform() {
   miniViewport.style.transform = `translate(${boxX}px, ${boxY}px)`;
 }
 
-// Pointer Event Listeners
 viewport.addEventListener("pointerdown", (e) => {
   viewport.setPointerCapture(e.pointerId);
   activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -411,7 +424,7 @@ function centerMap() {
   updateTransform();
 }
 
-// Render City Map with Perimeter & Internal Roads
+// Render City
 function renderCity() {
   const layer = document.getElementById("district-layer");
   layer.innerHTML = "";
@@ -455,7 +468,6 @@ function renderCity() {
 
     layer.appendChild(distEl);
 
-    // Populate Lots across rows with dedicated road adjacency
     const startIdx = d.id * 25;
     for (let r = 0; r < 5; r++) {
       const rowEl = distEl.querySelector(`#row-${r}-${d.id}`);
@@ -464,9 +476,9 @@ function renderCity() {
         const lot = lotsData[i];
         const lotEl = document.createElement("div");
         
-        // Rows 0 & 2 face downward to internal street; Rows 1, 3 & 4 face upward
         const roadFacing = (r === 0 || r === 2) ? "to-bottom" : "to-top";
-        lotEl.className = `lot ${roadFacing} ${lot.status === 'built' ? 'purchased' : ''} ${isUnlocked ? '' : 'locked-lot'}`;
+        const isBiz = lot.building && BUILDINGS[lot.building].biz;
+        lotEl.className = `lot ${roadFacing} ${isBiz ? 'business-parking' : ''} ${lot.status === 'built' ? 'purchased' : ''} ${isUnlocked ? '' : 'locked-lot'}`;
         
         let content = `<div class="lot-header"><span class="lot-num">#${i + 1}</span></div>`;
         if (lot.status === 'built') {
@@ -514,7 +526,6 @@ function renderMinimap() {
   });
 }
 
-// Lot Sheet Options
 function openLotSheet(id) {
   selectedLotId = id;
   const lot = lotsData[id];
@@ -611,7 +622,6 @@ function updateHUD() {
   });
 }
 
-// Game Loop: Revenue Ticks
 setInterval(() => {
   lotsData.forEach(l => {
     if (l.status === 'built') {
@@ -625,7 +635,6 @@ setInterval(() => {
   updateHUD();
 }, 500);
 
-// Initialize Map Engine
 window.addEventListener("load", () => {
   renderCity();
   centerMap();
