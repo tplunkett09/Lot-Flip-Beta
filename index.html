@@ -906,10 +906,14 @@ function initTraffic() {
       dy = 0;
     } else {
       const isCol1 = Math.random() > 0.5;
-      x = (isCol1 ? 1172 : 2398) + (Math.random() > 0.5 ? 12 : 32);
+      const avenueX = isCol1 ? 1172 : 2398;
+      const isSouthbound = Math.random() > 0.5;
+      
+      // Southbound (dy > 0) uses left lane (+8px); Northbound (dy < 0) uses right lane (+36px)
+      x = avenueX + (isSouthbound ? 8 : 36);
       y = Math.random() * 2400;
       dx = 0;
-      dy = (x > (isCol1 ? 1172 : 2398) + 20) ? 3.5 : -3.5;
+      dy = isSouthbound ? 3.5 : -3.5;
     }
 
     carsData.push({ el: carEl, x, y, dx, dy });
@@ -924,7 +928,6 @@ function updateTraffic() {
     c.x += c.dx;
     c.y += c.dy;
 
-    // Direction-aware boundary wrapping without position jumping
     if (c.dx > 0 && c.x > mapW + 40) c.x = -40;
     if (c.dx < 0 && c.x < -40) c.x = mapW + 40;
     if (c.dy > 0 && c.y > mapH + 40) c.y = -40;
@@ -936,7 +939,6 @@ function updateTraffic() {
     else if (c.dy > 0) angle = 90;
     else if (c.dy < 0) angle = 270;
 
-    // Subpixel formatting prevents visual sub-frame jitter
     c.el.style.transform = `translate3d(${c.x.toFixed(1)}px, ${c.y.toFixed(1)}px, 0px) rotate(${angle}deg)`;
   });
 }
