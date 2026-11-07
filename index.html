@@ -32,19 +32,31 @@ html, body {
   width: 100vw; height: 100vh; display: flex; flex-direction: column; position: relative; overflow: hidden;
 }
 
+/* Redesigned Responsive Header */
 header {
-  height: 54px; background: var(--card); border-bottom: 2px solid var(--line);
-  display: flex; align-items: center; justify-content: space-between; padding: 0 12px;
-  z-index: 100; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.5); gap: 8px;
+  min-height: 50px; background: var(--card); border-bottom: 2px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between; padding: 4px 10px;
+  z-index: 100; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.5); gap: 6px;
+  flex-wrap: wrap;
 }
-.title { font-size: 16px; font-weight: 800; color: var(--gold); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-.stats { display: flex; gap: 6px; align-items: center; font-weight: 700; font-size: 12px; flex-wrap: wrap; justify-content: flex-end; }
-.stat-box { background: rgba(0,0,0,0.45); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line); white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+.title {
+  font-size: 15px; font-weight: 800; color: var(--gold); display: flex; align-items: center; gap: 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0;
+}
+.stats {
+  display: flex; gap: 4px; align-items: center; font-weight: 700; font-size: 11px;
+  flex-wrap: wrap; justify-content: flex-end; flex: 1;
+}
+.stat-box {
+  background: rgba(0,0,0,0.5); padding: 3px 6px; border-radius: 6px; border: 1px solid var(--line);
+  white-space: nowrap; display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+}
 .val-gold { color: var(--gold); }
 .val-green { color: var(--acc); }
+.val-blue { color: var(--blue); }
 
 #viewport {
-  flex: 1; width: 100%; height: calc(100vh - 54px); position: relative;
+  flex: 1; width: 100%; height: calc(100vh - 50px); position: relative;
   overflow: hidden; background: #152212; cursor: grab; touch-action: none;
 }
 #viewport:active { cursor: grabbing; }
@@ -284,13 +296,13 @@ body.is-night .car-headlight { opacity: 1; }
 
 <div id="app">
   <header>
-    <div class="title">🏡 Lot Flip Sandbox</div>
+    <div class="title">🏡 Lot Flip</div>
     <div class="stats">
-      <div class="stat-box">Bank: <span id="stat-money" class="val-gold">$15,000</span></div>
-      <div class="stat-box">Income: <span id="stat-income" class="val-green">$0/s</span></div>
-      <div class="stat-box"><span id="stat-tod">☀️ 12:00 PM</span></div>
+      <div class="stat-box">💰 <span id="stat-money" class="val-gold">$15,000</span></div>
+      <div class="stat-box">📈 <span id="stat-income" class="val-green">$0/s</span></div>
+      <div class="stat-box"><span id="stat-tod" class="val-blue">☀️ 12:00 PM</span></div>
       <div class="stat-box"><span id="stat-weather">🌤️ Clear</span></div>
-      <div class="stat-box">Lots: <span id="stat-lots">0 / 150</span></div>
+      <div class="stat-box">🏗️ <span id="stat-lots">0 / 150</span></div>
     </div>
   </header>
 
@@ -867,7 +879,6 @@ function updateHUD() {
   });
 }
 
-// Anti-Overlap Traffic Engine with Dynamic Proximity Checking
 const carsData = [];
 const carColors = [
   "#e53935", "#1e88e5", "#43a047", "#fb8c00", 
@@ -919,17 +930,15 @@ function initTraffic() {
 function updateTraffic() {
   const mapW = 3600;
   const mapH = 2400;
-  const SAFE_DISTANCE = 34; // Minimum pixel gap to prevent vehicle overlap
+  const SAFE_DISTANCE = 34;
 
   carsData.forEach((c, idx) => {
     let currentSpeed = c.targetSpeed;
 
-    // Check distance against other cars in the exact same lane/direction
     for (let j = 0; j < carsData.length; j++) {
       if (idx === j) continue;
       const other = carsData[j];
 
-      // Horizontal Boulevard Lane Matching
       if (c.dy === 0 && other.dy === 0 && Math.abs(c.y - other.y) < 6) {
         if (c.dx > 0 && other.x > c.x && (other.x - c.x) < SAFE_DISTANCE) {
           currentSpeed = Math.min(currentSpeed, Math.max(0, other.targetSpeed * 0.8));
@@ -938,7 +947,6 @@ function updateTraffic() {
         }
       }
 
-      // Vertical Avenue Lane Matching
       if (c.dx === 0 && other.dx === 0 && Math.abs(c.x - other.x) < 6) {
         if (c.dy > 0 && other.y > c.y && (other.y - c.y) < SAFE_DISTANCE) {
           currentSpeed = Math.min(currentSpeed, Math.max(0, other.targetSpeed * 0.8));
@@ -948,14 +956,12 @@ function updateTraffic() {
       }
     }
 
-    // Step positions based on collision-adjusted speed
     const stepX = c.dx === 0 ? 0 : (c.dx > 0 ? currentSpeed : -currentSpeed);
     const stepY = c.dy === 0 ? 0 : (c.dy > 0 ? currentSpeed : -currentSpeed);
 
     c.x += stepX;
     c.y += stepY;
 
-    // Smooth boundary wrap without position snapping
     if (c.dx > 0 && c.x > mapW + 40) c.x = -40;
     if (c.dx < 0 && c.x < -40) c.x = mapW + 40;
     if (c.dy > 0 && c.y > mapH + 40) c.y = -40;
