@@ -271,7 +271,7 @@ header {
   position: relative; z-index: 6; pointer-events: none;
 }
 .lot-art svg {
-  width: 100%; height: 100%; max-height: 96px; filter: drop-shadow(0 6px 6px rgba(0,0,0,0.4));
+  width: 100%; height: 100%; max-height: 104px; filter: drop-shadow(0 6px 8px rgba(0,0,0,0.45));
 }
 
 .lot-footer { z-index: 6; width: 100%; text-align: center; }
@@ -411,152 +411,204 @@ body.is-night .car-headlight { opacity: 1; }
 </div>
 
 <script>
-// SVG Sprites Library
+// High-Detail 2.5D Isometric Architectural SVG Sprites Library
 const SPRITES = {
-  ranch: `<svg viewBox="0 0 100 80">
-    <ellipse cx="50" cy="72" rx="42" ry="7" fill="rgba(0,0,0,0.25)"/>
-    <rect x="18" y="38" width="64" height="32" fill="#d7ccc8" rx="2"/>
-    <path d="M12 40 L50 14 L88 40 Z" fill="#8d6e63"/>
-    <rect x="42" y="48" width="16" height="22" fill="#5d4037" rx="1"/>
-    <circle cx="54" cy="60" r="1.5" fill="#ffb300"/>
-    <rect x="24" y="46" width="12" height="12" fill="#b3e5fc" stroke="#455a64" stroke-width="2"/>
-    <rect x="64" y="46" width="12" height="12" fill="#b3e5fc" stroke="#455a64" stroke-width="2"/>
-    <circle cx="8" cy="62" r="8" fill="#4caf50"/>
+  ranch: `<svg viewBox="0 0 120 100">
+    <ellipse cx="60" cy="88" rx="50" ry="8" fill="rgba(0,0,0,0.3)"/>
+    <!-- Driveway Concrete -->
+    <path d="M42 92 L78 92 L74 72 L46 72 Z" fill="#90a4ae"/>
+    <!-- Main House Body -->
+    <path d="M22 62 L60 48 L98 62 L98 84 L22 84 Z" fill="#b0bec5"/>
+    <path d="M22 62 L60 48 L60 84 L22 84 Z" fill="#cfd8dc"/>
+    <!-- Architectural Roof -->
+    <path d="M16 64 L60 38 L104 64 L96 70 L60 50 L24 70 Z" fill="#546e7a"/>
+    <path d="M60 38 L104 64 L96 70 L60 50 Z" fill="#455a64"/>
+    <!-- Windows & Front Door -->
+    <rect x="30" y="66" width="12" height="14" fill="#e0f7fa" stroke="#37474f" stroke-width="1.5" rx="1"/>
+    <rect x="78" y="66" width="12" height="14" fill="#e0f7fa" stroke="#37474f" stroke-width="1.5" rx="1"/>
+    <rect x="54" y="64" width="12" height="20" fill="#6d4c41" stroke="#3e2723" stroke-width="1"/>
+    <circle cx="63" cy="74" r="1.5" fill="#ffb300"/>
+    <!-- Landscaping Shrubbery -->
+    <circle cx="16" cy="78" r="8" fill="#2e7d32"/>
+    <circle cx="104" cy="78" r="8" fill="#388e3c"/>
   </svg>`,
   
-  colonial: `<svg viewBox="0 0 100 90">
-    <ellipse cx="50" cy="84" rx="44" ry="6" fill="rgba(0,0,0,0.25)"/>
-    <rect x="20" y="28" width="60" height="54" fill="#f5f5f5" rx="2"/>
-    <path d="M14 30 L50 8 L86 30 Z" fill="#37474f"/>
-    <rect x="43" y="58" width="14" height="24" fill="#b71c1c"/>
-    <rect x="26" y="36" width="11" height="14" fill="#e0f7fa" stroke="#455a64" stroke-width="1.5"/>
-    <rect x="63" y="36" width="11" height="14" fill="#e0f7fa" stroke="#455a64" stroke-width="1.5"/>
-    <rect x="26" y="58" width="11" height="14" fill="#e0f7fa" stroke="#455a64" stroke-width="1.5"/>
-    <rect x="63" y="58" width="11" height="14" fill="#e0f7fa" stroke="#455a64" stroke-width="1.5"/>
-    <rect x="20" y="24" width="60" height="5" fill="#cfd8dc"/>
+  colonial: `<svg viewBox="0 0 120 110">
+    <ellipse cx="60" cy="98" rx="52" ry="7" fill="rgba(0,0,0,0.3)"/>
+    <!-- Foundation & Walls -->
+    <path d="M28 54 L60 40 L92 54 L92 92 L28 92 Z" fill="#eceff1"/>
+    <path d="M28 54 L60 40 L60 92 L28 92 Z" fill="#fcfcfc"/>
+    <!-- Classic Roof & Chimney -->
+    <rect x="74" y="28" width="8" height="16" fill="#8d6e63"/>
+    <path d="M22 56 L60 32 L98 56 L94 62 L60 42 L26 62 Z" fill="#37474f"/>
+    <path d="M60 32 L98 56 L94 62 L60 42 Z" fill="#263238"/>
+    <!-- Windows Grid -->
+    <rect x="34" y="60" width="10" height="12" fill="#b3e5fc" stroke="#37474f" stroke-width="1.5"/>
+    <rect x="76" y="60" width="10" height="12" fill="#b3e5fc" stroke="#37474f" stroke-width="1.5"/>
+    <rect x="34" y="76" width="10" height="12" fill="#b3e5fc" stroke="#37474f" stroke-width="1.5"/>
+    <rect x="76" y="76" width="10" height="12" fill="#b3e5fc" stroke="#37474f" stroke-width="1.5"/>
+    <!-- Grand Entryway -->
+    <path d="M52 74 L68 74 L68 92 L52 92 Z" fill="#b71c1c"/>
   </svg>`,
 
-  mansion: `<svg viewBox="0 0 110 95">
-    <ellipse cx="55" cy="88" rx="48" ry="7" fill="rgba(0,0,0,0.3)"/>
-    <rect x="15" y="32" width="80" height="54" fill="#eceff1" rx="2"/>
-    <path d="M10 34 L55 6 L100 34 Z" fill="#263238"/>
-    <rect x="38" y="24" width="34" height="62" fill="#ffffff" stroke="#b0bec5" stroke-width="1"/>
-    <path d="M34 26 L55 10 L76 26 Z" fill="#1976d2"/>
-    <rect x="47" y="60" width="16" height="26" fill="#4e342e"/>
-    <rect x="22" y="42" width="12" height="16" fill="#80deea" stroke="#37474f"/>
-    <rect x="76" y="42" width="12" height="16" fill="#80deea" stroke="#37474f"/>
-    <rect x="48" y="34" width="14" height="18" fill="#80deea" stroke="#37474f"/>
+  mansion: `<svg viewBox="0 0 130 115">
+    <ellipse cx="65" cy="104" rx="58" ry="8" fill="rgba(0,0,0,0.35)"/>
+    <!-- Main Structure & Wings -->
+    <path d="M20 64 L65 46 L110 64 L110 98 L20 98 Z" fill="#f5f5f5"/>
+    <path d="M20 64 L65 46 L65 98 L20 98 Z" fill="#ffffff"/>
+    <!-- Grand Roof Pitch -->
+    <path d="M14 66 L65 34 L116 66 L110 72 L65 46 L20 72 Z" fill="#1565c0"/>
+    <path d="M65 34 L116 66 L110 72 L65 46 Z" fill="#0d47a1"/>
+    <!-- Center Attic Palladian Window -->
+    <path d="M56 46 A 9 9 0 0 1 74 46 Z" fill="#90caf9" stroke="#fff" stroke-width="1.5"/>
+    <rect x="32" y="68" width="14" height="18" fill="#e1f5fe" stroke="#37474f" stroke-width="1.5"/>
+    <rect x="84" y="68" width="14" height="18" fill="#e1f5fe" stroke="#37474f" stroke-width="1.5"/>
+    <!-- Double Pillar Entryway -->
+    <rect x="52" y="72" width="26" height="26" fill="#cfd8dc"/>
+    <rect x="56" y="78" width="18" height="20" fill="#3e2723"/>
   </svg>`,
 
-  coffee: `<svg viewBox="0 0 100 85">
-    <ellipse cx="50" cy="78" rx="42" ry="6" fill="rgba(0,0,0,0.25)"/>
-    <rect x="18" y="34" width="64" height="42" fill="#efebe9" rx="2"/>
-    <rect x="14" y="28" width="72" height="10" fill="#6d4c41"/>
-    <path d="M14 38 L86 38 L80 46 L20 46 Z" fill="#d84315"/>
-    <rect x="26" y="52" width="16" height="24" fill="#4e342e"/>
-    <rect x="50" y="50" width="24" height="18" fill="#e0f7fa" stroke="#6d4c41" stroke-width="2"/>
-    <circle cx="50" cy="20" r="8" fill="#ffb300"/>
-    <text x="50" y="24" font-size="10" font-weight="900" text-anchor="middle" fill="#3e2723">☕</text>
+  coffee: `<svg viewBox="0 0 120 100">
+    <ellipse cx="60" cy="90" rx="50" ry="7" fill="rgba(0,0,0,0.3)"/>
+    <!-- Brick Storefront -->
+    <path d="M24 50 L60 38 L96 50 L96 86 L24 86 Z" fill="#d7ccc8"/>
+    <path d="M24 50 L60 38 L60 86 L24 86 Z" fill="#efebe9"/>
+    <!-- Awning & Roof -->
+    <path d="M18 52 L60 34 L102 52 L96 58 L60 42 L24 58 Z" fill="#d84315"/>
+    <path d="M60 34 L102 52 L96 58 L60 42 Z" fill="#bf360c"/>
+    <!-- Display Windows & Cozy Door -->
+    <rect x="32" y="60" width="18" height="22" fill="#b3e5fc" stroke="#4e342e" stroke-width="2"/>
+    <rect x="70" y="60" width="18" height="26" fill="#4e342e"/>
+    <!-- Coffee Cup Sign atop Roof -->
+    <circle cx="60" cy="22" r="10" fill="#ffb300"/>
+    <text x="60" y="26" font-size="12" font-weight="900" text-anchor="middle" fill="#3e2723">☕</text>
   </svg>`,
 
-  park: `<svg viewBox="0 0 100 80">
-    <ellipse cx="50" cy="72" rx="44" ry="8" fill="rgba(0,0,0,0.2)"/>
-    <circle cx="35" cy="40" r="22" fill="#43a047"/>
-    <circle cx="65" cy="42" r="18" fill="#66bb6a"/>
-    <circle cx="50" cy="32" r="24" fill="#2e7d32"/>
-    <rect x="46" y="52" width="8" height="22" fill="#4e342e"/>
-    <rect x="20" y="62" width="22" height="8" fill="#8d6e63" rx="2"/>
-    <path d="M72 60 A 8 8 0 0 0 88 60" fill="none" stroke="#29b6f6" stroke-width="4"/>
+  park: `<svg viewBox="0 0 120 95">
+    <ellipse cx="60" cy="85" rx="52" ry="9" fill="rgba(0,0,0,0.25)"/>
+    <!-- Greenery Canopy Layers -->
+    <circle cx="40" cy="46" r="26" fill="#2e7d32"/>
+    <circle cx="80" cy="48" r="22" fill="#43a047"/>
+    <circle cx="60" cy="34" r="28" fill="#66bb6a"/>
+    <!-- Tree Trunks -->
+    <rect x="37" y="60" width="6" height="20" fill="#5d4037"/>
+    <rect x="77" y="62" width="6" height="18" fill="#5d4037"/>
+    <!-- Park Bench & Fountain Pool -->
+    <path d="M30 76 L50 76 L48 82 L32 82 Z" fill="#8d6e63"/>
+    <ellipse cx="85" cy="76" rx="16" ry="8" fill="#03a9f4" stroke="#fff" stroke-width="2"/>
   </svg>`,
 
-  civic: `<svg viewBox="0 0 100 90">
-    <ellipse cx="50" cy="84" rx="46" ry="6" fill="rgba(0,0,0,0.3)"/>
-    <rect x="16" y="36" width="68" height="46" fill="#cfd8dc"/>
-    <path d="M10 38 L50 12 L90 38 Z" fill="#455a64"/>
-    <rect x="24" y="44" width="6" height="38" fill="#ffffff"/>
-    <rect x="40" y="44" width="6" height="38" fill="#ffffff"/>
-    <rect x="54" y="44" width="6" height="38" fill="#ffffff"/>
-    <rect x="70" y="44" width="6" height="38" fill="#ffffff"/>
-    <rect x="44" y="60" width="12" height="22" fill="#37474f"/>
+  civic: `<svg viewBox="0 0 120 105">
+    <ellipse cx="60" cy="96" rx="52" ry="7" fill="rgba(0,0,0,0.3)"/>
+    <!-- Neo-Classical Stone Building -->
+    <path d="M20 54 L60 38 L100 54 L100 92 L20 92 Z" fill="#eceff1"/>
+    <path d="M20 54 L60 38 L60 92 L20 92 Z" fill="#ffffff"/>
+    <!-- Triangular Pediment Roof -->
+    <path d="M14 56 L60 28 L106 56 Z" fill="#455a64"/>
+    <path d="M60 28 L106 56 L100 60 L60 34 Z" fill="#37474f"/>
+    <!-- Grand Columns -->
+    <rect x="30" y="58" width="6" height="34" fill="#cfd8dc"/>
+    <rect x="46" y="58" width="6" height="34" fill="#cfd8dc"/>
+    <rect x="68" y="58" width="6" height="34" fill="#cfd8dc"/>
+    <rect x="84" y="58" width="6" height="34" fill="#cfd8dc"/>
+    <rect x="52" y="70" width="16" height="22" fill="#263238"/>
   </svg>`,
 
-  apartment: `<svg viewBox="0 0 100 100">
-    <ellipse cx="50" cy="94" rx="40" ry="5" fill="rgba(0,0,0,0.3)"/>
-    <rect x="22" y="16" width="56" height="76" fill="#78909c" rx="2"/>
-    <rect x="20" y="12" width="60" height="6" fill="#37474f"/>
-    <rect x="30" y="24" width="10" height="12" fill="#fff59d"/>
-    <rect x="45" y="24" width="10" height="12" fill="#80deea"/>
-    <rect x="60" y="24" width="10" height="12" fill="#fff59d"/>
-    <rect x="30" y="42" width="10" height="12" fill="#80deea"/>
-    <rect x="45" y="42" width="10" height="12" fill="#fff59d"/>
-    <rect x="60" y="42" width="10" height="12" fill="#80deea"/>
-    <rect x="30" y="60" width="10" height="12" fill="#fff59d"/>
-    <rect x="45" y="60" width="10" height="12" fill="#80deea"/>
-    <rect x="60" y="60" width="10" height="12" fill="#fff59d"/>
-    <rect x="43" y="76" width="14" height="16" fill="#263238"/>
+  apartment: `<svg viewBox="0 0 120 115">
+    <ellipse cx="60" cy="106" rx="46" ry="7" fill="rgba(0,0,0,0.35)"/>
+    <!-- High-rise Brick Tower -->
+    <path d="M32 20 L88 20 L88 102 L32 102 Z" fill="#78909c"/>
+    <path d="M32 20 L60 12 L88 20 L88 102 L32 102 Z" fill="#b0bec5"/>
+    <rect x="38" y="28" width="10" height="12" fill="#fff59d" stroke="#37474f"/>
+    <rect x="54" y="28" width="10" height="12" fill="#80deea" stroke="#37474f"/>
+    <rect x="70" y="28" width="10" height="12" fill="#fff59d" stroke="#37474f"/>
+    <rect x="38" y="48" width="10" height="12" fill="#80deea" stroke="#37474f"/>
+    <rect x="54" y="48" width="10" height="12" fill="#fff59d" stroke="#37474f"/>
+    <rect x="70" y="48" width="10" height="12" fill="#80deea" stroke="#37474f"/>
+    <rect x="38" y="68" width="10" height="12" fill="#fff59d" stroke="#37474f"/>
+    <rect x="54" y="68" width="10" height="12" fill="#80deea" stroke="#37474f"/>
+    <rect x="70" y="68" width="10" height="12" fill="#fff59d" stroke="#37474f"/>
+    <!-- Lobby Entrance -->
+    <rect x="50" y="86" width="20" height="16" fill="#263238"/>
   </svg>`,
 
-  pool: `<svg viewBox="0 0 100 80">
-    <ellipse cx="50" cy="50" rx="42" ry="24" fill="#0288d1"/>
-    <ellipse cx="50" cy="50" rx="36" ry="18" fill="#29b6f6"/>
-    <path d="M25 45 Q 50 55 75 45" fill="none" stroke="#e0f7fa" stroke-width="2" opacity="0.6"/>
-    <rect x="75" y="32" width="12" height="6" fill="#ff7043"/>
+  pool: `<svg viewBox="0 0 120 90">
+    <ellipse cx="60" cy="54" rx="52" ry="28" fill="#0288d1"/>
+    <ellipse cx="60" cy="54" rx="44" ry="22" fill="#29b6f6"/>
+    <!-- Ripple Waves -->
+    <path d="M35 50 Q 60 62 85 50" fill="none" stroke="#e0f7fa" stroke-width="2.5" opacity="0.7"/>
+    <path d="M45 44 Q 60 52 75 44" fill="none" stroke="#e0f7fa" stroke-width="2" opacity="0.7"/>
+    <!-- Lounge Chair & Umbrella -->
+    <rect x="90" y="36" width="16" height="8" fill="#ff7043" rx="2" transform="rotate(-15 90 36)"/>
+    <circle cx="24" cy="40" r="12" fill="#ffb300"/>
+    <rect x="22" y="40" width="4" height="20" fill="#795548"/>
   </svg>`,
 
-  school: `<svg viewBox="0 0 100 85">
-    <ellipse cx="50" cy="80" rx="44" ry="6" fill="rgba(0,0,0,0.25)"/>
-    <rect x="18" y="34" width="64" height="44" fill="#e57373" rx="2"/>
-    <path d="M12 36 L50 14 L88 36 Z" fill="#b71c1c"/>
-    <rect x="44" y="10" width="12" height="20" fill="#ffffff"/>
-    <polygon points="44,10 50,2 56,10" fill="#b71c1c"/>
-    <circle cx="50" cy="20" r="3" fill="#ffb300"/>
-    <rect x="43" y="54" width="14" height="24" fill="#3e2723"/>
+  school: `<svg viewBox="0 0 120 100">
+    <ellipse cx="60" cy="92" rx="50" ry="7" fill="rgba(0,0,0,0.3)"/>
+    <path d="M22 52 L60 38 L98 52 L98 88 L22 88 Z" fill="#e57373"/>
+    <path d="M22 52 L60 38 L60 88 L22 88 Z" fill="#ef9a9a"/>
+    <path d="M16 54 L60 30 L104 54 L98 60 L60 42 L22 60 Z" fill="#b71c1c"/>
+    <!-- Clock Tower Cupola -->
+    <rect x="52" y="14" width="16" height="26" fill="#ffffff"/>
+    <circle cx="60" cy="24" r="5" fill="#ffb300" stroke="#37474f" stroke-width="1"/>
+    <polygon points="50,14 60,4 70,14" fill="#b71c1c"/>
+    <rect x="52" y="66" width="16" height="22" fill="#3e2723"/>
   </svg>`,
 
-  hospital: `<svg viewBox="0 0 100 90">
-    <ellipse cx="50" cy="84" rx="44" ry="6" fill="rgba(0,0,0,0.3)"/>
-    <rect x="20" y="24" width="60" height="58" fill="#ffffff" rx="3" stroke="#cfd8dc" stroke-width="2"/>
-    <rect x="16" y="20" width="68" height="6" fill="#00bcd4"/>
-    <rect x="42" y="32" width="16" height="5" fill="#e53935"/>
-    <rect x="47.5" y="26.5" width="5" height="16" fill="#e53935"/>
-    <rect x="28" y="44" width="12" height="12" fill="#b2ebf2"/>
-    <rect x="60" y="44" width="12" height="12" fill="#b2ebf2"/>
-    <rect x="42" y="62" width="16" height="20" fill="#37474f"/>
+  hospital: `<svg viewBox="0 0 120 105">
+    <ellipse cx="60" cy="96" rx="50" ry="7" fill="rgba(0,0,0,0.3)"/>
+    <path d="M20 44 L60 30 L100 44 L100 92 L20 92 Z" fill="#ffffff" stroke="#cfd8dc" stroke-width="2"/>
+    <path d="M20 44 L60 30 L60 92 L20 92 Z" fill="#f5f5f5"/>
+    <rect x="16" y="24" width="88" height="8" fill="#00bcd4"/>
+    <!-- Medical Red Cross -->
+    <rect x="54" y="46" width="12" height="4" fill="#e53935"/>
+    <rect x="58" y="42" width="4" height="12" fill="#e53935"/>
+    <rect x="30" y="60" width="12" height="14" fill="#b2ebf2" stroke="#37474f"/>
+    <rect x="78" y="60" width="12" height="14" fill="#b2ebf2" stroke="#37474f"/>
+    <rect x="50" y="70" width="20" height="22" fill="#37474f"/>
   </svg>`,
 
-  shopping: `<svg viewBox="0 0 100 80">
-    <ellipse cx="50" cy="74" rx="44" ry="6" fill="rgba(0,0,0,0.25)"/>
-    <rect x="14" y="30" width="72" height="42" fill="#ab47bc" rx="2"/>
-    <rect x="10" y="22" width="80" height="10" fill="#7b1fa2"/>
-    <rect x="22" y="44" width="24" height="28" fill="#e1bee7"/>
-    <rect x="54" y="44" width="24" height="28" fill="#e1bee7"/>
+  shopping: `<svg viewBox="0 0 120 95">
+    <ellipse cx="60" cy="88" rx="50" ry="7" fill="rgba(0,0,0,0.3)"/>
+    <path d="M18 46 L60 32 L102 46 L102 84 L18 84 Z" fill="#ab47bc"/>
+    <path d="M18 46 L60 32 L60 84 L18 84 Z" fill="#ba68c8"/>
+    <rect x="14" y="34" width="92" height="14" fill="#7b1fa2"/>
+    <rect x="28" y="56" width="26" height="28" fill="#e1bee7"/>
+    <rect x="66" y="56" width="26" height="28" fill="#e1bee7"/>
   </svg>`,
 
-  fire: `<svg viewBox="0 0 100 85">
-    <ellipse cx="50" cy="78" rx="42" ry="6" fill="rgba(0,0,0,0.25)"/>
-    <rect x="18" y="28" width="64" height="48" fill="#d32f2f" rx="2"/>
-    <rect x="14" y="22" width="72" height="8" fill="#b71c1c"/>
-    <rect x="26" y="42" width="20" height="34" fill="#424242" stroke="#b0bec5" stroke-width="2"/>
-    <rect x="54" y="42" width="20" height="34" fill="#424242" stroke="#b0bec5" stroke-width="2"/>
-    <circle cx="50" cy="14" r="5" fill="#ffb300"/>
+  fire: `<svg viewBox="0 0 120 100">
+    <ellipse cx="60" cy="92" rx="50" ry="7" fill="rgba(0,0,0,0.3)"/>
+    <path d="M20 42 L60 28 L100 42 L100 88 L20 88 Z" fill="#d32f2f"/>
+    <path d="M20 42 L60 28 L60 88 L20 88 Z" fill="#f44336"/>
+    <rect x="16" y="24" width="88" height="10" fill="#b71c1c"/>
+    <!-- Fire Station Garage Doors -->
+    <rect x="28" y="52" width="28" height="36" fill="#424242" stroke="#b0bec5" stroke-width="2"/>
+    <rect x="64" y="52" width="28" height="36" fill="#424242" stroke="#b0bec5" stroke-width="2"/>
+    <circle cx="60" cy="18" r="6" fill="#ffb300"/>
   </svg>`,
 
-  police: `<svg viewBox="0 0 100 85">
-    <ellipse cx="50" cy="78" rx="42" ry="6" fill="rgba(0,0,0,0.25)"/>
-    <rect x="20" y="26" width="60" height="50" fill="#1e88e5" rx="2"/>
-    <rect x="16" y="20" width="68" height="8" fill="#1565c0"/>
-    <polygon points="50,32 54,40 62,40 56,46 58,54 50,49 42,54 44,46 38,40 46,40" fill="#ffb300"/>
-    <rect x="42" y="58" width="16" height="18" fill="#0d47a1"/>
+  police: `<svg viewBox="0 0 120 100">
+    <ellipse cx="60" cy="92" rx="50" ry="7" fill="rgba(0,0,0,0.3)"/>
+    <path d="M20 42 L60 28 L100 42 L100 88 L20 88 Z" fill="#1e88e5"/>
+    <path d="M20 42 L60 28 L60 88 L20 88 Z" fill="#2196f3"/>
+    <rect x="16" y="24" width="88" height="10" fill="#1565c0"/>
+    <polygon points="60,34 64,42 72,42 66,48 68,56 60,51 52,56 54,48 48,42 56,42" fill="#ffb300"/>
+    <rect x="50" y="64" width="20" height="24" fill="#0d47a1"/>
   </svg>`,
 
-  bank: `<svg viewBox="0 0 100 90">
-    <ellipse cx="50" cy="84" rx="44" ry="6" fill="rgba(0,0,0,0.3)"/>
-    <rect x="18" y="32" width="64" height="50" fill="#fff8e1"/>
-    <path d="M12 34 L50 10 L88 34 Z" fill="#ffb300"/>
-    <rect x="26" y="40" width="8" height="42" fill="#ffe082"/>
-    <rect x="46" y="40" width="8" height="42" fill="#ffe082"/>
-    <rect x="66" y="40" width="8" height="42" fill="#ffe082"/>
-    <circle cx="50" cy="24" r="5" fill="#558b2f"/>
+  bank: `<svg viewBox="0 0 120 105">
+    <ellipse cx="60" cy="98" rx="50" ry="7" fill="rgba(0,0,0,0.3)"/>
+    <path d="M18 48 L60 34 L102 48 L102 92 L18 92 Z" fill="#fff8e1"/>
+    <path d="M18 48 L60 34 L60 92 L18 92 Z" fill="#ffecb3"/>
+    <path d="M12 50 L60 24 L108 50 Z" fill="#ffb300"/>
+    <!-- Gold Pillars -->
+    <rect x="26" y="52" width="8" height="40" fill="#ffd54f"/>
+    <rect x="46" y="52" width="8" height="40" fill="#ffd54f"/>
+    <rect x="66" y="52" width="8" height="40" fill="#ffd54f"/>
+    <rect x="86" y="52" width="8" height="40" fill="#ffd54f"/>
+    <circle cx="60" cy="16" r="6" fill="#558b2f"/>
   </svg>`
 };
 
@@ -1193,7 +1245,7 @@ function updateTraffic() {
       if (c.dx === 0 && other.dx === 0 && Math.abs(c.x - other.x) < 6) {
         if (c.dy > 0 && other.y > c.y && (other.y - c.y) < SAFE_DISTANCE) {
           currentSpeed = Math.min(currentSpeed, Math.max(0, other.targetSpeed * 0.8));
-        } else if (c.dy < 0 && other.y < c.y && (c.y - other.y) < SAFE_DISTANCE) {
+        } else if (c.dy < 0 && other.y < c.y && (other.y - c.y) < SAFE_DISTANCE) {
           currentSpeed = Math.min(currentSpeed, Math.max(0, other.targetSpeed * 0.8));
         }
       }
