@@ -139,7 +139,7 @@ header {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; width: 100%; height: 160px;
 }
 
-/* Individual Lot & Side-Aligned Driveway Connection */
+/* Individual Lot Styling */
 .lot {
   background: #5b9e43; border: 3px dashed #3a6b29; border-radius: 10px;
   position: relative; display: flex; flex-direction: column; justify-content: space-between;
@@ -150,30 +150,31 @@ header {
 .lot.purchased { background: #263622; border: 3px solid var(--gold); box-shadow: inset 0 0 12px rgba(255,179,0,0.2); }
 .lot.locked-lot { opacity: 0.45; cursor: not-allowed; }
 
-/* Side-aligned Driveway Extensions */
-.lot.to-bottom::after {
-  content: ""; position: absolute; bottom: -18px; right: 14px;
-  width: 16px; height: 18px; background: #777b75;
-  border-left: 2px solid #545954; border-right: 2px solid #545954; z-index: 4;
-}
-.lot.to-bottom::before {
-  content: ""; position: absolute; bottom: -18px; right: 10px;
-  width: 24px; height: 3px; background: var(--curb); z-index: 5;
-}
-
+/* Top-facing Driveway Extensions (Row 0, Row 2, Row 4) -> Connects to road directly ABOVE */
 .lot.to-top::after {
-  content: ""; position: absolute; top: -18px; right: 14px;
+  content: ""; position: absolute; top: -18px; left: calc(50% - 8px);
   width: 16px; height: 18px; background: #777b75;
   border-left: 2px solid #545954; border-right: 2px solid #545954; z-index: 4;
 }
 .lot.to-top::before {
-  content: ""; position: absolute; top: -18px; right: 10px;
+  content: ""; position: absolute; top: -18px; left: calc(50% - 12px);
+  width: 24px; height: 3px; background: var(--curb); z-index: 5;
+}
+
+/* Bottom-facing Driveway Extensions (Row 1, Row 3) -> Connects to road directly BELOW */
+.lot.to-bottom::after {
+  content: ""; position: absolute; bottom: -18px; left: calc(50% - 8px);
+  width: 16px; height: 18px; background: #777b75;
+  border-left: 2px solid #545954; border-right: 2px solid #545954; z-index: 4;
+}
+.lot.to-bottom::before {
+  content: ""; position: absolute; bottom: -18px; left: calc(50% - 12px);
   width: 24px; height: 3px; background: var(--curb); z-index: 5;
 }
 
 /* Commercial / Civic Parking Apron */
 .lot.business-parking::after {
-  right: 50% !important; transform: translateX(50%);
+  left: 50% !important; transform: translateX(-50%);
   width: 60% !important; border: 1px solid #f8f8ef;
   background: repeating-linear-gradient(90deg, #777b75, #777b75 10px, #f8f8ef 10px, #f8f8ef 12px);
 }
@@ -476,7 +477,10 @@ function renderCity() {
         const lot = lotsData[i];
         const lotEl = document.createElement("div");
         
-        const roadFacing = (r === 0 || r === 2) ? "to-bottom" : "to-top";
+        // Facing Rules:
+        // Rows 0, 2, 4 face TOP to connect to the road directly above them
+        // Rows 1, 3 face BOTTOM to connect to the road directly below them
+        const roadFacing = (r === 0 || r === 2 || r === 4) ? "to-top" : "to-bottom";
         const isBiz = lot.building && BUILDINGS[lot.building].biz;
         lotEl.className = `lot ${roadFacing} ${isBiz ? 'business-parking' : ''} ${lot.status === 'built' ? 'purchased' : ''} ${isUnlocked ? '' : 'locked-lot'}`;
         
@@ -563,7 +567,7 @@ function openLotSheet(id) {
 }
 
 document.getElementById("sheet-close").onclick = () => {
-  document.getElementById("sheet").classList.remove("active");
+  document.getElementById("sheet"].classList.remove("active");
 };
 
 function buildOnLot(key) {
