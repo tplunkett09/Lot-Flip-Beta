@@ -6,13 +6,13 @@
 <title>Lot Flip — Freestyle Sandbox City</title>
 <style>
 :root {
-  --bg: #121910;
-  --card: #1c2819;
-  --hov: #293b25;
+  --bg: #10160e;
+  --card: #182216;
+  --hov: #243421;
   --text: #f0f7ec;
   --mut: #9bb38e;
   --acc: #4caf50;
-  --line: #32492d;
+  --line: #2d3f2a;
   --warn: #e53935;
   --gold: #ffb300;
   --blue: #29b6f6;
@@ -30,28 +30,31 @@ html, body {
 #app {
   width: 100vw; height: 100vh; display: flex; flex-direction: column; position: relative; overflow: hidden;
 }
+
+/* Header & Stat Badges */
 header {
-  height: 52px; background: var(--card); border-bottom: 2px solid var(--line);
+  height: 54px; background: var(--card); border-bottom: 2px solid var(--line);
   display: flex; align-items: center; justify-content: space-between; padding: 0 12px;
-  z-index: 100; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  z-index: 100; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.5); gap: 8px;
 }
-.title { font-size: 18px; font-weight: 800; color: var(--gold); display: flex; align-items: center; gap: 6px; }
-.stats { display: flex; gap: 10px; align-items: center; font-weight: 700; font-size: 12px; }
-.stat-box { background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 8px; border: 1px solid var(--line); white-space: nowrap; }
+.title { font-size: 16px; font-weight: 800; color: var(--gold); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.stats { display: flex; gap: 6px; align-items: center; font-weight: 700; font-size: 12px; flex-wrap: wrap; justify-content: flex-end; }
+.stat-box { background: rgba(0,0,0,0.45); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line); white-space: nowrap; display: flex; align-items: center; gap: 4px; }
 .val-gold { color: var(--gold); }
 .val-green { color: var(--acc); }
 
+/* Main Map Viewport & Camera Canvas */
 #viewport {
-  flex: 1; width: 100%; height: calc(100vh - 52px); position: relative;
-  overflow: hidden; background: #1a2717; cursor: grab; touch-action: none;
+  flex: 1; width: 100%; height: calc(100vh - 54px); position: relative;
+  overflow: hidden; background: #152212; cursor: grab; touch-action: none;
 }
 #viewport:active { cursor: grabbing; }
 
 #map-world {
   position: absolute; left: 0; top: 0; width: 3600px; height: 2400px;
-  transform-origin: 0 0; will-change: transform; background: #4a8037;
+  transform-origin: 0 0; will-change: transform; background: #457833;
   box-shadow: inset 0 0 120px rgba(0,0,0,0.6); pointer-events: auto;
-  transition: filter 0.5s ease;
+  transition: filter 1s ease;
 }
 
 .terrain-overlay {
@@ -60,12 +63,18 @@ header {
   background-size: 32px 32px;
 }
 
-/* Day/Night Lighting & Weather Canvas Overlay */
-#fx-canvas {
-  position: absolute; inset: 0; pointer-events: none; z-index: 60;
+/* Ambient Day/Night Lighting Overlay */
+#night-overlay {
+  position: absolute; inset: 0; pointer-events: none; z-index: 40;
+  background: rgba(5, 12, 24, 0); transition: background 1s linear;
 }
 
-/* Major Boulevards */
+/* Rain FX Overlay */
+#rain-canvas {
+  position: absolute; inset: 0; pointer-events: none; z-index: 45; opacity: 0; transition: opacity 0.5s ease;
+}
+
+/* Major Boulevards & Avenues */
 .city-roads { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
 .main-avenue-h {
   position: absolute; left: 0; width: 3600px; height: 56px; background: var(--road-main);
@@ -86,7 +95,7 @@ header {
   border-left: 3px double var(--gold);
 }
 
-/* District Sectors */
+/* District Grid Setup */
 .district-layer {
   position: absolute; inset: 0; display: grid;
   grid-template-columns: 1172px 56px 1172px 56px 1144px;
@@ -103,7 +112,7 @@ header {
 .district.locked::after {
   content: "🔒 DISTRICT LOCKED"; position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 34px; font-weight: 900; color: rgba(255,255,255,0.4);
+  font-size: 32px; font-weight: 900; color: rgba(255,255,255,0.4);
   letter-spacing: 2px; text-shadow: 0 4px 10px rgba(0,0,0,0.8); z-index: 25;
 }
 
@@ -113,8 +122,8 @@ header {
   padding: 4px 14px; border-radius: 20px; display: flex; align-items: center; gap: 8px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
-.district-name { font-size: 15px; font-weight: 800; color: #fff; }
-.district-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 800; background: var(--line); color: var(--gold); }
+.district-name { font-size: 14px; font-weight: 800; color: #fff; }
+.district-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 800; background: var(--line); color: var(--gold); }
 
 .district-hazards {
   position: absolute; top: 12px; right: 16px; z-index: 20; display: flex; gap: 6px;
@@ -126,7 +135,6 @@ header {
 }
 .hazard-chip.fixed { background: rgba(76,175,80,0.9); border-color: #81c784; }
 
-/* 25 Lot Block Grid Layout */
 .district-canvas {
   width: 100%; height: 100%; padding-top: 44px; display: flex; flex-direction: column; justify-content: space-between; position: relative;
 }
@@ -147,13 +155,13 @@ header {
 
 /* Lot Styling */
 .lot {
-  background: #5b9e43; border: 3px dashed #3a6b29; border-radius: 10px;
+  background: #53913d; border: 3px dashed #325e24; border-radius: 10px;
   position: relative; display: flex; flex-direction: column; justify-content: space-between;
   align-items: center; padding: 6px; cursor: pointer; transition: transform 0.15s, border-color 0.15s;
   box-shadow: 0 4px 8px rgba(0,0,0,0.25); z-index: 5;
 }
 .lot:hover { border-color: #fff; transform: scale(1.02); }
-.lot.purchased { background: #263622; border: 3px solid var(--gold); box-shadow: inset 0 0 12px rgba(255,179,0,0.2); }
+.lot.purchased { background: #22331f; border: 3px solid var(--gold); box-shadow: inset 0 0 12px rgba(255,179,0,0.2); }
 .lot.listed { border-color: var(--blue); animation: pulse-blue 1.5s infinite; }
 .lot.has-offer { border-color: var(--gold); animation: pulse-gold 1s infinite; }
 .lot.locked-lot { opacity: 0.45; cursor: not-allowed; }
@@ -161,7 +169,7 @@ header {
 @keyframes pulse-blue { 50% { box-shadow: 0 0 14px var(--blue); } }
 @keyframes pulse-gold { 50% { box-shadow: 0 0 16px var(--gold); } }
 
-/* Driveway Extensions */
+/* Street-Side Driveways */
 .lot.to-top::after {
   content: ""; position: absolute; top: -18px; left: calc(50% - 8px);
   width: 16px; height: 18px; background: #777b75;
@@ -195,18 +203,24 @@ header {
 .lot-footer { z-index: 6; width: 100%; text-align: center; }
 .lot-price { font-size: 11px; font-weight: 800; color: var(--gold); background: rgba(0,0,0,0.8); padding: 3px 6px; border-radius: 6px; display: inline-block; }
 
-/* Traffic Visuals */
+/* Animated Traffic Elements */
 .car {
   position: absolute; width: 22px; height: 12px; border-radius: 3px;
-  z-index: 50; pointer-events: none; transition: transform 0.05s linear;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  z-index: 30; pointer-events: none; transition: transform 0.05s linear;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5); background: #e53935;
 }
 .car::after {
-  content: ""; position: absolute; right: 2px; top: 2px; width: 6px; height: 8px;
+  content: ""; position: absolute; right: 2px; top: 2px; width: 5px; height: 8px;
   background: #bde3f5; border-radius: 1px;
 }
+.car-headlight {
+  position: absolute; right: -8px; top: 1px; width: 10px; height: 10px;
+  background: radial-gradient(circle, rgba(255,255,200,0.8) 0%, rgba(255,255,200,0) 70%);
+  pointer-events: none; opacity: 0; transition: opacity 0.5s;
+}
+body.is-night .car-headlight { opacity: 1; }
 
-/* UI Controls */
+/* HUD & Controls Overlay */
 .controls-hud {
   position: absolute; bottom: 20px; right: 20px; z-index: 90;
   display: flex; flex-direction: column; gap: 8px;
@@ -236,7 +250,7 @@ header {
   pointer-events: none; border-radius: 2px;
 }
 
-/* Modal Sheet */
+/* Modal Bottom Sheet */
 #sheet {
   position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%) translateY(120%);
   width: 90%; max-width: 540px; background: var(--card); border: 2px solid var(--gold);
@@ -286,7 +300,9 @@ header {
       </div>
 
       <div class="district-layer" id="district-layer"></div>
-      <canvas id="fx-canvas" width="3600" height="2400"></canvas>
+      <div id="traffic-layer"></div>
+      <div id="night-overlay"></div>
+      <canvas id="rain-canvas" width="3600" height="2400"></canvas>
     </div>
 
     <div id="minimap">
@@ -319,7 +335,6 @@ const DISTRICTS = [
   { id: 5, name: "Metropolis Hub", req: 100, hazard: "Traffic Gridlock", fixBuilding: "fire", gridPos: [2,4] }
 ];
 
-// Building Blueprints (Includes Local Coffee Shop)
 const BUILDINGS = {
   ranch: { name: "Ranch Home", cost: 250, val: 450, rm: 1.0, cat: "h", limit: Infinity, icon: "🏡", biz: false, desc: "Val $450 · 1.0× rent" },
   colonial: { name: "Colonial House", cost: 450, val: 800, rm: 1.3, boost: 0.15, cat: "h", limit: Infinity, icon: "🏛️", biz: false, desc: "Val $800 · +15% nearby" },
@@ -348,9 +363,8 @@ let unlockedDistricts = [0];
 let fixedHazards = [];
 let selectedLotId = null;
 
-// Day/Night & Weather Engine State
-let dayTime = 0.5; // 0 = Midnight, 0.25 = Dawn, 0.5 = Noon, 0.75 = Dusk
-let currentWeather = "clear"; // clear, rain, fog
+let dayTime = 0.5;
+let currentWeather = "clear";
 const weatherTypes = ["clear", "clear", "rain", "fog"];
 
 let lotsData = Array.from({ length: 150 }, (_, i) => ({
@@ -838,55 +852,89 @@ function updateHUD() {
   });
 }
 
-// Canvas FX Engine: Day/Night Lighting & Rain/Fog Weather Layers
-function renderCanvasFX() {
-  const canvas = document.getElementById("fx-canvas");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, 3600, 2400);
+// Traffic System Engine
+const carsData = [];
+const carColors = ["#e53935", "#1e88e5", "#43a047", "#fb8c00", "#8e24aa", "#fdd835", "#00acc1"];
 
-  // Night Darkness Overlay
-  let nightAlpha = 0;
-  if (dayTime < 0.25 || dayTime > 0.75) {
-    nightAlpha = dayTime < 0.25 ? (0.25 - dayTime) / 0.25 : (dayTime - 0.75) / 0.25;
-    nightAlpha = Math.min(0.65, nightAlpha * 0.75);
-  }
+function initTraffic() {
+  const container = document.getElementById("traffic-layer");
+  if (!container) return;
+  container.innerHTML = "";
+  carsData.length = 0;
 
-  if (nightAlpha > 0) {
-    ctx.fillStyle = `rgba(5, 10, 20, ${nightAlpha})`;
-    ctx.fillRect(0, 0, 3600, 2400);
+  // Major Boulevard Traffic Cars
+  for (let i = 0; i < 14; i++) {
+    const isHorizontal = Math.random() > 0.5;
+    const carEl = document.createElement("div");
+    carEl.className = "car";
+    carEl.style.background = carColors[Math.floor(Math.random() * carColors.length)];
 
-    // Streetlights along main avenues
-    ctx.fillStyle = "rgba(255, 235, 150, 0.25)";
-    for (let x = 100; x < 3600; x += 300) {
-      ctx.beginPath();
-      ctx.arc(x, 1172 + 28, 60, 0, Math.PI * 2);
-      ctx.fill();
+    const headlight = document.createElement("div");
+    headlight.className = "car-headlight";
+    carEl.appendChild(headlight);
+    container.appendChild(carEl);
+
+    let x, y, dx, dy;
+    if (isHorizontal) {
+      x = Math.random() * 3600;
+      y = 1172 + (Math.random() > 0.5 ? 12 : 32);
+      dx = (y > 1172 + 20) ? 4 : -4;
+      dy = 0;
+    } else {
+      const isCol1 = Math.random() > 0.5;
+      x = (isCol1 ? 1172 : 2398) + (Math.random() > 0.5 ? 12 : 32);
+      y = Math.random() * 2400;
+      dx = 0;
+      dy = (x > (isCol1 ? 1172 : 2398) + 20) ? 4 : -4;
     }
-  }
 
-  // Fog Weather Effect
-  if (currentWeather === "fog") {
-    ctx.fillStyle = "rgba(200, 215, 210, 0.25)";
-    ctx.fillRect(0, 0, 3600, 2400);
+    carsData.push({ el: carEl, x, y, dx, dy, isMain: true });
   }
+}
 
-  // Rain Weather Effect
+function updateTraffic() {
+  carsData.forEach(c => {
+    c.x += c.dx;
+    c.y += c.dy;
+
+    if (c.x < -40) c.x = 3640;
+    if (c.x > 3640) c.x = -40;
+    if (c.y < -40) c.y = 2440;
+    if (c.y > 2440) c.y = -40;
+
+    let angle = 0;
+    if (c.dx > 0) angle = 0;
+    else if (c.dx < 0) angle = 180;
+    else if (c.dy > 0) angle = 90;
+    else if (c.dy < 0) angle = 270;
+
+    c.el.style.transform = `translate3d(${c.x}px, ${c.y}px, 0px) rotate(${angle}deg)`;
+  });
+}
+
+// Weather Engine Overlay
+function updateWeatherEffects() {
+  const canvas = document.getElementById("rain-canvas");
+  if (!canvas) return;
+  canvas.style.opacity = currentWeather === "rain" ? "1" : "0";
+
   if (currentWeather === "rain") {
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, 3600, 2400);
     ctx.strokeStyle = "rgba(180, 220, 255, 0.4)";
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 250; i++) {
       const rx = (Math.random() * 3600);
       const ry = (Math.random() * 2400);
       ctx.moveTo(rx, ry);
-      ctx.lineTo(rx - 10, ry + 25);
+      ctx.lineTo(rx - 8, ry + 22);
     }
     ctx.stroke();
   }
 }
 
-// Initialize & Bind
+// Setup Event Listeners and Main Loop
 window.addEventListener("load", () => {
   const viewport = document.getElementById("viewport");
   
@@ -962,12 +1010,19 @@ window.addEventListener("load", () => {
   };
 
   renderCity();
+  initTraffic();
   centerMap();
 
-  // Primary Loop (Rent, Flip Offers, Weather & Day/Night Clock)
+  // Animation Loop for Traffic
+  function animLoop() {
+    updateTraffic();
+    requestAnimationFrame(animLoop);
+  }
+  requestAnimationFrame(animLoop);
+
+  // 500ms Game Loop (Rent, Flips, Time & Weather)
   setInterval(() => {
-    // Clock Cycle
-    dayTime = (dayTime + 0.005) % 1;
+    dayTime = (dayTime + 0.003) % 1;
     const hour = Math.floor(dayTime * 24);
     const displayHour = hour % 12 === 0 ? 12 : hour % 12;
     const ampm = hour >= 12 ? "PM" : "AM";
@@ -976,12 +1031,21 @@ window.addEventListener("load", () => {
     const todEl = document.getElementById("stat-tod");
     if (todEl) todEl.textContent = `${icon} ${displayHour}:00 ${ampm}`;
 
-    // Random Weather Changes
+    // Night Glow Toggle
+    const nightOverlay = document.getElementById("night-overlay");
+    if (nightOverlay) {
+      const isNightTime = (hour < 6 || hour >= 19);
+      nightOverlay.style.background = isNightTime ? "rgba(5, 12, 24, 0.45)" : "rgba(5, 12, 24, 0)";
+      document.body.classList.toggle("is-night", isNightTime);
+    }
+
+    // Weather Cycling
     if (Math.random() < 0.02) {
       currentWeather = weatherTypes[Math.floor(Math.random() * weatherTypes.length)];
       const weatherIcons = { clear: "🌤️ Clear", rain: "🌧️ Rain", fog: "🌫️ Fog" };
       const wEl = document.getElementById("stat-weather");
       if (wEl) wEl.textContent = weatherIcons[currentWeather];
+      updateWeatherEffects();
     }
 
     // Revenue & Flip Logic
@@ -998,7 +1062,6 @@ window.addEventListener("load", () => {
     });
 
     updateHUD();
-    renderCanvasFX();
   }, 500);
 });
 </script>
