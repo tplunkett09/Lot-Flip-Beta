@@ -139,7 +139,7 @@ header {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; width: 100%; height: 160px;
 }
 
-/* Individual Lot Styling */
+/* Lot Styling */
 .lot {
   background: #5b9e43; border: 3px dashed #3a6b29; border-radius: 10px;
   position: relative; display: flex; flex-direction: column; justify-content: space-between;
@@ -150,7 +150,7 @@ header {
 .lot.purchased { background: #263622; border: 3px solid var(--gold); box-shadow: inset 0 0 12px rgba(255,179,0,0.2); }
 .lot.locked-lot { opacity: 0.45; cursor: not-allowed; }
 
-/* Top-facing Driveway Extensions (Row 0, Row 2, Row 4) -> Connects to road directly ABOVE */
+/* Top-facing Driveway Extensions (Rows 0, 2, 4) */
 .lot.to-top::after {
   content: ""; position: absolute; top: -18px; left: calc(50% - 8px);
   width: 16px; height: 18px; background: #777b75;
@@ -161,7 +161,7 @@ header {
   width: 24px; height: 3px; background: var(--curb); z-index: 5;
 }
 
-/* Bottom-facing Driveway Extensions (Row 1, Row 3) -> Connects to road directly BELOW */
+/* Bottom-facing Driveway Extensions (Rows 1, 3) */
 .lot.to-bottom::after {
   content: ""; position: absolute; bottom: -18px; left: calc(50% - 8px);
   width: 16px; height: 18px; background: #777b75;
@@ -183,7 +183,7 @@ header {
 .lot-num { font-size: 10px; font-weight: 800; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px; color: var(--mut); }
 .lot-art { width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; position: relative; z-index: 6; }
 .lot-footer { z-index: 6; }
-.lot-price { font-size: 12px; font-weight: 800; color: var(--gold); background: rgba(0,0,0,0.8); padding: 3px 8px; border-radius: 6px; }
+.lot-price { font-size: 11px; font-weight: 800; color: var(--gold); background: rgba(0,0,0,0.8); padding: 3px 8px; border-radius: 6px; }
 
 /* UI Overlay Controls */
 .controls-hud {
@@ -218,7 +218,7 @@ header {
 /* Modal Bottom Sheet */
 #sheet {
   position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%) translateY(120%);
-  width: 90%; max-width: 520px; background: var(--card); border: 2px solid var(--gold);
+  width: 90%; max-width: 540px; background: var(--card); border: 2px solid var(--gold);
   border-radius: 16px; padding: 16px; z-index: 200; transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
   box-shadow: 0 12px 36px rgba(0,0,0,0.85);
 }
@@ -226,15 +226,16 @@ header {
 .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .sheet-title { font-size: 16px; font-weight: 800; color: var(--gold); }
 .close-btn { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; }
-.build-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 260px; overflow-y: auto; }
+.build-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 300px; overflow-y: auto; }
 .opt-btn {
   background: var(--hov); border: 1px solid var(--line); border-radius: 10px; padding: 10px;
   color: #fff; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 2px;
   transition: border-color 0.15s, background 0.15s;
 }
 .opt-btn:hover { border-color: var(--gold); background: rgba(255,179,0,0.1); }
+.opt-btn.disabled { opacity: 0.45; cursor: not-allowed; border-color: var(--line) !important; background: var(--hov) !important; }
 .opt-btn b { color: var(--gold); font-size: 13px; }
-.opt-btn small { color: var(--mut); font-size: 11px; }
+.opt-btn small { color: var(--mut); font-size: 10px; line-height: 1.2; }
 </style>
 </head>
 <body>
@@ -284,21 +285,29 @@ header {
 
 <script>
 const DISTRICTS = [
-  { id: 0, name: "Suburban Springs", req: 0, hazard: null, gridPos: [0,0] },
-  { id: 1, name: "Downtown Core", req: 10, hazard: "High Crime Rate", gridPos: [0,2] },
-  { id: 2, name: "Industrial Zone", req: 25, hazard: "Heavy Smog", gridPos: [0,4] },
-  { id: 3, name: "Waterfront Bay", req: 45, hazard: "Bad Plumbing", gridPos: [2,0] },
-  { id: 4, name: "Historic Heights", req: 70, hazard: "Power Outages", gridPos: [2,2] },
-  { id: 5, name: "Metropolis Hub", req: 100, hazard: "Traffic Congestion", gridPos: [2,4] }
+  { id: 0, name: "Suburban Springs", req: 0, hazard: null, fixBuilding: null, gridPos: [0,0] },
+  { id: 1, name: "Downtown Core", req: 10, hazard: "High Crime Rate", fixBuilding: "police", gridPos: [0,2] },
+  { id: 2, name: "Industrial Zone", req: 25, hazard: "Heavy Smog", fixBuilding: "park", gridPos: [0,4] },
+  { id: 3, name: "Waterfront Bay", req: 45, hazard: "Bad Plumbing", fixBuilding: "pool", gridPos: [2,0] },
+  { id: 4, name: "Historic Heights", req: 70, hazard: "Power Outages", fixBuilding: "civic", gridPos: [2,2] },
+  { id: 5, name: "Metropolis Hub", req: 100, hazard: "Traffic Gridlock", fixBuilding: "fire", gridPos: [2,4] }
 ];
 
+// Full 12-Building Roster Ported from Original Game
 const BUILDINGS = {
-  ranch: { name: "Ranch Home", cost: 500, val: 900, rent: 45, icon: "🏡", biz: false },
-  colonial: { name: "Colonial House", cost: 1200, val: 2100, rent: 110, icon: "🏛️", biz: false },
-  mansion: { name: "Luxury Mansion", cost: 3500, val: 6500, rent: 320, icon: "🏰", biz: false },
-  apartment: { name: "Apartment Block", cost: 8000, val: 14000, rent: 750, icon: "🏢", biz: true },
-  park: { name: "City Park", cost: 2000, val: 2000, rent: 0, fix: true, icon: "🌳", biz: true },
-  police: { name: "Police Station", cost: 5000, val: 5000, rent: 0, fix: true, icon: "🚓", biz: true }
+  ranch: { name: "Ranch Home", cost: 250, val: 450, rm: 1.0, cat: "h", limit: Infinity, icon: "🏡", biz: false, desc: "Val $450 · 1.0× rent" },
+  colonial: { name: "Colonial House", cost: 450, val: 800, rm: 1.3, boost: 0.15, cat: "h", limit: Infinity, icon: "🏛️", biz: false, desc: "Val $800 · +15% nearby" },
+  mansion: { name: "Luxury Mansion", cost: 800, val: 1500, rm: 1.8, boost: 0.30, cat: "h", limit: Infinity, icon: "🏰", biz: false, desc: "Val $1500 · +30% nearby" },
+  park: { name: "City Park", cost: 400, val: 400, rm: 0, boost: 0.25, rb: 0.20, cat: "i", limit: 6, icon: "🌳", biz: true, desc: "+25% val, +20% rent nearby" },
+  civic: { name: "Civic Center", cost: 800, val: 800, rm: 0, globalBoost: 0.15, rev: 25, cat: "i", limit: 3, icon: "🏛️", biz: true, desc: "+15% all lots · +$25/3s" },
+  apartment: { name: "Apartment Building", cost: 2000, val: 2600, rm: 2.2, boost: 0.10, cat: "h", limit: 6, icon: "🏢", biz: true, desc: "High rent · lowers nearby mansion values" },
+  pool: { name: "Swimming Pool", cost: 900, val: 700, rm: 0, boost: 0.10, rb: 0.25, cat: "i", limit: 4, icon: "🏊", biz: true, desc: "+10% val, +25% rent nearby" },
+  school: { name: "School", cost: 1400, val: 1300, rm: 0, boost: 0.15, cat: "i", limit: 3, icon: "🏫", biz: true, desc: "+15% nearby property value" },
+  hospital: { name: "Hospital", cost: 1800, val: 1900, rm: 0, boost: 0.20, cat: "i", limit: 2, icon: "🏥", biz: true, desc: "+20% nearby property value" },
+  shopping: { name: "Shopping Center", cost: 2500, val: 2400, rm: 0, rev: 45, cat: "i", limit: 3, icon: "🛍️", biz: true, desc: "Generates $45/3s · traffic lowers home values" },
+  fire: { name: "Fire Station", cost: 1600, val: 1600, rm: 0, streetBoost: 0.15, cat: "i", limit: 3, icon: "🚒", biz: true, desc: "+15% home value along street" },
+  police: { name: "Police Station", cost: 1500, val: 1500, rm: 0, boost: 0.15, cat: "i", limit: 3, icon: "🚓", biz: true, desc: "+15% safety boost · resolves crime" },
+  bank: { name: "Bank", cost: 3000, val: 3000, rm: 0, rev: 50, cat: "i", limit: 2, icon: "🏦", biz: true, desc: "Generates $50/3s income" }
 };
 
 let money = 15000;
@@ -309,10 +318,109 @@ let lotsData = Array.from({ length: 150 }, (_, i) => ({
   district: Math.floor(i / 25),
   status: "empty",
   building: null,
-  cost: 250 + (Math.floor(i / 25) * 350)
+  land: Math.round(120 + Math.random() * 80) + (Math.floor(i / 25) * 100)
 }));
 
 let selectedLotId = null;
+
+// Adjacent Neighbors Helper Logic
+function getNeighbors(i) {
+  const neighbors = [];
+  const localIdx = i % 25;
+  const row = Math.floor(localIdx / 5);
+  const col = localIdx % 5;
+
+  if (col > 0) neighbors.push(i - 1);
+  if (col < 4) neighbors.push(i + 1);
+  if (row > 0) neighbors.push(i - 5);
+  if (row < 4) neighbors.push(i + 5);
+  return neighbors;
+}
+
+// Global Civic Boost Calculation
+function getGlobalCivicBoost() {
+  return lotsData.reduce((boost, lot) => {
+    if (lot.status === "built" && lot.building === "civic") {
+      return boost + BUILDINGS.civic.globalBoost;
+    }
+    return boost;
+  }, 0);
+}
+
+// Neighborhood Synergy Value & Rent Calculations
+function getLotSynergyBoost(i) {
+  const lot = lotsData[i];
+  let boost = getGlobalCivicBoost();
+
+  const neighbors = getNeighbors(i);
+  neighbors.forEach(nIdx => {
+    const nLot = lotsData[nIdx];
+    if (nLot.status !== "built" || !nLot.building) return;
+
+    const b = BUILDINGS[nLot.building];
+    if (b.boost) boost += b.boost;
+
+    // Negative Synergy Penalties
+    if (lot.building && BUILDINGS[lot.building].cat === "h") {
+      if (nLot.building === "apartment" && lot.building === "mansion") boost -= 0.18;
+      if (nLot.building === "shopping" && lot.building === "mansion") boost -= 0.22;
+    }
+  });
+
+  // Fire Station Street Boost
+  if (lot.building && BUILDINGS[lot.building].cat === "h") {
+    const rowStart = Math.floor(i / 5) * 5;
+    for (let n = rowStart; n < rowStart + 5; n++) {
+      if (n !== i && lotsData[n].status === "built" && lotsData[n].building === "fire") {
+        boost += BUILDINGS.fire.streetBoost;
+      }
+    }
+  }
+
+  return Math.max(-0.5, boost);
+}
+
+function getLotParkRentBoost(i) {
+  let boost = 0;
+  getNeighbors(i).forEach(nIdx => {
+    const nLot = lotsData[nIdx];
+    if (nLot.status === "built" && (nLot.building === "park" || nLot.building === "pool")) {
+      boost += BUILDINGS[nLot.building].rb || 0;
+    }
+  });
+  return boost;
+}
+
+function calculatePropertyValue(i) {
+  const lot = lotsData[i];
+  if (lot.status !== "built" || !lot.building) return lot.land;
+  const b = BUILDINGS[lot.building];
+  const baseValue = lot.land + b.val;
+  return Math.max(1, Math.round(baseValue * (1 + getLotSynergyBoost(i))));
+}
+
+function calculateLotRent(i) {
+  const lot = lotsData[i];
+  if (lot.status !== "built" || !lot.building) return 0;
+  const b = BUILDINGS[lot.building];
+  
+  if (b.cat === "i") return b.rev || 0; // Flat income for public/commercial buildings
+  
+  const val = calculatePropertyValue(i);
+  let rent = Math.round(val * 0.035 * b.rm * (1 + getLotParkRentBoost(i)));
+
+  // Hazard Penalty (50% rent cut if unfixed)
+  const d = DISTRICTS[lot.district];
+  if (d.hazard && !fixedHazards.includes(lot.district)) {
+    rent = Math.round(rent * 0.5);
+  }
+
+  return rent;
+}
+
+function getBuildingCount(key) {
+  return lotsData.filter(l => l.status === "built" && l.building === key).length;
+}
 
 // Camera Engine
 const viewport = document.getElementById("viewport");
@@ -425,7 +533,7 @@ function centerMap() {
   updateTransform();
 }
 
-// Render City
+// Render City Map
 function renderCity() {
   const layer = document.getElementById("district-layer");
   layer.innerHTML = "";
@@ -477,9 +585,6 @@ function renderCity() {
         const lot = lotsData[i];
         const lotEl = document.createElement("div");
         
-        // Facing Rules:
-        // Rows 0, 2, 4 face TOP to connect to the road directly above them
-        // Rows 1, 3 face BOTTOM to connect to the road directly below them
         const roadFacing = (r === 0 || r === 2 || r === 4) ? "to-top" : "to-bottom";
         const isBiz = lot.building && BUILDINGS[lot.building].biz;
         lotEl.className = `lot ${roadFacing} ${isBiz ? 'business-parking' : ''} ${lot.status === 'built' ? 'purchased' : ''} ${isUnlocked ? '' : 'locked-lot'}`;
@@ -487,11 +592,12 @@ function renderCity() {
         let content = `<div class="lot-header"><span class="lot-num">#${i + 1}</span></div>`;
         if (lot.status === 'built') {
           const b = BUILDINGS[lot.building];
+          const rent = calculateLotRent(i);
           content += `<div class="lot-art" style="font-size:38px;">${b.icon}</div>`;
-          content += `<div class="lot-footer"><div class="lot-price">$${b.rent}/s</div></div>`;
+          content += `<div class="lot-footer"><div class="lot-price">$${rent}/3s</div></div>`;
         } else {
           content += `<div class="lot-art" style="font-size:16px; color:rgba(255,255,255,0.4); font-weight:800;">LOT</div>`;
-          content += `<div class="lot-footer"><div class="lot-price">$${lot.cost}</div></div>`;
+          content += `<div class="lot-footer"><div class="lot-price">$${lot.land}</div></div>`;
         }
 
         lotEl.innerHTML = content;
@@ -530,6 +636,7 @@ function renderMinimap() {
   });
 }
 
+// Lot Management Bottom Sheet with 12 Buildings
 function openLotSheet(id) {
   selectedLotId = id;
   const lot = lotsData[id];
@@ -544,20 +651,31 @@ function openLotSheet(id) {
     let optsHTML = `<div class="build-opts">`;
     Object.keys(BUILDINGS).forEach(k => {
       const b = BUILDINGS[k];
+      const count = getBuildingCount(k);
+      const isCapped = count >= b.limit;
+      const canAfford = money >= (b.cost + lot.land);
+
       optsHTML += `
-        <button class="opt-btn" onclick="buildOnLot('${k}')">
-          <b>${b.icon} ${b.name}</b>
-          <small>Cost: $${b.cost} | Rent: $${b.rent}/s</small>
+        <button class="opt-btn ${(!canAfford || isCapped) ? 'disabled' : ''}" 
+                onclick="${(canAfford && !isCapped) ? `buildOnLot('${k}')` : ''}">
+          <b>${b.icon} ${b.name} (${fmt(b.cost)})</b>
+          <small>${isCapped ? `MAX BUILT (${count}/${b.limit})` : b.desc}</small>
         </button>`;
     });
     optsHTML += `</div>`;
     body.innerHTML = optsHTML;
   } else {
     const b = BUILDINGS[lot.building];
+    const val = calculatePropertyValue(id);
+    const rent = calculateLotRent(id);
     body.innerHTML = `
-      <p style="margin:0 0 12px 0;">Currently Built: <b>${b.name}</b> (${b.icon})</p>
+      <div style="margin-bottom:12px; font-size:13px; line-height:1.4;">
+        <p style="margin:0 0 4px 0;">Building: <b>${b.icon} ${b.name}</b></p>
+        <p style="margin:0 0 4px 0; color:var(--gold);">Property Value: <b>${fmt(val)}</b></p>
+        <p style="margin:0; color:var(--acc);">Rental Income: <b>${fmt(rent)} / 3s</b></p>
+      </div>
       <button class="opt-btn" style="border-color:var(--warn);" onclick="demolishLot()">
-        <b style="color:var(--warn);">🏗️ Demolish Building</b>
+        <b style="color:var(--warn);">🏗️ Demolish Building ($100)</b>
         <small>Clears plot back to unbuilt state</small>
       </button>
     `;
@@ -566,6 +684,8 @@ function openLotSheet(id) {
   sheet.classList.add("active");
 }
 
+function fmt(n) { return "$" + Math.round(n).toLocaleString(); }
+
 document.getElementById("sheet-close").onclick = () => {
   document.getElementById("sheet").classList.remove("active");
 };
@@ -573,17 +693,17 @@ document.getElementById("sheet-close").onclick = () => {
 function buildOnLot(key) {
   const lot = lotsData[selectedLotId];
   const b = BUILDINGS[key];
+  const totalCost = b.cost + (lot.status === 'empty' ? lot.land : 0);
 
-  if (money < b.cost) {
-    alert("Not enough funds!");
-    return;
-  }
+  if (money < totalCost) return;
 
-  money -= b.cost;
+  money -= totalCost;
   lot.status = "built";
   lot.building = key;
 
-  if (b.fix && !fixedHazards.includes(lot.district)) {
+  // Check District Hazard Resolution
+  const d = DISTRICTS[lot.district];
+  if (d.fixBuilding === key && !fixedHazards.includes(lot.district)) {
     fixedHazards.push(lot.district);
   }
 
@@ -593,9 +713,13 @@ function buildOnLot(key) {
 }
 
 function demolishLot() {
+  if (money < 100) return;
+  money -= 100;
+
   const lot = lotsData[selectedLotId];
   lot.status = "empty";
   lot.building = null;
+
   document.getElementById("sheet").classList.remove("active");
   updateHUD();
   renderCity();
@@ -603,20 +727,16 @@ function demolishLot() {
 
 function updateHUD() {
   const builtCount = lotsData.filter(l => l.status === 'built').length;
-  let totalIncome = 0;
+  let totalIncomePerSec = 0;
 
-  lotsData.forEach(l => {
+  lotsData.forEach((l, i) => {
     if (l.status === 'built') {
-      let income = BUILDINGS[l.building].rent;
-      if (DISTRICTS[l.district].hazard && !fixedHazards.includes(l.district)) {
-        income = Math.round(income * 0.5);
-      }
-      totalIncome += income;
+      totalIncomePerSec += calculateLotRent(i) / 3;
     }
   });
 
-  document.getElementById("stat-money").textContent = `$${Math.round(money).toLocaleString()}`;
-  document.getElementById("stat-income").textContent = `$${totalIncome}/s`;
+  document.getElementById("stat-money").textContent = fmt(money);
+  document.getElementById("stat-income").textContent = `$${totalIncomePerSec.toFixed(1)}/s`;
   document.getElementById("stat-lots").textContent = `${builtCount} / 150`;
 
   DISTRICTS.forEach(d => {
@@ -626,14 +746,11 @@ function updateHUD() {
   });
 }
 
+// Auto Revenue Ticks (3-second cycle matches original game)
 setInterval(() => {
-  lotsData.forEach(l => {
+  lotsData.forEach((l, i) => {
     if (l.status === 'built') {
-      let income = BUILDINGS[l.building].rent;
-      if (DISTRICTS[l.district].hazard && !fixedHazards.includes(l.district)) {
-        income = Math.round(income * 0.5);
-      }
-      money += income / 2;
+      money += calculateLotRent(i) / 6; // Tick every 500ms (1/6th of 3s)
     }
   });
   updateHUD();
