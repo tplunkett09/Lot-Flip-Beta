@@ -36,7 +36,7 @@ header {
   z-index: 100; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 .title { font-size: 18px; font-weight: 800; color: var(--gold); display: flex; align-items: center; gap: 6px; }
-.stats { display: flex; gap: 12px; align-items: center; font-weight: 700; font-size: 13px; }
+.stats { display: flex; gap: 10px; align-items: center; font-weight: 700; font-size: 13px; }
 .stat-box { background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--line); white-space: nowrap; }
 .val-gold { color: var(--gold); }
 .val-green { color: var(--acc); }
@@ -60,11 +60,11 @@ header {
 }
 
 /* Major Boulevards */
-.city-roads { position: absolute; inset: 0; pointer-events: none; }
+.city-roads { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
 .main-avenue-h {
   position: absolute; left: 0; width: 3600px; height: 56px; background: var(--road-main);
   border-top: 4px solid var(--curb); border-bottom: 4px solid var(--curb);
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.5); z-index: 2;
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
 }
 .main-avenue-h::before {
   content: ""; position: absolute; left: 0; right: 0; top: 24px;
@@ -73,16 +73,11 @@ header {
 .main-avenue-v {
   position: absolute; top: 0; height: 2400px; width: 56px; background: var(--road-main);
   border-left: 4px solid var(--curb); border-right: 4px solid var(--curb);
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.5); z-index: 2;
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
 }
 .main-avenue-v::before {
   content: ""; position: absolute; top: 0; bottom: 0; left: 24px;
   border-left: 3px double var(--gold);
-}
-
-/* Traffic Canvas Overlay */
-#traffic-canvas {
-  position: absolute; inset: 0; pointer-events: none; z-index: 3;
 }
 
 /* District Sectors */
@@ -153,7 +148,12 @@ header {
 }
 .lot:hover { border-color: #fff; transform: scale(1.02); }
 .lot.purchased { background: #263622; border: 3px solid var(--gold); box-shadow: inset 0 0 12px rgba(255,179,0,0.2); }
+.lot.listed { border-color: var(--blue); animation: pulse-blue 1.5s infinite; }
+.lot.has-offer { border-color: var(--gold); animation: pulse-gold 1s infinite; }
 .lot.locked-lot { opacity: 0.45; cursor: not-allowed; }
+
+@keyframes pulse-blue { 50% { box-shadow: 0 0 14px var(--blue); } }
+@keyframes pulse-gold { 50% { box-shadow: 0 0 16px var(--gold); } }
 
 /* Top-facing Driveway Extensions (Rows 0, 2, 4) */
 .lot.to-top::after {
@@ -186,9 +186,21 @@ header {
 
 .lot-header { width: 100%; display: flex; justify-content: space-between; align-items: center; z-index: 6; }
 .lot-num { font-size: 10px; font-weight: 800; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px; color: var(--mut); }
+.lot-stars { font-size: 10px; color: var(--gold); }
 .lot-art { width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; position: relative; z-index: 6; }
-.lot-footer { z-index: 6; }
-.lot-price { font-size: 11px; font-weight: 800; color: var(--gold); background: rgba(0,0,0,0.8); padding: 3px 8px; border-radius: 6px; }
+.lot-footer { z-index: 6; width: 100%; text-align: center; }
+.lot-price { font-size: 11px; font-weight: 800; color: var(--gold); background: rgba(0,0,0,0.8); padding: 3px 6px; border-radius: 6px; display: inline-block; }
+
+/* Traffic Visuals */
+.car {
+  position: absolute; width: 22px; height: 12px; border-radius: 3px;
+  z-index: 50; pointer-events: none; transition: transform 0.05s linear;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+.car::after {
+  content: ""; position: absolute; right: 2px; top: 2px; width: 6px; height: 8px;
+  background: #bde3f5; border-radius: 1px;
+}
 
 /* UI Overlay Controls */
 .controls-hud {
@@ -239,6 +251,8 @@ header {
 }
 .opt-btn:hover { border-color: var(--gold); background: rgba(255,179,0,0.1); }
 .opt-btn.disabled { opacity: 0.45; cursor: not-allowed; border-color: var(--line) !important; background: var(--hov) !important; }
+.opt-btn.btn-ok { background: rgba(76,175,80,0.3); border-color: var(--acc); }
+.opt-btn.btn-warn { background: rgba(229,57,53,0.25); border-color: var(--warn); }
 .opt-btn b { color: var(--gold); font-size: 13px; }
 .opt-btn small { color: var(--mut); font-size: 10px; line-height: 1.2; }
 </style>
@@ -265,8 +279,6 @@ header {
         <div class="main-avenue-v" style="left: 2398px;"></div>
       </div>
 
-      <canvas id="traffic-canvas" width="3600" height="2400"></canvas>
-
       <div class="district-layer" id="district-layer"></div>
     </div>
 
@@ -291,6 +303,7 @@ header {
 </div>
 
 <script>
+// Master Data Setup
 const DISTRICTS = [
   { id: 0, name: "Suburban Springs", req: 0, hazard: null, fixBuilding: null, gridPos: [0,0] },
   { id: 1, name: "Downtown Core", req: 10, hazard: "High Crime Rate", fixBuilding: "police", gridPos: [0,2] },
@@ -317,146 +330,71 @@ const BUILDINGS = {
 };
 
 const RENOVATIONS = {
-  paint: { name: "Fresh Exterior Paint", cost: 150, boost: 0.15, star: "⭐" },
-  roof: { name: "Modern Metal Roof", cost: 350, boost: 0.25, star: "🌟" },
-  interior: { name: "Luxury Interior Remodel", cost: 750, boost: 0.40, star: "✨" }
+  paint: { name: "Fresh Paint", cost: 150, vb: 120 },
+  roof: { name: "Modern Roof", cost: 300, vb: 280 },
+  luxury: { name: "Luxury Interior", cost: 500, vb: 500 }
 };
 
 let money = 15000;
 let unlockedDistricts = [0];
 let fixedHazards = [];
+let selectedLotId = null;
+
 let lotsData = Array.from({ length: 150 }, (_, i) => ({
   id: i,
   district: Math.floor(i / 25),
-  status: "empty",
+  status: "empty", // empty, built, listed
   building: null,
   land: Math.round(120 + Math.random() * 80) + (Math.floor(i / 25) * 100),
   renovations: [],
-  forSale: false,
-  currentOffer: null,
+  offer: null,
   offerTimer: 0
 }));
 
-let selectedLotId = null;
+// Utility Helpers
+function fmt(n) { return "$" + Math.round(n).toLocaleString(); }
 
-// Traffic System Simulation Variables
-let trafficVehicles = [];
-const CAR_COLORS = ["#e53935", "#29b6f6", "#f5d061", "#ffffff", "#8e24aa", "#4caf50", "#ff9800"];
-
-function initTraffic() {
-  trafficVehicles = [];
-  // Major Boulevards horizontal (East/West bound lanes)
-  for (let i = 0; i < 16; i++) {
-    trafficVehicles.push({
-      type: "boulevard",
-      x: Math.random() * 3600,
-      y: 1172 + (Math.random() > 0.5 ? 12 : 36),
-      vx: (Math.random() > 0.5 ? 1 : -1) * (3 + Math.random() * 2),
-      vy: 0,
-      color: CAR_COLORS[Math.floor(Math.random() * CAR_COLORS.length)],
-      length: 22, width: 12
-    });
-  }
-  // Major Avenues vertical (North/South bound lanes)
-  [1172, 2398].forEach(vX => {
-    for (let i = 0; i < 12; i++) {
-      trafficVehicles.push({
-        type: "boulevard",
-        x: vX + (Math.random() > 0.5 ? 12 : 36),
-        y: Math.random() * 2400,
-        vx: 0,
-        vy: (Math.random() > 0.5 ? 1 : -1) * (3 + Math.random() * 2),
-        color: CAR_COLORS[Math.floor(Math.random() * CAR_COLORS.length)],
-        length: 12, width: 22
-      });
-    }
-  });
-}
-
-function updateTraffic() {
-  const canvas = document.getElementById("traffic-canvas");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, 3600, 2400);
-
-  trafficVehicles.forEach(v => {
-    v.x += v.vx;
-    v.y += v.vy;
-
-    // Wrap around boundaries
-    if (v.x < -30) v.x = 3630;
-    if (v.x > 3630) v.x = -30;
-    if (v.y < -30) v.y = 2430;
-    if (v.y > 2430) v.y = -30;
-
-    ctx.fillStyle = v.color;
-    ctx.beginPath();
-    ctx.roundRect(v.x - v.length / 2, v.y - v.width / 2, v.length, v.width, 4);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(0,0,0,0.5)";
-    ctx.stroke();
-
-    // Windshield detail
-    ctx.fillStyle = "rgba(0,0,0,0.4)";
-    if (v.vx !== 0) {
-      ctx.fillRect(v.x + (v.vx > 0 ? 2 : -6), v.y - v.width / 2 + 2, 4, v.width - 4);
-    } else {
-      ctx.fillRect(v.x - v.length / 2 + 2, v.y + (v.vy > 0 ? 2 : -6), v.length - 4, 4);
-    }
-  });
-
-  requestAnimationFrame(updateTraffic);
-}
-
-// Adjacent Neighbors Helper Logic
 function getNeighbors(i) {
-  const neighbors = [];
+  const n = [];
   const localIdx = i % 25;
   const row = Math.floor(localIdx / 5);
   const col = localIdx % 5;
+  const base = Math.floor(i / 25) * 25;
 
-  if (col > 0) neighbors.push(i - 1);
-  if (col < 4) neighbors.push(i + 1);
-  if (row > 0) neighbors.push(i - 5);
-  if (row < 4) neighbors.push(i + 5);
-  return neighbors;
+  if (col > 0) n.push(base + row * 5 + (col - 1));
+  if (col < 4) n.push(base + row * 5 + (col + 1));
+  if (row > 0) n.push(base + (row - 1) * 5 + col);
+  if (row < 4) n.push(base + (row + 1) * 5 + col);
+  return n;
 }
 
-// Global Civic Boost Calculation
 function getGlobalCivicBoost() {
-  return lotsData.reduce((boost, lot) => {
-    if (lot.status === "built" && lot.building === "civic") {
-      return boost + BUILDINGS.civic.globalBoost;
-    }
-    return boost;
+  return lotsData.reduce((acc, l) => {
+    return acc + (l.status !== "empty" && l.building === "civic" ? BUILDINGS.civic.globalBoost : 0);
   }, 0);
 }
 
-// Neighborhood Synergy Value & Rent Calculations
 function getLotSynergyBoost(i) {
   const lot = lotsData[i];
   let boost = getGlobalCivicBoost();
 
-  const neighbors = getNeighbors(i);
-  neighbors.forEach(nIdx => {
+  getNeighbors(i).forEach(nIdx => {
     const nLot = lotsData[nIdx];
-    if (nLot.status !== "built" || !nLot.building) return;
+    if (nLot.status === "empty" || !nLot.building) return;
 
     const b = BUILDINGS[nLot.building];
     if (b.boost) boost += b.boost;
 
-    // Negative Synergy Penalties
     if (lot.building && BUILDINGS[lot.building].cat === "h") {
       if (nLot.building === "apartment" && lot.building === "mansion") boost -= 0.18;
       if (nLot.building === "shopping" && lot.building === "mansion") boost -= 0.22;
     }
   });
 
-  // Fire Station Street Boost
   if (lot.building && BUILDINGS[lot.building].cat === "h") {
     const rowStart = Math.floor(i / 5) * 5;
     for (let n = rowStart; n < rowStart + 5; n++) {
-      if (n !== i && lotsData[n].status === "built" && lotsData[n].building === "fire") {
+      if (n !== i && lotsData[n].status !== "empty" && lotsData[n].building === "fire") {
         boost += BUILDINGS.fire.streetBoost;
       }
     }
@@ -469,7 +407,7 @@ function getLotParkRentBoost(i) {
   let boost = 0;
   getNeighbors(i).forEach(nIdx => {
     const nLot = lotsData[nIdx];
-    if (nLot.status === "built" && (nLot.building === "park" || nLot.building === "pool")) {
+    if (nLot.status !== "empty" && (nLot.building === "park" || nLot.building === "pool")) {
       boost += BUILDINGS[nLot.building].rb || 0;
     }
   });
@@ -478,15 +416,10 @@ function getLotParkRentBoost(i) {
 
 function calculatePropertyValue(i) {
   const lot = lotsData[i];
-  if (lot.status !== "built" || !lot.building) return lot.land;
+  if (lot.status === "empty" || !lot.building) return lot.land;
   const b = BUILDINGS[lot.building];
-  
-  let renoMultiplier = 1;
-  lot.renovations.forEach(rKey => {
-    if (RENOVATIONS[rKey]) renoMultiplier += RENOVATIONS[rKey].boost;
-  });
-
-  const baseValue = (lot.land + b.val) * renoMultiplier;
+  const renoVal = lot.renovations.reduce((acc, k) => acc + RENOVATIONS[k].vb, 0);
+  const baseValue = lot.land + b.val + renoVal;
   return Math.max(1, Math.round(baseValue * (1 + getLotSynergyBoost(i))));
 }
 
@@ -495,12 +428,11 @@ function calculateLotRent(i) {
   if (lot.status !== "built" || !lot.building) return 0;
   const b = BUILDINGS[lot.building];
   
-  if (b.cat === "i") return b.rev || 0; // Flat income for public/commercial buildings
+  if (b.cat === "i") return b.rev || 0;
   
   const val = calculatePropertyValue(i);
   let rent = Math.round(val * 0.035 * b.rm * (1 + getLotParkRentBoost(i)));
 
-  // Hazard Penalty (50% rent cut if unfixed)
   const d = DISTRICTS[lot.district];
   if (d.hazard && !fixedHazards.includes(lot.district)) {
     rent = Math.round(rent * 0.5);
@@ -509,31 +441,69 @@ function calculateLotRent(i) {
   return rent;
 }
 
-// Buyer Offers & Flip Generator Loop
-function processOffers() {
-  lotsData.forEach((lot, idx) => {
-    if (lot.status === 'built' && lot.forSale) {
-      if (!lot.currentOffer && Math.random() < 0.35) {
-        const baseVal = calculatePropertyValue(idx);
-        const margin = 0.85 + (Math.random() * 0.40); // 85% - 125% of market value
-        lot.currentOffer = Math.round(baseVal * margin);
-        lot.offerTimer = 15; // 15 seconds to accept
-        if (selectedLotId === idx) openLotSheet(idx);
-      } else if (lot.currentOffer) {
-        lot.offerTimer--;
-        if (lot.offerTimer <= 0) {
-          lot.currentOffer = null;
-          if (selectedLotId === idx) openLotSheet(idx);
-        }
-      }
-    }
-  });
+function getBuildingCount(key) {
+  return lotsData.filter(l => l.status !== "empty" && l.building === key).length;
 }
-setInterval(processOffers, 1000);
 
-// Render City Map
+// Camera Engine
+let scale = 0.45;
+let panX = 0;
+let panY = 0;
+const activePointers = new Map();
+let prevPinchDist = null;
+let isPanning = false;
+
+function updateTransform() {
+  const viewport = document.getElementById("viewport");
+  const world = document.getElementById("map-world");
+  const miniViewport = document.getElementById("mini-viewport");
+  if (!viewport || !world) return;
+
+  scale = Math.min(Math.max(0.2, scale), 1.6);
+  
+  const vpW = viewport.clientWidth;
+  const vpH = viewport.clientHeight;
+  const mapW = 3600 * scale;
+  const mapH = 2400 * scale;
+
+  const minX = Math.min(0, vpW - mapW);
+  const minY = Math.min(0, vpH - mapH);
+  
+  panX = Math.max(minX - 200, Math.min(200, panX));
+  panY = Math.max(minY - 200, Math.min(200, panY));
+
+  world.style.transform = `translate3d(${panX}px, ${panY}px, 0px) scale(${scale})`;
+  
+  if (miniViewport) {
+    const miniW = 200;
+    const miniH = 134;
+    const wRatio = miniW / 3600;
+    const hRatio = miniH / 2400;
+
+    const boxW = Math.min(miniW, (vpW / scale) * wRatio);
+    const boxH = Math.min(miniH, (vpH / scale) * hRatio);
+    const boxX = Math.max(0, Math.min(miniW - boxW, (-panX / scale) * wRatio));
+    const boxY = Math.max(0, Math.min(miniH - boxH, (-panY / scale) * hRatio));
+
+    miniViewport.style.width = boxW + "px";
+    miniViewport.style.height = boxH + "px";
+    miniViewport.style.transform = `translate(${boxX}px, ${boxY}px)`;
+  }
+}
+
+function centerMap() {
+  const viewport = document.getElementById("viewport");
+  if (!viewport) return;
+  scale = 0.45;
+  panX = (viewport.clientWidth - 3600 * scale) / 2;
+  panY = (viewport.clientHeight - 2400 * scale) / 2;
+  updateTransform();
+}
+
+// Render Engine
 function renderCity() {
   const layer = document.getElementById("district-layer");
+  if (!layer) return;
   layer.innerHTML = "";
 
   DISTRICTS.forEach((d) => {
@@ -585,14 +555,25 @@ function renderCity() {
         
         const roadFacing = (r === 0 || r === 2 || r === 4) ? "to-top" : "to-bottom";
         const isBiz = lot.building && BUILDINGS[lot.building].biz;
-        lotEl.className = `lot ${roadFacing} ${isBiz ? 'business-parking' : ''} ${lot.status === 'built' ? 'purchased' : ''} ${isUnlocked ? '' : 'locked-lot'}`;
         
-        let renoStars = lot.renovations.map(rk => RENOVATIONS[rk].star).join("");
-        let forSaleBadge = lot.forSale ? `<span style="background:var(--warn); color:#fff; font-size:9px; padding:1px 4px; border-radius:3px; font-weight:900;">FOR SALE</span>` : '';
-        let offerBadge = lot.currentOffer ? `<span style="background:var(--gold); color:#000; font-size:9px; padding:1px 4px; border-radius:3px; font-weight:900;">OFFER!</span>` : '';
+        let stateClass = "";
+        if (lot.offer) stateClass = "has-offer";
+        else if (lot.status === "listed") stateClass = "listed";
+        else if (lot.status === "built") stateClass = "purchased";
 
-        let content = `<div class="lot-header"><span class="lot-num">#${i + 1} ${renoStars}</span>${forSaleBadge || offerBadge}</div>`;
-        if (lot.status === 'built') {
+        lotEl.className = `lot ${roadFacing} ${isBiz ? 'business-parking' : ''} ${stateClass} ${isUnlocked ? '' : 'locked-lot'}`;
+        
+        const stars = "⭐".repeat(lot.renovations.length);
+        let content = `<div class="lot-header"><span class="lot-num">#${i + 1}</span><span class="lot-stars">${stars}</span></div>`;
+        
+        if (lot.offer) {
+          content += `<div class="lot-art" style="font-size:32px;">💰</div>`;
+          content += `<div class="lot-footer"><div class="lot-price" style="color:var(--gold);">${fmt(lot.offer)}</div></div>`;
+        } else if (lot.status === "listed") {
+          const b = BUILDINGS[lot.building];
+          content += `<div class="lot-art" style="font-size:34px;">${b.icon}</div>`;
+          content += `<div class="lot-footer"><div class="lot-price" style="color:var(--blue);">LISTED</div></div>`;
+        } else if (lot.status === "built") {
           const b = BUILDINGS[lot.building];
           const rent = calculateLotRent(i);
           content += `<div class="lot-art" style="font-size:38px;">${b.icon}</div>`;
@@ -619,18 +600,40 @@ function renderCity() {
 }
 
 function renderMinimap() {
-// Lot Management Bottom Sheet with House Flipping, Offers, and Renovations
+  const mini = document.getElementById("minimap");
+  const miniBox = document.getElementById("mini-viewport");
+  if (!mini || !miniBox) return;
+  
+  mini.innerHTML = "";
+  mini.appendChild(miniBox);
+
+  DISTRICTS.forEach(d => {
+    const isUnlocked = unlockedDistricts.includes(d.id);
+    const mDist = document.createElement("div");
+    mDist.className = `mini-district ${isUnlocked ? 'unlocked' : 'locked'}`;
+    
+    const col = d.gridPos[1] === 0 ? 0 : d.gridPos[1] === 2 ? 1 : 2;
+    const row = d.gridPos[0] === 0 ? 0 : 1;
+    
+    mDist.style.left = (col * 33.33) + "%";
+    mDist.style.top = (row * 50) + "%";
+    mini.appendChild(mDist);
+  });
+}
+
+// Bottom Sheet Controls
 function openLotSheet(id) {
   selectedLotId = id;
   const lot = lotsData[id];
   const sheet = document.getElementById("sheet");
   const title = document.getElementById("sheet-title");
   const body = document.getElementById("sheet-body");
+  if (!sheet || !title || !body) return;
 
   title.textContent = `Manage Lot #${id + 1} (${DISTRICTS[lot.district].name})`;
   body.innerHTML = "";
 
-  if (lot.status === 'empty') {
+  if (lot.status === "empty") {
     let optsHTML = `<div class="build-opts">`;
     Object.keys(BUILDINGS).forEach(k => {
       const b = BUILDINGS[k];
@@ -652,106 +655,140 @@ function openLotSheet(id) {
     const val = calculatePropertyValue(id);
     const rent = calculateLotRent(id);
 
-    let renoHTML = `<div style="margin:10px 0; border-top:1px solid var(--line); padding-top:8px;">
-      <b style="color:var(--gold); font-size:12px;">House Renovations & Upgrades:</b>
-      <div style="display:flex; gap:6px; margin-top:6px; overflow-x:auto;">`;
-    
-    Object.keys(RENOVATIONS).forEach(rKey => {
-      const r = RENOVATIONS[rKey];
-      const hasReno = lot.renovations.includes(rKey);
-      renoHTML += `
-        <button class="opt-btn ${hasReno || money < r.cost ? 'disabled' : ''}" 
-                style="flex:1; min-width:110px; padding:6px;" 
-                onclick="${!hasReno && money >= r.cost ? `applyRenovation('${rKey}')` : ''}">
-          <b>${r.star} ${r.name}</b>
-          <small>${hasReno ? 'INSTALLED' : fmt(r.cost) + ' (+' + Math.round(r.boost*100) + '%)'}</small>
-        </button>`;
-    });
-    renoHTML += `</div></div>`;
+    let html = `
+      <div style="margin-bottom:12px; font-size:13px; line-height:1.4;">
+        <p style="margin:0 0 4px 0;">Building: <b>${b.icon} ${b.name}</b></p>
+        <p style="margin:0 0 4px 0; color:var(--gold);">Property Value: <b>${fmt(val)}</b></p>
+        ${lot.status === "built" ? `<p style="margin:0 0 8px 0; color:var(--acc);">Rental Income: <b>${fmt(rent)} / 3s</b></p>` : ''}
+      </div>`;
 
-    let flipHTML = `<div style="margin:10px 0; border-top:1px solid var(--line); padding-top:8px;">
-      <b style="color:var(--gold); font-size:12px;">Real Estate Market & Flipping:</b>`;
-    
-    if (lot.currentOffer) {
-      flipHTML += `
-        <div style="background:rgba(255,179,0,0.15); border:1px solid var(--gold); border-radius:8px; padding:10px; margin-top:6px;">
-          <div style="display:flex; justify-content:space-between; font-weight:800; font-size:13px;">
-            <span style="color:var(--gold);">Incoming Buyer Offer: ${fmt(lot.currentOffer)}</span>
-            <span style="color:var(--warn);">${lot.offerTimer}s</span>
-          </div>
-          <div style="display:flex; gap:8px; margin-top:8px;">
-            <button class="opt-btn" style="flex:1; background:var(--acc); text-align:center;" onclick="acceptOffer()"><b>Accept & Sell</b></button>
-            <button class="opt-btn" style="flex:1; background:var(--warn); text-align:center;" onclick="rejectOffer()"><b>Reject Offer</b></button>
-          </div>
-        </div>`;
-    } else {
-      flipHTML += `
-        <div style="display:flex; gap:8px; margin-top:6px;">
-          <button class="opt-btn" style="flex:1;" onclick="toggleListing()">
-            <b>${lot.forSale ? '🛑 Delist from Market' : '🏷️ List House for Sale'}</b>
-            <small>${lot.forSale ? 'Waiting for buyers...' : 'Attract buyer offers to flip plot'}</small>
-          </button>
+    if (lot.offer) {
+      html += `
+        <div style="background:rgba(255,179,0,0.15); border:1px solid var(--gold); padding:8px; border-radius:8px; margin-bottom:10px; font-weight:800;">
+          💰 Offer Received: ${fmt(lot.offer)}
+        </div>
+        <div style="display:flex; gap:8px; margin-bottom:10px;">
+          <button class="opt-btn btn-ok" style="flex:1;" onclick="acceptOffer(${id})">✓ Accept Offer</button>
+          <button class="opt-btn btn-warn" style="flex:1;" onclick="rejectOffer(${id})">✕ Reject</button>
         </div>`;
     }
-    flipHTML += `</div>`;
 
-    body.innerHTML = `
-      <div style="margin-bottom:8px; font-size:13px; line-height:1.4;">
-        <p style="margin:0 0 4px 0;">Building: <b>${b.icon} ${b.name}</b></p>
-        <p style="margin:0 0 4px 0; color:var(--gold);">Estimated Market Value: <b>${fmt(val)}</b></p>
-        <p style="margin:0; color:var(--acc);">Rental Income: <b>${fmt(rent)} / 3s</b></p>
-      </div>
-      ${b.cat === 'h' ? renoHTML + flipHTML : ''}
-      <button class="opt-btn" style="border-color:var(--warn); margin-top:8px;" onclick="demolishLot()">
-        <b style="color:var(--warn);">🏗️ Demolish Structure ($100)</b>
-        <small>Clears plot back to vacant land</small>
-      </button>
-    `;
+    html += `<div class="build-opts">`;
+
+    // Renovations
+    if (b.cat === "h") {
+      Object.keys(RENOVATIONS).forEach(rk => {
+        const r = RENOVATIONS[rk];
+        const owned = lot.renovations.includes(rk);
+        const canAfford = money >= r.cost;
+
+        html += `
+          <button class="opt-btn ${(owned || !canAfford) ? 'disabled' : ''}" 
+                  onclick="${(!owned && canAfford) ? `upgradeLot('${rk}')` : ''}">
+            <b>👷 ${r.name} (${fmt(r.cost)})</b>
+            <small>${owned ? 'Already Installed' : `+${fmt(r.vb)} Property Value`}</small>
+          </button>`;
+      });
+    }
+
+    // List / Unlist
+    if (lot.status === "built") {
+      html += `
+        <button class="opt-btn" onclick="listLotForSale(${id})">
+          <b>🏷️ List For Sale</b>
+          <small>Pauses rent & attracts buyers</small>
+        </button>`;
+    } else if (lot.status === "listed") {
+      html += `
+        <button class="opt-btn" onclick="unlistLot(${id})">
+          <b>🛑 Remove Listing</b>
+          <small>Resumes automatic rent</small>
+        </button>`;
+    }
+
+    // Demolish
+    html += `
+      <button class="opt-btn btn-warn" onclick="demolishLot()">
+        <b style="color:var(--warn);">🏗️ Demolish ($100)</b>
+        <small>Clears back to unbuilt land</small>
+      </button></div>`;
+
+    body.innerHTML = html;
   }
 
   sheet.classList.add("active");
 }
 
-function applyRenovation(key) {
+function buildOnLot(key) {
   const lot = lotsData[selectedLotId];
-  const r = RENOVATIONS[key];
-  if (money < r.cost || lot.renovations.includes(key)) return;
+  const b = BUILDINGS[key];
+  const totalCost = b.cost + (lot.status === 'empty' ? lot.land : 0);
 
-  money -= r.cost;
-  lot.renovations.push(key);
-  openLotSheet(selectedLotId);
-  updateHUD();
-  renderCity();
-}
+  if (money < totalCost) return;
 
-function toggleListing() {
-  const lot = lotsData[selectedLotId];
-  lot.forSale = !lot.forSale;
-  if (!lot.forSale) lot.currentOffer = null;
-  openLotSheet(selectedLotId);
-  renderCity();
-}
+  money -= totalCost;
+  lot.status = "built";
+  lot.building = key;
 
-function acceptOffer() {
-  const lot = lotsData[selectedLotId];
-  if (!lot.currentOffer) return;
-
-  money += lot.currentOffer;
-  lot.status = "empty";
-  lot.building = null;
-  lot.forSale = false;
-  lot.currentOffer = null;
-  lot.renovations = [];
+  const d = DISTRICTS[lot.district];
+  if (d.fixBuilding === key && !fixedHazards.includes(lot.district)) {
+    fixedHazards.push(lot.district);
+  }
 
   document.getElementById("sheet").classList.remove("active");
   updateHUD();
   renderCity();
 }
 
-function rejectOffer() {
+function upgradeLot(key) {
   const lot = lotsData[selectedLotId];
-  lot.currentOffer = null;
+  const r = RENOVATIONS[key];
+
+  if (money < r.cost || lot.renovations.includes(key)) return;
+
+  money -= r.cost;
+  lot.renovations.push(key);
+
   openLotSheet(selectedLotId);
+  updateHUD();
+  renderCity();
+}
+
+function listLotForSale(id) {
+  const lot = lotsData[id];
+  lot.status = "listed";
+  lot.offer = null;
+  document.getElementById("sheet").classList.remove("active");
+  renderCity();
+}
+
+function unlistLot(id) {
+  const lot = lotsData[id];
+  lot.status = "built";
+  lot.offer = null;
+  document.getElementById("sheet").classList.remove("active");
+  renderCity();
+}
+
+function acceptOffer(id) {
+  const lot = lotsData[id];
+  if (!lot.offer) return;
+
+  money += lot.offer;
+  lot.status = "empty";
+  lot.building = null;
+  lot.renovations = [];
+  lot.offer = null;
+
+  document.getElementById("sheet").classList.remove("active");
+  updateHUD();
+  renderCity();
+}
+
+function rejectOffer(id) {
+  const lot = lotsData[id];
+  lot.offer = null;
+  openLotSheet(id);
   renderCity();
 }
 
@@ -762,6 +799,8 @@ function demolishLot() {
   const lot = lotsData[selectedLotId];
   lot.status = "empty";
   lot.building = null;
+  lot.renovations = [];
+  lot.offer = null;
 
   document.getElementById("sheet").classList.remove("active");
   updateHUD();
@@ -769,18 +808,22 @@ function demolishLot() {
 }
 
 function updateHUD() {
-  const builtCount = lotsData.filter(l => l.status === 'built').length;
+  const builtCount = lotsData.filter(l => l.status !== "empty").length;
   let totalIncomePerSec = 0;
 
   lotsData.forEach((l, i) => {
-    if (l.status === 'built') {
+    if (l.status === "built") {
       totalIncomePerSec += calculateLotRent(i) / 3;
     }
   });
 
-  document.getElementById("stat-money").textContent = fmt(money);
-  document.getElementById("stat-income").textContent = `$${totalIncomePerSec.toFixed(1)}/s`;
-  document.getElementById("stat-lots").textContent = `${builtCount} / 150`;
+  const elMoney = document.getElementById("stat-money");
+  const elIncome = document.getElementById("stat-income");
+  const elLots = document.getElementById("stat-lots");
+
+  if (elMoney) elMoney.textContent = fmt(money);
+  if (elIncome) elIncome.textContent = `$${totalIncomePerSec.toFixed(1)}/s`;
+  if (elLots) elLots.textContent = `${builtCount} / 150`;
 
   DISTRICTS.forEach(d => {
     if (!unlockedDistricts.includes(d.id) && builtCount >= d.req) {
@@ -789,28 +832,100 @@ function updateHUD() {
   });
 }
 
-// Auto Revenue Ticks (3-second cycle matches original game)
-setInterval(() => {
-  lotsData.forEach((l, i) => {
-    if (l.status === 'built') {
-      money += calculateLotRent(i) / 6; // Tick every 500ms (1/6th of 3s)
-    }
-  });
-  updateHUD();
-}, 500);
-
+// Setup Event Listeners and Initialize
 window.addEventListener("load", () => {
+  const viewport = document.getElementById("viewport");
+  
+  if (viewport) {
+    viewport.addEventListener("pointerdown", (e) => {
+      viewport.setPointerCapture(e.pointerId);
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      isPanning = false;
+    });
+
+    viewport.addEventListener("pointermove", (e) => {
+      if (!activePointers.has(e.pointerId)) return;
+
+      const prev = activePointers.get(e.pointerId);
+      const deltaX = e.clientX - prev.x;
+      const deltaY = e.clientY - prev.y;
+
+      if (Math.hypot(deltaX, deltaY) > 2) {
+        isPanning = true;
+      }
+
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (activePointers.size === 1) {
+        panX += deltaX;
+        panY += deltaY;
+        updateTransform();
+      } else if (activePointers.size === 2) {
+        const pts = Array.from(activePointers.values());
+        const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+
+        if (prevPinchDist != null) {
+          const zoomRatio = dist / prevPinchDist;
+          scale *= zoomRatio;
+          updateTransform();
+        }
+        prevPinchDist = dist;
+      }
+    });
+
+    function endPointer(e) {
+      if (viewport.hasPointerCapture(e.pointerId)) {
+        viewport.releasePointerCapture(e.pointerId);
+      }
+      activePointers.delete(e.pointerId);
+      if (activePointers.size < 2) {
+        prevPinchDist = null;
+      }
+    }
+
+    viewport.addEventListener("pointerup", endPointer);
+    viewport.addEventListener("pointercancel", endPointer);
+
+    viewport.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
+      scale *= zoomFactor;
+      updateTransform();
+    }, { passive: false });
+  }
+
+  const btnZoomIn = document.getElementById("btn-zoom-in");
+  const btnZoomOut = document.getElementById("btn-zoom-out");
+  const btnRecenter = document.getElementById("btn-recenter");
+  const sheetClose = document.getElementById("sheet-close");
+
+  if (btnZoomIn) btnZoomIn.onclick = () => { scale *= 1.25; updateTransform(); };
+  if (btnZoomOut) btnZoomOut.onclick = () => { scale *= 0.8; updateTransform(); };
+  if (btnRecenter) btnRecenter.onclick = centerMap;
+  if (sheetClose) sheetClose.onclick = () => {
+    const sheet = document.getElementById("sheet");
+    if (sheet) sheet.classList.remove("active");
+  };
+
   renderCity();
   centerMap();
-  initTraffic();
-  updateTraffic();
+
+  // Primary Game Loop (Auto-rent & Random Flip Offers)
+  setInterval(() => {
+    lotsData.forEach((l, i) => {
+      if (l.status === "built") {
+        money += calculateLotRent(i) / 6;
+      } else if (l.status === "listed" && !l.offer) {
+        if (Math.random() < 0.12) {
+          const val = calculatePropertyValue(i);
+          l.offer = Math.round(val * (0.85 + Math.random() * 0.4));
+          renderCity();
+        }
+      }
+    });
+    updateHUD();
+  }, 500);
 });
 </script>
 </body>
 </html>
-```
-
-### Updates Applied:
-- Added a full canvas traffic overlay system (`initTraffic` and `updateTraffic`) continuously navigating cars through the city's boulevards and local street grid.
-- Integrated house renovation upgrades (`Fresh Exterior Paint`, `Modern Metal Roof`, and `Luxury Interior Remodel`) with star indicators and market value multipliers.
-- Built real estate listings and incoming buyer offers with real-time countdown timers and buy/flip buttons directly into the bottom control sheet.
