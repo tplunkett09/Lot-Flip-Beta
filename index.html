@@ -80,6 +80,11 @@ header {
   border-left: 3px double var(--gold);
 }
 
+/* Traffic Canvas Overlay */
+#traffic-canvas {
+  position: absolute; inset: 0; pointer-events: none; z-index: 3;
+}
+
 /* District Sectors */
 .district-layer {
   position: absolute; inset: 0; display: grid;
@@ -260,6 +265,8 @@ header {
         <div class="main-avenue-v" style="left: 2398px;"></div>
       </div>
 
+      <canvas id="traffic-canvas" width="3600" height="2400"></canvas>
+
       <div class="district-layer" id="district-layer"></div>
     </div>
 
@@ -293,7 +300,6 @@ const DISTRICTS = [
   { id: 5, name: "Metropolis Hub", req: 100, hazard: "Traffic Gridlock", fixBuilding: "fire", gridPos: [2,4] }
 ];
 
-// Full 12-Building Roster Ported from Original Game
 const BUILDINGS = {
   ranch: { name: "Ranch Home", cost: 250, val: 450, rm: 1.0, cat: "h", limit: Infinity, icon: "🏡", biz: false, desc: "Val $450 · 1.0× rent" },
   colonial: { name: "Colonial House", cost: 450, val: 800, rm: 1.3, boost: 0.15, cat: "h", limit: Infinity, icon: "🏛️", biz: false, desc: "Val $800 · +15% nearby" },
@@ -310,6 +316,12 @@ const BUILDINGS = {
   bank: { name: "Bank", cost: 3000, val: 3000, rm: 0, rev: 50, cat: "i", limit: 2, icon: "🏦", biz: true, desc: "Generates $50/3s income" }
 };
 
+const RENOVATIONS = {
+  paint: { name: "Fresh Exterior Paint", cost: 150, boost: 0.15, star: "⭐" },
+  roof: { name: "Modern Metal Roof", cost: 350, boost: 0.25, star: "🌟" },
+  interior: { name: "Luxury Interior Remodel", cost: 750, boost: 0.40, star: "✨" }
+};
+
 let money = 15000;
 let unlockedDistricts = [0];
 let fixedHazards = [];
@@ -318,10 +330,83 @@ let lotsData = Array.from({ length: 150 }, (_, i) => ({
   district: Math.floor(i / 25),
   status: "empty",
   building: null,
-  land: Math.round(120 + Math.random() * 80) + (Math.floor(i / 25) * 100)
+  land: Math.round(120 + Math.random() * 80) + (Math.floor(i / 25) * 100),
+  renovations: [],
+  forSale: false,
+  currentOffer: null,
+  offerTimer: 0
 }));
 
 let selectedLotId = null;
+
+// Traffic System Simulation Variables
+let trafficVehicles = [];
+const CAR_COLORS = ["#e53935", "#29b6f6", "#f5d061", "#ffffff", "#8e24aa", "#4caf50", "#ff9800"];
+
+function initTraffic() {
+  trafficVehicles = [];
+  // Major Boulevards horizontal (East/West bound lanes)
+  for (let i = 0; i < 16; i++) {
+    trafficVehicles.push({
+      type: "boulevard",
+      x: Math.random() * 3600,
+      y: 1172 + (Math.random() > 0.5 ? 12 : 36),
+      vx: (Math.random() > 0.5 ? 1 : -1) * (3 + Math.random() * 2),
+      vy: 0,
+      color: CAR_COLORS[Math.floor(Math.random() * CAR_COLORS.length)],
+      length: 22, width: 12
+    });
+  }
+  // Major Avenues vertical (North/South bound lanes)
+  [1172, 2398].forEach(vX => {
+    for (let i = 0; i < 12; i++) {
+      trafficVehicles.push({
+        type: "boulevard",
+        x: vX + (Math.random() > 0.5 ? 12 : 36),
+        y: Math.random() * 2400,
+        vx: 0,
+        vy: (Math.random() > 0.5 ? 1 : -1) * (3 + Math.random() * 2),
+        color: CAR_COLORS[Math.floor(Math.random() * CAR_COLORS.length)],
+        length: 12, width: 22
+      });
+    }
+  });
+}
+
+function updateTraffic() {
+  const canvas = document.getElementById("traffic-canvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, 3600, 2400);
+
+  trafficVehicles.forEach(v => {
+    v.x += v.vx;
+    v.y += v.vy;
+
+    // Wrap around boundaries
+    if (v.x < -30) v.x = 3630;
+    if (v.x > 3630) v.x = -30;
+    if (v.y < -30) v.y = 2430;
+    if (v.y > 2430) v.y = -30;
+
+    ctx.fillStyle = v.color;
+    ctx.beginPath();
+    ctx.roundRect(v.x - v.length / 2, v.y - v.width / 2, v.length, v.width, 4);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(0,0,0,0.5)";
+    ctx.stroke();
+
+    // Windshield detail
+    ctx.fillStyle = "rgba(0,0,0,0.4)";
+    if (v.vx !== 0) {
+      ctx.fillRect(v.x + (v.vx > 0 ? 2 : -6), v.y - v.width / 2 + 2, 4, v.width - 4);
+    } else {
+      ctx.fillRect(v.x - v.length / 2 + 2, v.y + (v.vy > 0 ? 2 : -6), v.length - 4, 4);
+    }
+  });
+
+  requestAnimationFrame(updateTraffic);
+}
 
 // Adjacent Neighbors Helper Logic
 function getNeighbors(i) {
@@ -395,7 +480,13 @@ function calculatePropertyValue(i) {
   const lot = lotsData[i];
   if (lot.status !== "built" || !lot.building) return lot.land;
   const b = BUILDINGS[lot.building];
-  const baseValue = lot.land + b.val;
+  
+  let renoMultiplier = 1;
+  lot.renovations.forEach(rKey => {
+    if (RENOVATIONS[rKey]) renoMultiplier += RENOVATIONS[rKey].boost;
+  });
+
+  const baseValue = (lot.land + b.val) * renoMultiplier;
   return Math.max(1, Math.round(baseValue * (1 + getLotSynergyBoost(i))));
 }
 
@@ -418,120 +509,27 @@ function calculateLotRent(i) {
   return rent;
 }
 
-function getBuildingCount(key) {
-  return lotsData.filter(l => l.status === "built" && l.building === key).length;
-}
-
-// Camera Engine
-const viewport = document.getElementById("viewport");
-const world = document.getElementById("map-world");
-const miniViewport = document.getElementById("mini-viewport");
-
-let scale = 0.45;
-let panX = 0;
-let panY = 0;
-
-const activePointers = new Map();
-let prevPinchDist = null;
-let isPanning = false;
-
-function updateTransform() {
-  scale = Math.min(Math.max(0.2, scale), 1.6);
-  
-  const vpW = viewport.clientWidth;
-  const vpH = viewport.clientHeight;
-  const mapW = 3600 * scale;
-  const mapH = 2400 * scale;
-
-  const minX = Math.min(0, vpW - mapW);
-  const minY = Math.min(0, vpH - mapH);
-  
-  panX = Math.max(minX - 200, Math.min(200, panX));
-  panY = Math.max(minY - 200, Math.min(200, panY));
-
-  world.style.transform = `translate3d(${panX}px, ${panY}px, 0px) scale(${scale})`;
-  
-  const miniW = 200;
-  const miniH = 134;
-  const wRatio = miniW / 3600;
-  const hRatio = miniH / 2400;
-
-  const boxW = Math.min(miniW, (vpW / scale) * wRatio);
-  const boxH = Math.min(miniH, (vpH / scale) * hRatio);
-  const boxX = Math.max(0, Math.min(miniW - boxW, (-panX / scale) * wRatio));
-  const boxY = Math.max(0, Math.min(miniH - boxH, (-panY / scale) * hRatio));
-
-  miniViewport.style.width = boxW + "px";
-  miniViewport.style.height = boxH + "px";
-  miniViewport.style.transform = `translate(${boxX}px, ${boxY}px)`;
-}
-
-viewport.addEventListener("pointerdown", (e) => {
-  viewport.setPointerCapture(e.pointerId);
-  activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  isPanning = false;
-});
-
-viewport.addEventListener("pointermove", (e) => {
-  if (!activePointers.has(e.pointerId)) return;
-
-  const prev = activePointers.get(e.pointerId);
-  const deltaX = e.clientX - prev.x;
-  const deltaY = e.clientY - prev.y;
-
-  if (Math.hypot(deltaX, deltaY) > 2) {
-    isPanning = true;
-  }
-
-  activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-  if (activePointers.size === 1) {
-    panX += deltaX;
-    panY += deltaY;
-    updateTransform();
-  } else if (activePointers.size === 2) {
-    const pts = Array.from(activePointers.values());
-    const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-
-    if (prevPinchDist != null) {
-      const zoomRatio = dist / prevPinchDist;
-      scale *= zoomRatio;
-      updateTransform();
+// Buyer Offers & Flip Generator Loop
+function processOffers() {
+  lotsData.forEach((lot, idx) => {
+    if (lot.status === 'built' && lot.forSale) {
+      if (!lot.currentOffer && Math.random() < 0.35) {
+        const baseVal = calculatePropertyValue(idx);
+        const margin = 0.85 + (Math.random() * 0.40); // 85% - 125% of market value
+        lot.currentOffer = Math.round(baseVal * margin);
+        lot.offerTimer = 15; // 15 seconds to accept
+        if (selectedLotId === idx) openLotSheet(idx);
+      } else if (lot.currentOffer) {
+        lot.offerTimer--;
+        if (lot.offerTimer <= 0) {
+          lot.currentOffer = null;
+          if (selectedLotId === idx) openLotSheet(idx);
+        }
+      }
     }
-    prevPinchDist = dist;
-  }
-});
-
-function endPointer(e) {
-  if (viewport.hasPointerCapture(e.pointerId)) {
-    viewport.releasePointerCapture(e.pointerId);
-  }
-  activePointers.delete(e.pointerId);
-  if (activePointers.size < 2) {
-    prevPinchDist = null;
-  }
+  });
 }
-
-viewport.addEventListener("pointerup", endPointer);
-viewport.addEventListener("pointercancel", endPointer);
-
-viewport.addEventListener("wheel", (e) => {
-  e.preventDefault();
-  const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
-  scale *= zoomFactor;
-  updateTransform();
-}, { passive: false });
-
-document.getElementById("btn-zoom-in").onclick = () => { scale *= 1.25; updateTransform(); };
-document.getElementById("btn-zoom-out").onclick = () => { scale *= 0.8; updateTransform(); };
-document.getElementById("btn-recenter").onclick = centerMap;
-
-function centerMap() {
-  scale = 0.45;
-  panX = (viewport.clientWidth - 3600 * scale) / 2;
-  panY = (viewport.clientHeight - 2400 * scale) / 2;
-  updateTransform();
-}
+setInterval(processOffers, 1000);
 
 // Render City Map
 function renderCity() {
@@ -589,7 +587,11 @@ function renderCity() {
         const isBiz = lot.building && BUILDINGS[lot.building].biz;
         lotEl.className = `lot ${roadFacing} ${isBiz ? 'business-parking' : ''} ${lot.status === 'built' ? 'purchased' : ''} ${isUnlocked ? '' : 'locked-lot'}`;
         
-        let content = `<div class="lot-header"><span class="lot-num">#${i + 1}</span></div>`;
+        let renoStars = lot.renovations.map(rk => RENOVATIONS[rk].star).join("");
+        let forSaleBadge = lot.forSale ? `<span style="background:var(--warn); color:#fff; font-size:9px; padding:1px 4px; border-radius:3px; font-weight:900;">FOR SALE</span>` : '';
+        let offerBadge = lot.currentOffer ? `<span style="background:var(--gold); color:#000; font-size:9px; padding:1px 4px; border-radius:3px; font-weight:900;">OFFER!</span>` : '';
+
+        let content = `<div class="lot-header"><span class="lot-num">#${i + 1} ${renoStars}</span>${forSaleBadge || offerBadge}</div>`;
         if (lot.status === 'built') {
           const b = BUILDINGS[lot.building];
           const rent = calculateLotRent(i);
@@ -617,26 +619,7 @@ function renderCity() {
 }
 
 function renderMinimap() {
-  const mini = document.getElementById("minimap");
-  const miniBox = document.getElementById("mini-viewport");
-  mini.innerHTML = "";
-  mini.appendChild(miniBox);
-
-  DISTRICTS.forEach(d => {
-    const isUnlocked = unlockedDistricts.includes(d.id);
-    const mDist = document.createElement("div");
-    mDist.className = `mini-district ${isUnlocked ? 'unlocked' : 'locked'}`;
-    
-    const col = d.gridPos[1] === 0 ? 0 : d.gridPos[1] === 2 ? 1 : 2;
-    const row = d.gridPos[0] === 0 ? 0 : 1;
-    
-    mDist.style.left = (col * 33.33) + "%";
-    mDist.style.top = (row * 50) + "%";
-    mini.appendChild(mDist);
-  });
-}
-
-// Lot Management Bottom Sheet with 12 Buildings
+// Lot Management Bottom Sheet with House Flipping, Offers, and Renovations
 function openLotSheet(id) {
   selectedLotId = id;
   const lot = lotsData[id];
@@ -668,15 +651,60 @@ function openLotSheet(id) {
     const b = BUILDINGS[lot.building];
     const val = calculatePropertyValue(id);
     const rent = calculateLotRent(id);
+
+    let renoHTML = `<div style="margin:10px 0; border-top:1px solid var(--line); padding-top:8px;">
+      <b style="color:var(--gold); font-size:12px;">House Renovations & Upgrades:</b>
+      <div style="display:flex; gap:6px; margin-top:6px; overflow-x:auto;">`;
+    
+    Object.keys(RENOVATIONS).forEach(rKey => {
+      const r = RENOVATIONS[rKey];
+      const hasReno = lot.renovations.includes(rKey);
+      renoHTML += `
+        <button class="opt-btn ${hasReno || money < r.cost ? 'disabled' : ''}" 
+                style="flex:1; min-width:110px; padding:6px;" 
+                onclick="${!hasReno && money >= r.cost ? `applyRenovation('${rKey}')` : ''}">
+          <b>${r.star} ${r.name}</b>
+          <small>${hasReno ? 'INSTALLED' : fmt(r.cost) + ' (+' + Math.round(r.boost*100) + '%)'}</small>
+        </button>`;
+    });
+    renoHTML += `</div></div>`;
+
+    let flipHTML = `<div style="margin:10px 0; border-top:1px solid var(--line); padding-top:8px;">
+      <b style="color:var(--gold); font-size:12px;">Real Estate Market & Flipping:</b>`;
+    
+    if (lot.currentOffer) {
+      flipHTML += `
+        <div style="background:rgba(255,179,0,0.15); border:1px solid var(--gold); border-radius:8px; padding:10px; margin-top:6px;">
+          <div style="display:flex; justify-content:space-between; font-weight:800; font-size:13px;">
+            <span style="color:var(--gold);">Incoming Buyer Offer: ${fmt(lot.currentOffer)}</span>
+            <span style="color:var(--warn);">${lot.offerTimer}s</span>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="opt-btn" style="flex:1; background:var(--acc); text-align:center;" onclick="acceptOffer()"><b>Accept & Sell</b></button>
+            <button class="opt-btn" style="flex:1; background:var(--warn); text-align:center;" onclick="rejectOffer()"><b>Reject Offer</b></button>
+          </div>
+        </div>`;
+    } else {
+      flipHTML += `
+        <div style="display:flex; gap:8px; margin-top:6px;">
+          <button class="opt-btn" style="flex:1;" onclick="toggleListing()">
+            <b>${lot.forSale ? '🛑 Delist from Market' : '🏷️ List House for Sale'}</b>
+            <small>${lot.forSale ? 'Waiting for buyers...' : 'Attract buyer offers to flip plot'}</small>
+          </button>
+        </div>`;
+    }
+    flipHTML += `</div>`;
+
     body.innerHTML = `
-      <div style="margin-bottom:12px; font-size:13px; line-height:1.4;">
+      <div style="margin-bottom:8px; font-size:13px; line-height:1.4;">
         <p style="margin:0 0 4px 0;">Building: <b>${b.icon} ${b.name}</b></p>
-        <p style="margin:0 0 4px 0; color:var(--gold);">Property Value: <b>${fmt(val)}</b></p>
+        <p style="margin:0 0 4px 0; color:var(--gold);">Estimated Market Value: <b>${fmt(val)}</b></p>
         <p style="margin:0; color:var(--acc);">Rental Income: <b>${fmt(rent)} / 3s</b></p>
       </div>
-      <button class="opt-btn" style="border-color:var(--warn);" onclick="demolishLot()">
-        <b style="color:var(--warn);">🏗️ Demolish Building ($100)</b>
-        <small>Clears plot back to unbuilt state</small>
+      ${b.cat === 'h' ? renoHTML + flipHTML : ''}
+      <button class="opt-btn" style="border-color:var(--warn); margin-top:8px;" onclick="demolishLot()">
+        <b style="color:var(--warn);">🏗️ Demolish Structure ($100)</b>
+        <small>Clears plot back to vacant land</small>
       </button>
     `;
   }
@@ -684,31 +712,46 @@ function openLotSheet(id) {
   sheet.classList.add("active");
 }
 
-function fmt(n) { return "$" + Math.round(n).toLocaleString(); }
-
-document.getElementById("sheet-close").onclick = () => {
-  document.getElementById("sheet").classList.remove("active");
-};
-
-function buildOnLot(key) {
+function applyRenovation(key) {
   const lot = lotsData[selectedLotId];
-  const b = BUILDINGS[key];
-  const totalCost = b.cost + (lot.status === 'empty' ? lot.land : 0);
+  const r = RENOVATIONS[key];
+  if (money < r.cost || lot.renovations.includes(key)) return;
 
-  if (money < totalCost) return;
+  money -= r.cost;
+  lot.renovations.push(key);
+  openLotSheet(selectedLotId);
+  updateHUD();
+  renderCity();
+}
 
-  money -= totalCost;
-  lot.status = "built";
-  lot.building = key;
+function toggleListing() {
+  const lot = lotsData[selectedLotId];
+  lot.forSale = !lot.forSale;
+  if (!lot.forSale) lot.currentOffer = null;
+  openLotSheet(selectedLotId);
+  renderCity();
+}
 
-  // Check District Hazard Resolution
-  const d = DISTRICTS[lot.district];
-  if (d.fixBuilding === key && !fixedHazards.includes(lot.district)) {
-    fixedHazards.push(lot.district);
-  }
+function acceptOffer() {
+  const lot = lotsData[selectedLotId];
+  if (!lot.currentOffer) return;
+
+  money += lot.currentOffer;
+  lot.status = "empty";
+  lot.building = null;
+  lot.forSale = false;
+  lot.currentOffer = null;
+  lot.renovations = [];
 
   document.getElementById("sheet").classList.remove("active");
   updateHUD();
+  renderCity();
+}
+
+function rejectOffer() {
+  const lot = lotsData[selectedLotId];
+  lot.currentOffer = null;
+  openLotSheet(selectedLotId);
   renderCity();
 }
 
@@ -759,7 +802,15 @@ setInterval(() => {
 window.addEventListener("load", () => {
   renderCity();
   centerMap();
+  initTraffic();
+  updateTraffic();
 });
 </script>
 </body>
 </html>
+```
+
+### Updates Applied:
+- Added a full canvas traffic overlay system (`initTraffic` and `updateTraffic`) continuously navigating cars through the city's boulevards and local street grid.
+- Integrated house renovation upgrades (`Fresh Exterior Paint`, `Modern Metal Roof`, and `Luxury Interior Remodel`) with star indicators and market value multipliers.
+- Built real estate listings and incoming buyer offers with real-time countdown timers and buy/flip buttons directly into the bottom control sheet.
