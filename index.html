@@ -19,6 +19,7 @@
   --road-main: #33383b;
   --road-sub: #3d4347;
   --curb: #a7aaa1;
+  --bridge-concrete: #8c9296;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
 html, body {
@@ -31,7 +32,6 @@ html, body {
   width: 100vw; height: 100vh; display: flex; flex-direction: column; position: relative; overflow: hidden;
 }
 
-/* Header & Stat Badges */
 header {
   height: 54px; background: var(--card); border-bottom: 2px solid var(--line);
   display: flex; align-items: center; justify-content: space-between; padding: 0 12px;
@@ -43,7 +43,6 @@ header {
 .val-gold { color: var(--gold); }
 .val-green { color: var(--acc); }
 
-/* Main Map Viewport & Camera Canvas */
 #viewport {
   flex: 1; width: 100%; height: calc(100vh - 54px); position: relative;
   overflow: hidden; background: #152212; cursor: grab; touch-action: none;
@@ -63,36 +62,50 @@ header {
   background-size: 32px 32px;
 }
 
-/* Ambient Day/Night Lighting Overlay */
 #night-overlay {
   position: absolute; inset: 0; pointer-events: none; z-index: 40;
   background: rgba(5, 12, 24, 0); transition: background 1s linear;
 }
 
-/* Rain FX Overlay */
 #rain-canvas {
   position: absolute; inset: 0; pointer-events: none; z-index: 45; opacity: 0; transition: opacity 0.5s ease;
 }
 
-/* Major Boulevards & Avenues */
-.city-roads { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
-.main-avenue-h {
-  position: absolute; left: 0; width: 3600px; height: 56px; background: var(--road-main);
-  border-top: 4px solid var(--curb); border-bottom: 4px solid var(--curb);
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
-}
-.main-avenue-h::before {
-  content: ""; position: absolute; left: 0; right: 0; top: 24px;
-  border-top: 3px double var(--gold);
-}
+/* Major Boulevards Layering */
+.city-roads { position: absolute; inset: 0; pointer-events: none; }
+
+/* Level 1: Underpass Vertical Avenues */
 .main-avenue-v {
   position: absolute; top: 0; height: 2400px; width: 56px; background: var(--road-main);
   border-left: 4px solid var(--curb); border-right: 4px solid var(--curb);
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.5); z-index: 2;
 }
 .main-avenue-v::before {
   content: ""; position: absolute; top: 0; bottom: 0; left: 24px;
   border-left: 3px double var(--gold);
+}
+
+/* Concrete Abutment Walls at Intersections */
+.underpass-wall {
+  position: absolute; width: 68px; height: 10px; background: #505559;
+  border: 1px solid #333; z-index: 3; box-shadow: 0 3px 6px rgba(0,0,0,0.6);
+}
+
+/* Level 2: Top Overpass Horizontal Boulevard */
+.overpass-deck {
+  position: absolute; left: 0; width: 3600px; height: 56px; background: var(--road-main);
+  border-top: 4px solid var(--bridge-concrete); border-bottom: 4px solid var(--bridge-concrete);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.65), inset 0 0 8px rgba(0,0,0,0.4); z-index: 20;
+}
+.overpass-deck::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 24px;
+  border-top: 3px double var(--gold);
+}
+
+/* Bridge Guardrails & Support Pillars */
+.bridge-pillar {
+  position: absolute; width: 14px; height: 68px; background: var(--bridge-concrete);
+  border: 1px solid #4a4d50; z-index: 21; box-shadow: 3px 0 6px rgba(0,0,0,0.5);
 }
 
 /* District Grid Setup */
@@ -203,12 +216,15 @@ header {
 .lot-footer { z-index: 6; width: 100%; text-align: center; }
 .lot-price { font-size: 11px; font-weight: 800; color: var(--gold); background: rgba(0,0,0,0.8); padding: 3px 6px; border-radius: 6px; display: inline-block; }
 
-/* Animated Traffic Elements */
+/* Traffic Visuals & Depth Sorting */
 .car {
   position: absolute; width: 22px; height: 12px; border-radius: 3px;
-  z-index: 30; pointer-events: none; transition: transform 0.05s linear;
+  pointer-events: none; transition: transform 0.05s linear;
   box-shadow: 0 2px 4px rgba(0,0,0,0.5); background: #e53935;
 }
+.car.underpass-car { z-index: 10; } /* Underpass traffic passes under bridge */
+.car.overpass-car { z-index: 35; }  /* Overpass traffic drives on top of bridge */
+
 .car::after {
   content: ""; position: absolute; right: 2px; top: 2px; width: 5px; height: 8px;
   background: #bde3f5; border-radius: 1px;
@@ -220,7 +236,6 @@ header {
 }
 body.is-night .car-headlight { opacity: 1; }
 
-/* HUD & Controls Overlay */
 .controls-hud {
   position: absolute; bottom: 20px; right: 20px; z-index: 90;
   display: flex; flex-direction: column; gap: 8px;
@@ -250,7 +265,6 @@ body.is-night .car-headlight { opacity: 1; }
   pointer-events: none; border-radius: 2px;
 }
 
-/* Modal Bottom Sheet */
 #sheet {
   position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%) translateY(120%);
   width: 90%; max-width: 540px; background: var(--card); border: 2px solid var(--gold);
@@ -293,10 +307,26 @@ body.is-night .car-headlight { opacity: 1; }
     <div id="map-world">
       <div class="terrain-overlay"></div>
       
+      <!-- Major Boulevards Infrastructure & Overpass Interchanges -->
       <div class="city-roads">
-        <div class="main-avenue-h" style="top: 1172px;"></div>
+        <!-- Level 1: Underpass Vertical Avenues -->
         <div class="main-avenue-v" style="left: 1172px;"></div>
         <div class="main-avenue-v" style="left: 2398px;"></div>
+
+        <!-- Underpass Concrete Abutment Walls -->
+        <div class="underpass-wall" style="left: 1166px; top: 1166px;"></div>
+        <div class="underpass-wall" style="left: 1166px; top: 1224px;"></div>
+        <div class="underpass-wall" style="left: 2392px; top: 1166px;"></div>
+        <div class="underpass-wall" style="left: 2392px; top: 1224px;"></div>
+
+        <!-- Level 2: Top Overpass Horizontal Boulevard -->
+        <div class="overpass-deck" style="top: 1172px;"></div>
+
+        <!-- Overpass Support Pillars -->
+        <div class="bridge-pillar" style="left: 1160px; top: 1166px;"></div>
+        <div class="bridge-pillar" style="left: 1230px; top: 1166px;"></div>
+        <div class="bridge-pillar" style="left: 2386px; top: 1166px;"></div>
+        <div class="bridge-pillar" style="left: 2456px; top: 1166px;"></div>
       </div>
 
       <div class="district-layer" id="district-layer"></div>
@@ -852,7 +882,7 @@ function updateHUD() {
   });
 }
 
-// Traffic System Engine
+// Layered Traffic Engine (Overpass vs Underpass Depth Sorting)
 const carsData = [];
 const carColors = ["#e53935", "#1e88e5", "#43a047", "#fb8c00", "#8e24aa", "#fdd835", "#00acc1"];
 
@@ -862,11 +892,12 @@ function initTraffic() {
   container.innerHTML = "";
   carsData.length = 0;
 
-  // Major Boulevard Traffic Cars
-  for (let i = 0; i < 14; i++) {
-    const isHorizontal = Math.random() > 0.5;
+  for (let i = 0; i < 16; i++) {
+    const isOverpassHorizontal = Math.random() > 0.5;
     const carEl = document.createElement("div");
-    carEl.className = "car";
+    
+    // Assign Depth Z-Index Classes
+    carEl.className = `car ${isOverpassHorizontal ? 'overpass-car' : 'underpass-car'}`;
     carEl.style.background = carColors[Math.floor(Math.random() * carColors.length)];
 
     const headlight = document.createElement("div");
@@ -875,7 +906,7 @@ function initTraffic() {
     container.appendChild(carEl);
 
     let x, y, dx, dy;
-    if (isHorizontal) {
+    if (isOverpassHorizontal) {
       x = Math.random() * 3600;
       y = 1172 + (Math.random() > 0.5 ? 12 : 32);
       dx = (y > 1172 + 20) ? 4 : -4;
@@ -888,7 +919,7 @@ function initTraffic() {
       dy = (x > (isCol1 ? 1172 : 2398) + 20) ? 4 : -4;
     }
 
-    carsData.push({ el: carEl, x, y, dx, dy, isMain: true });
+    carsData.push({ el: carEl, x, y, dx, dy });
   }
 }
 
@@ -912,7 +943,6 @@ function updateTraffic() {
   });
 }
 
-// Weather Engine Overlay
 function updateWeatherEffects() {
   const canvas = document.getElementById("rain-canvas");
   if (!canvas) return;
@@ -934,7 +964,7 @@ function updateWeatherEffects() {
   }
 }
 
-// Setup Event Listeners and Main Loop
+// Setup Event Listeners & Game Loop
 window.addEventListener("load", () => {
   const viewport = document.getElementById("viewport");
   
@@ -1013,14 +1043,12 @@ window.addEventListener("load", () => {
   initTraffic();
   centerMap();
 
-  // Animation Loop for Traffic
   function animLoop() {
     updateTraffic();
     requestAnimationFrame(animLoop);
   }
   requestAnimationFrame(animLoop);
 
-  // 500ms Game Loop (Rent, Flips, Time & Weather)
   setInterval(() => {
     dayTime = (dayTime + 0.003) % 1;
     const hour = Math.floor(dayTime * 24);
@@ -1031,7 +1059,6 @@ window.addEventListener("load", () => {
     const todEl = document.getElementById("stat-tod");
     if (todEl) todEl.textContent = `${icon} ${displayHour}:00 ${ampm}`;
 
-    // Night Glow Toggle
     const nightOverlay = document.getElementById("night-overlay");
     if (nightOverlay) {
       const isNightTime = (hour < 6 || hour >= 19);
@@ -1039,7 +1066,6 @@ window.addEventListener("load", () => {
       document.body.classList.toggle("is-night", isNightTime);
     }
 
-    // Weather Cycling
     if (Math.random() < 0.02) {
       currentWeather = weatherTypes[Math.floor(Math.random() * weatherTypes.length)];
       const weatherIcons = { clear: "🌤️ Clear", rain: "🌧️ Rain", fog: "🌫️ Fog" };
@@ -1048,7 +1074,6 @@ window.addEventListener("load", () => {
       updateWeatherEffects();
     }
 
-    // Revenue & Flip Logic
     lotsData.forEach((l, i) => {
       if (l.status === "built") {
         money += calculateLotRent(i) / 6;
