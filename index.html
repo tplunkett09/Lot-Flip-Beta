@@ -216,7 +216,7 @@ header {
 .lot-footer { z-index: 6; width: 100%; text-align: center; }
 .lot-price { font-size: 11px; font-weight: 800; color: var(--gold); background: rgba(0,0,0,0.8); padding: 3px 6px; border-radius: 6px; display: inline-block; }
 
-/* Traffic Visuals & Smooth Hardware-Accelerated Transforms */
+/* Traffic Visuals & Hardware Acceleration */
 .car {
   position: absolute; width: 22px; height: 12px; border-radius: 3px;
   pointer-events: none; will-change: transform;
@@ -876,9 +876,13 @@ function updateHUD() {
   });
 }
 
-// Layered Traffic Engine & Fixed Physics Wrapping Loop
+// Randomized & Multi-Directional Traffic Engine
 const carsData = [];
-const carColors = ["#e53935", "#1e88e5", "#43a047", "#fb8c00", "#8e24aa", "#fdd835", "#00acc1"];
+const carColors = [
+  "#e53935", "#1e88e5", "#43a047", "#fb8c00", 
+  "#8e24aa", "#fdd835", "#00acc1", "#3949ab", 
+  "#d81b60", "#00897b", "#757575", "#f4511e"
+];
 
 function initTraffic() {
   const container = document.getElementById("traffic-layer");
@@ -886,7 +890,8 @@ function initTraffic() {
   container.innerHTML = "";
   carsData.length = 0;
 
-  for (let i = 0; i < 16; i++) {
+  // Spawns 24 cars with randomized speeds, colors, and initial offsets
+  for (let i = 0; i < 24; i++) {
     const isOverpassHorizontal = Math.random() > 0.5;
     const carEl = document.createElement("div");
     
@@ -898,22 +903,26 @@ function initTraffic() {
     carEl.appendChild(headlight);
     container.appendChild(carEl);
 
+    const baseSpeed = 2.2 + Math.random() * 2.6; // Random speed range (2.2px to 4.8px)
+
     let x, y, dx, dy;
     if (isOverpassHorizontal) {
       x = Math.random() * 3600;
-      y = 1172 + (Math.random() > 0.5 ? 12 : 32);
-      dx = (y > 1172 + 20) ? 3.5 : -3.5;
+      const isEastbound = Math.random() > 0.5;
+      // Eastbound (dx > 0) uses lower lane (+32px); Westbound (dx < 0) uses upper lane (+12px)
+      y = 1172 + (isEastbound ? 32 : 12);
+      dx = isEastbound ? baseSpeed : -baseSpeed;
       dy = 0;
     } else {
       const isCol1 = Math.random() > 0.5;
       const avenueX = isCol1 ? 1172 : 2398;
       const isSouthbound = Math.random() > 0.5;
       
-      // Southbound (dy > 0) uses left lane (+8px); Northbound (dy < 0) uses right lane (+36px)
-      x = avenueX + (isSouthbound ? 8 : 36);
+      // Southbound (dy > 0) uses left lane (+10px); Northbound (dy < 0) uses right lane (+34px)
+      x = avenueX + (isSouthbound ? 10 : 34);
       y = Math.random() * 2400;
       dx = 0;
-      dy = isSouthbound ? 3.5 : -3.5;
+      dy = isSouthbound ? baseSpeed : -baseSpeed;
     }
 
     carsData.push({ el: carEl, x, y, dx, dy });
@@ -928,6 +937,7 @@ function updateTraffic() {
     c.x += c.dx;
     c.y += c.dy;
 
+    // Smooth boundary wrap without position snapping
     if (c.dx > 0 && c.x > mapW + 40) c.x = -40;
     if (c.dx < 0 && c.x < -40) c.x = mapW + 40;
     if (c.dy > 0 && c.y > mapH + 40) c.y = -40;
@@ -964,7 +974,7 @@ function updateWeatherEffects() {
   }
 }
 
-// Event Listeners & Loop Binding
+// Event Listeners & Main Engine Loops
 window.addEventListener("load", () => {
   const viewport = document.getElementById("viewport");
   
