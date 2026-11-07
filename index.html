@@ -36,8 +36,8 @@ header {
   z-index: 100; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 .title { font-size: 18px; font-weight: 800; color: var(--gold); display: flex; align-items: center; gap: 6px; }
-.stats { display: flex; gap: 10px; align-items: center; font-weight: 700; font-size: 13px; }
-.stat-box { background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--line); white-space: nowrap; }
+.stats { display: flex; gap: 10px; align-items: center; font-weight: 700; font-size: 12px; }
+.stat-box { background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 8px; border: 1px solid var(--line); white-space: nowrap; }
 .val-gold { color: var(--gold); }
 .val-green { color: var(--acc); }
 
@@ -51,12 +51,18 @@ header {
   position: absolute; left: 0; top: 0; width: 3600px; height: 2400px;
   transform-origin: 0 0; will-change: transform; background: #4a8037;
   box-shadow: inset 0 0 120px rgba(0,0,0,0.6); pointer-events: auto;
+  transition: filter 0.5s ease;
 }
 
 .terrain-overlay {
   position: absolute; inset: 0; pointer-events: none;
   background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 0);
   background-size: 32px 32px;
+}
+
+/* Day/Night Lighting & Weather Canvas Overlay */
+#fx-canvas {
+  position: absolute; inset: 0; pointer-events: none; z-index: 60;
 }
 
 /* Major Boulevards */
@@ -155,7 +161,7 @@ header {
 @keyframes pulse-blue { 50% { box-shadow: 0 0 14px var(--blue); } }
 @keyframes pulse-gold { 50% { box-shadow: 0 0 16px var(--gold); } }
 
-/* Top-facing Driveway Extensions (Rows 0, 2, 4) */
+/* Driveway Extensions */
 .lot.to-top::after {
   content: ""; position: absolute; top: -18px; left: calc(50% - 8px);
   width: 16px; height: 18px; background: #777b75;
@@ -166,7 +172,6 @@ header {
   width: 24px; height: 3px; background: var(--curb); z-index: 5;
 }
 
-/* Bottom-facing Driveway Extensions (Rows 1, 3) */
 .lot.to-bottom::after {
   content: ""; position: absolute; bottom: -18px; left: calc(50% - 8px);
   width: 16px; height: 18px; background: #777b75;
@@ -177,7 +182,6 @@ header {
   width: 24px; height: 3px; background: var(--curb); z-index: 5;
 }
 
-/* Commercial / Civic Parking Apron */
 .lot.business-parking::after {
   left: 50% !important; transform: translateX(-50%);
   width: 60% !important; border: 1px solid #f8f8ef;
@@ -202,7 +206,7 @@ header {
   background: #bde3f5; border-radius: 1px;
 }
 
-/* UI Overlay Controls */
+/* UI Controls */
 .controls-hud {
   position: absolute; bottom: 20px; right: 20px; z-index: 90;
   display: flex; flex-direction: column; gap: 8px;
@@ -232,7 +236,7 @@ header {
   pointer-events: none; border-radius: 2px;
 }
 
-/* Modal Bottom Sheet */
+/* Modal Sheet */
 #sheet {
   position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%) translateY(120%);
   width: 90%; max-width: 540px; background: var(--card); border: 2px solid var(--gold);
@@ -265,6 +269,8 @@ header {
     <div class="stats">
       <div class="stat-box">Bank: <span id="stat-money" class="val-gold">$15,000</span></div>
       <div class="stat-box">Income: <span id="stat-income" class="val-green">$0/s</span></div>
+      <div class="stat-box"><span id="stat-tod">☀️ 12:00 PM</span></div>
+      <div class="stat-box"><span id="stat-weather">🌤️ Clear</span></div>
       <div class="stat-box">Lots: <span id="stat-lots">0 / 150</span></div>
     </div>
   </header>
@@ -280,6 +286,7 @@ header {
       </div>
 
       <div class="district-layer" id="district-layer"></div>
+      <canvas id="fx-canvas" width="3600" height="2400"></canvas>
     </div>
 
     <div id="minimap">
@@ -303,7 +310,6 @@ header {
 </div>
 
 <script>
-// Master Data Setup
 const DISTRICTS = [
   { id: 0, name: "Suburban Springs", req: 0, hazard: null, fixBuilding: null, gridPos: [0,0] },
   { id: 1, name: "Downtown Core", req: 10, hazard: "High Crime Rate", fixBuilding: "police", gridPos: [0,2] },
@@ -313,10 +319,12 @@ const DISTRICTS = [
   { id: 5, name: "Metropolis Hub", req: 100, hazard: "Traffic Gridlock", fixBuilding: "fire", gridPos: [2,4] }
 ];
 
+// Building Blueprints (Includes Local Coffee Shop)
 const BUILDINGS = {
   ranch: { name: "Ranch Home", cost: 250, val: 450, rm: 1.0, cat: "h", limit: Infinity, icon: "🏡", biz: false, desc: "Val $450 · 1.0× rent" },
   colonial: { name: "Colonial House", cost: 450, val: 800, rm: 1.3, boost: 0.15, cat: "h", limit: Infinity, icon: "🏛️", biz: false, desc: "Val $800 · +15% nearby" },
   mansion: { name: "Luxury Mansion", cost: 800, val: 1500, rm: 1.8, boost: 0.30, cat: "h", limit: Infinity, icon: "🏰", biz: false, desc: "Val $1500 · +30% nearby" },
+  coffee: { name: "Local Coffee Shop", cost: 650, val: 600, rm: 0, boost: 0.18, rb: 0.15, rev: 30, cat: "i", limit: 5, icon: "☕", biz: true, desc: "+18% val, +15% rent nearby · +$30/3s" },
   park: { name: "City Park", cost: 400, val: 400, rm: 0, boost: 0.25, rb: 0.20, cat: "i", limit: 6, icon: "🌳", biz: true, desc: "+25% val, +20% rent nearby" },
   civic: { name: "Civic Center", cost: 800, val: 800, rm: 0, globalBoost: 0.15, rev: 25, cat: "i", limit: 3, icon: "🏛️", biz: true, desc: "+15% all lots · +$25/3s" },
   apartment: { name: "Apartment Building", cost: 2000, val: 2600, rm: 2.2, boost: 0.10, cat: "h", limit: 6, icon: "🏢", biz: true, desc: "High rent · lowers nearby mansion values" },
@@ -340,18 +348,21 @@ let unlockedDistricts = [0];
 let fixedHazards = [];
 let selectedLotId = null;
 
+// Day/Night & Weather Engine State
+let dayTime = 0.5; // 0 = Midnight, 0.25 = Dawn, 0.5 = Noon, 0.75 = Dusk
+let currentWeather = "clear"; // clear, rain, fog
+const weatherTypes = ["clear", "clear", "rain", "fog"];
+
 let lotsData = Array.from({ length: 150 }, (_, i) => ({
   id: i,
   district: Math.floor(i / 25),
-  status: "empty", // empty, built, listed
+  status: "empty",
   building: null,
   land: Math.round(120 + Math.random() * 80) + (Math.floor(i / 25) * 100),
   renovations: [],
-  offer: null,
-  offerTimer: 0
+  offer: null
 }));
 
-// Utility Helpers
 function fmt(n) { return "$" + Math.round(n).toLocaleString(); }
 
 function getNeighbors(i) {
@@ -407,7 +418,7 @@ function getLotParkRentBoost(i) {
   let boost = 0;
   getNeighbors(i).forEach(nIdx => {
     const nLot = lotsData[nIdx];
-    if (nLot.status !== "empty" && (nLot.building === "park" || nLot.building === "pool")) {
+    if (nLot.status !== "empty" && BUILDINGS[nLot.building]) {
       boost += BUILDINGS[nLot.building].rb || 0;
     }
   });
@@ -500,7 +511,6 @@ function centerMap() {
   updateTransform();
 }
 
-// Render Engine
 function renderCity() {
   const layer = document.getElementById("district-layer");
   if (!layer) return;
@@ -621,7 +631,6 @@ function renderMinimap() {
   });
 }
 
-// Bottom Sheet Controls
 function openLotSheet(id) {
   selectedLotId = id;
   const lot = lotsData[id];
@@ -675,7 +684,6 @@ function openLotSheet(id) {
 
     html += `<div class="build-opts">`;
 
-    // Renovations
     if (b.cat === "h") {
       Object.keys(RENOVATIONS).forEach(rk => {
         const r = RENOVATIONS[rk];
@@ -691,7 +699,6 @@ function openLotSheet(id) {
       });
     }
 
-    // List / Unlist
     if (lot.status === "built") {
       html += `
         <button class="opt-btn" onclick="listLotForSale(${id})">
@@ -706,7 +713,6 @@ function openLotSheet(id) {
         </button>`;
     }
 
-    // Demolish
     html += `
       <button class="opt-btn btn-warn" onclick="demolishLot()">
         <b style="color:var(--warn);">🏗️ Demolish ($100)</b>
@@ -832,7 +838,55 @@ function updateHUD() {
   });
 }
 
-// Setup Event Listeners and Initialize
+// Canvas FX Engine: Day/Night Lighting & Rain/Fog Weather Layers
+function renderCanvasFX() {
+  const canvas = document.getElementById("fx-canvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, 3600, 2400);
+
+  // Night Darkness Overlay
+  let nightAlpha = 0;
+  if (dayTime < 0.25 || dayTime > 0.75) {
+    nightAlpha = dayTime < 0.25 ? (0.25 - dayTime) / 0.25 : (dayTime - 0.75) / 0.25;
+    nightAlpha = Math.min(0.65, nightAlpha * 0.75);
+  }
+
+  if (nightAlpha > 0) {
+    ctx.fillStyle = `rgba(5, 10, 20, ${nightAlpha})`;
+    ctx.fillRect(0, 0, 3600, 2400);
+
+    // Streetlights along main avenues
+    ctx.fillStyle = "rgba(255, 235, 150, 0.25)";
+    for (let x = 100; x < 3600; x += 300) {
+      ctx.beginPath();
+      ctx.arc(x, 1172 + 28, 60, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Fog Weather Effect
+  if (currentWeather === "fog") {
+    ctx.fillStyle = "rgba(200, 215, 210, 0.25)";
+    ctx.fillRect(0, 0, 3600, 2400);
+  }
+
+  // Rain Weather Effect
+  if (currentWeather === "rain") {
+    ctx.strokeStyle = "rgba(180, 220, 255, 0.4)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 0; i < 200; i++) {
+      const rx = (Math.random() * 3600);
+      const ry = (Math.random() * 2400);
+      ctx.moveTo(rx, ry);
+      ctx.lineTo(rx - 10, ry + 25);
+    }
+    ctx.stroke();
+  }
+}
+
+// Initialize & Bind
 window.addEventListener("load", () => {
   const viewport = document.getElementById("viewport");
   
@@ -910,8 +964,27 @@ window.addEventListener("load", () => {
   renderCity();
   centerMap();
 
-  // Primary Game Loop (Auto-rent & Random Flip Offers)
+  // Primary Loop (Rent, Flip Offers, Weather & Day/Night Clock)
   setInterval(() => {
+    // Clock Cycle
+    dayTime = (dayTime + 0.005) % 1;
+    const hour = Math.floor(dayTime * 24);
+    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const icon = (hour >= 6 && hour < 18) ? "☀️" : "🌙";
+    
+    const todEl = document.getElementById("stat-tod");
+    if (todEl) todEl.textContent = `${icon} ${displayHour}:00 ${ampm}`;
+
+    // Random Weather Changes
+    if (Math.random() < 0.02) {
+      currentWeather = weatherTypes[Math.floor(Math.random() * weatherTypes.length)];
+      const weatherIcons = { clear: "🌤️ Clear", rain: "🌧️ Rain", fog: "🌫️ Fog" };
+      const wEl = document.getElementById("stat-weather");
+      if (wEl) wEl.textContent = weatherIcons[currentWeather];
+    }
+
+    // Revenue & Flip Logic
     lotsData.forEach((l, i) => {
       if (l.status === "built") {
         money += calculateLotRent(i) / 6;
@@ -923,7 +996,9 @@ window.addEventListener("load", () => {
         }
       }
     });
+
     updateHUD();
+    renderCanvasFX();
   }, 500);
 });
 </script>
