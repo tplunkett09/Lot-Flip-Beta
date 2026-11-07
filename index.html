@@ -71,10 +71,8 @@ header {
   position: absolute; inset: 0; pointer-events: none; z-index: 45; opacity: 0; transition: opacity 0.5s ease;
 }
 
-/* Major Boulevards Layering */
 .city-roads { position: absolute; inset: 0; pointer-events: none; }
 
-/* Level 1: Underpass Vertical Avenues */
 .main-avenue-v {
   position: absolute; top: 0; height: 2400px; width: 56px; background: var(--road-main);
   border-left: 4px solid var(--curb); border-right: 4px solid var(--curb);
@@ -85,13 +83,11 @@ header {
   border-left: 3px double var(--gold);
 }
 
-/* Concrete Abutment Walls at Intersections */
 .underpass-wall {
   position: absolute; width: 68px; height: 10px; background: #505559;
   border: 1px solid #333; z-index: 3; box-shadow: 0 3px 6px rgba(0,0,0,0.6);
 }
 
-/* Level 2: Top Overpass Horizontal Boulevard */
 .overpass-deck {
   position: absolute; left: 0; width: 3600px; height: 56px; background: var(--road-main);
   border-top: 4px solid var(--bridge-concrete); border-bottom: 4px solid var(--bridge-concrete);
@@ -102,13 +98,11 @@ header {
   border-top: 3px double var(--gold);
 }
 
-/* Bridge Guardrails & Support Pillars */
 .bridge-pillar {
   position: absolute; width: 14px; height: 68px; background: var(--bridge-concrete);
   border: 1px solid #4a4d50; z-index: 21; box-shadow: 3px 0 6px rgba(0,0,0,0.5);
 }
 
-/* District Grid Setup */
 .district-layer {
   position: absolute; inset: 0; display: grid;
   grid-template-columns: 1172px 56px 1172px 56px 1144px;
@@ -166,7 +160,6 @@ header {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; width: 100%; height: 160px;
 }
 
-/* Lot Styling */
 .lot {
   background: #53913d; border: 3px dashed #325e24; border-radius: 10px;
   position: relative; display: flex; flex-direction: column; justify-content: space-between;
@@ -182,7 +175,6 @@ header {
 @keyframes pulse-blue { 50% { box-shadow: 0 0 14px var(--blue); } }
 @keyframes pulse-gold { 50% { box-shadow: 0 0 16px var(--gold); } }
 
-/* Street-Side Driveways */
 .lot.to-top::after {
   content: ""; position: absolute; top: -18px; left: calc(50% - 8px);
   width: 16px; height: 18px; background: #777b75;
@@ -216,7 +208,6 @@ header {
 .lot-footer { z-index: 6; width: 100%; text-align: center; }
 .lot-price { font-size: 11px; font-weight: 800; color: var(--gold); background: rgba(0,0,0,0.8); padding: 3px 6px; border-radius: 6px; display: inline-block; }
 
-/* Traffic Visuals & Hardware Acceleration */
 .car {
   position: absolute; width: 22px; height: 12px; border-radius: 3px;
   pointer-events: none; will-change: transform;
@@ -876,7 +867,7 @@ function updateHUD() {
   });
 }
 
-// Randomized & Multi-Directional Traffic Engine
+// Anti-Overlap Traffic Engine with Dynamic Proximity Checking
 const carsData = [];
 const carColors = [
   "#e53935", "#1e88e5", "#43a047", "#fb8c00", 
@@ -890,7 +881,6 @@ function initTraffic() {
   container.innerHTML = "";
   carsData.length = 0;
 
-  // Spawns 24 cars with randomized speeds, colors, and initial offsets
   for (let i = 0; i < 24; i++) {
     const isOverpassHorizontal = Math.random() > 0.5;
     const carEl = document.createElement("div");
@@ -903,13 +893,12 @@ function initTraffic() {
     carEl.appendChild(headlight);
     container.appendChild(carEl);
 
-    const baseSpeed = 2.2 + Math.random() * 2.6; // Random speed range (2.2px to 4.8px)
+    const baseSpeed = 2.2 + Math.random() * 2.6;
 
     let x, y, dx, dy;
     if (isOverpassHorizontal) {
       x = Math.random() * 3600;
       const isEastbound = Math.random() > 0.5;
-      // Eastbound (dx > 0) uses lower lane (+32px); Westbound (dx < 0) uses upper lane (+12px)
       y = 1172 + (isEastbound ? 32 : 12);
       dx = isEastbound ? baseSpeed : -baseSpeed;
       dy = 0;
@@ -917,25 +906,54 @@ function initTraffic() {
       const isCol1 = Math.random() > 0.5;
       const avenueX = isCol1 ? 1172 : 2398;
       const isSouthbound = Math.random() > 0.5;
-      
-      // Southbound (dy > 0) uses left lane (+10px); Northbound (dy < 0) uses right lane (+34px)
       x = avenueX + (isSouthbound ? 10 : 34);
       y = Math.random() * 2400;
       dx = 0;
       dy = isSouthbound ? baseSpeed : -baseSpeed;
     }
 
-    carsData.push({ el: carEl, x, y, dx, dy });
+    carsData.push({ el: carEl, x, y, dx, dy, targetSpeed: Math.abs(dx || dy) });
   }
 }
 
 function updateTraffic() {
   const mapW = 3600;
   const mapH = 2400;
+  const SAFE_DISTANCE = 34; // Minimum pixel gap to prevent vehicle overlap
 
-  carsData.forEach(c => {
-    c.x += c.dx;
-    c.y += c.dy;
+  carsData.forEach((c, idx) => {
+    let currentSpeed = c.targetSpeed;
+
+    // Check distance against other cars in the exact same lane/direction
+    for (let j = 0; j < carsData.length; j++) {
+      if (idx === j) continue;
+      const other = carsData[j];
+
+      // Horizontal Boulevard Lane Matching
+      if (c.dy === 0 && other.dy === 0 && Math.abs(c.y - other.y) < 6) {
+        if (c.dx > 0 && other.x > c.x && (other.x - c.x) < SAFE_DISTANCE) {
+          currentSpeed = Math.min(currentSpeed, Math.max(0, other.targetSpeed * 0.8));
+        } else if (c.dx < 0 && other.x < c.x && (c.x - other.x) < SAFE_DISTANCE) {
+          currentSpeed = Math.min(currentSpeed, Math.max(0, other.targetSpeed * 0.8));
+        }
+      }
+
+      // Vertical Avenue Lane Matching
+      if (c.dx === 0 && other.dx === 0 && Math.abs(c.x - other.x) < 6) {
+        if (c.dy > 0 && other.y > c.y && (other.y - c.y) < SAFE_DISTANCE) {
+          currentSpeed = Math.min(currentSpeed, Math.max(0, other.targetSpeed * 0.8));
+        } else if (c.dy < 0 && other.y < c.y && (c.y - other.y) < SAFE_DISTANCE) {
+          currentSpeed = Math.min(currentSpeed, Math.max(0, other.targetSpeed * 0.8));
+        }
+      }
+    }
+
+    // Step positions based on collision-adjusted speed
+    const stepX = c.dx === 0 ? 0 : (c.dx > 0 ? currentSpeed : -currentSpeed);
+    const stepY = c.dy === 0 ? 0 : (c.dy > 0 ? currentSpeed : -currentSpeed);
+
+    c.x += stepX;
+    c.y += stepY;
 
     // Smooth boundary wrap without position snapping
     if (c.dx > 0 && c.x > mapW + 40) c.x = -40;
@@ -974,7 +992,6 @@ function updateWeatherEffects() {
   }
 }
 
-// Event Listeners & Main Engine Loops
 window.addEventListener("load", () => {
   const viewport = document.getElementById("viewport");
   
