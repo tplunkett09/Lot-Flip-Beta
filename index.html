@@ -29,7 +29,7 @@ html, body {
   touch-action: none;
 }
 #app {
-  width: 100vw; height: 100vh; display: flex; flex-direction: column; position: relative; overflow: hidden;
+  width: 100%; height: 100dvh; display: flex; flex-direction: column; position: relative; overflow: hidden;
 }
 
 /* Header UI */
@@ -56,7 +56,7 @@ header {
 .val-blue { color: var(--blue); }
 
 #viewport {
-  flex: 1; width: 100%; height: calc(100vh - 50px); position: relative;
+  flex: 1; width: 100%; min-height: 0; position: relative;
   overflow: hidden; background: #152212; cursor: grab; touch-action: none;
 }
 #viewport:active { cursor: grabbing; }
@@ -347,6 +347,10 @@ body.is-night .car-headlight { opacity: 1; }
 .opt-btn.btn-warn { background: rgba(229,57,53,0.25); border-color: var(--warn); }
 .opt-btn b { color: var(--gold); font-size: 13px; }
 .opt-btn small { color: var(--mut); font-size: 10px; line-height: 1.2; }
+header { padding-top: calc(4px + env(safe-area-inset-top, 0px)); }
+.district.locked::after { pointer-events: none; }
+#toast { position: fixed; top: calc(64px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%) translateY(-16px); background: var(--card); border: 2px solid var(--gold); color: #fff; padding: 8px 14px; border-radius: 20px; font-weight: 800; font-size: 13px; z-index: 300; opacity: 0; transition: opacity .3s, transform .3s; pointer-events: none; max-width: 90%; text-align: center; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -402,6 +406,7 @@ body.is-night .car-headlight { opacity: 1; }
   </div>
 </div>
 
+<div id="toast"></div>
 <div id="sheet">
   <div class="sheet-header">
     <div class="sheet-title" id="sheet-title">Lot Options</div>
@@ -644,7 +649,7 @@ const RENOVATIONS = {
   luxury: { name: "Luxury Interior", cost: 500, vb: 500 }
 };
 
-let money = 15000;
+let money = 2000;
 let unlockedDistricts = [0];
 let fixedHazards = [];
 let selectedLotId = null;
@@ -665,6 +670,38 @@ let lotsData = Array.from({ length: 150 }, (_, i) => ({
 }));
 
 function fmt(n) { return "$" + Math.round(n).toLocaleString(); }
+
+const FIX_NEEDED = 2, LIST_FEE = 40, SALE_FEE = 0.06;
+const BUILD_UNLOCK = { ranch:0, colonial:0, coffee:0, park:0, mansion:5, pool:8, police:10, civic:12, school:15, apartment:20, fire:25, shopping:30, hospital:40, bank:50 };
+let tickN = 0;
+function getBuiltCount() { return lotsData.filter(l => l.status !== "empty").length; }
+function hazardActive(di) { return !!DISTRICTS[di].hazard && !fixedHazards.includes(di); }
+function landPrice(lot) { return Math.round(lot.land * (hazardActive(lot.district) ? 0.6 : 1)); }
+function fixCount(di) { const d = DISTRICTS[di]; return lotsData.filter(l => l.district === di && l.status !== "empty" && l.building === d.fixBuilding).length; }
+let toastTimer = null;
+function toast(msg) {
+  const t = document.getElementById("toast"); if (!t) return;
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+}
+const SAVE_KEY = "lotflip2_save";
+function saveGame() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify({ money, unlockedDistricts, fixedHazards, dayTime, t: Date.now(), lotsData: lotsData.map(l => ({ ...l, anim: null })) })); } catch (e) {}
+}
+function loadGame() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
+    if (!s || !Array.isArray(s.lotsData) || s.lotsData.length !== 150) return;
+    money = s.money; unlockedDistricts = s.unlockedDistricts; fixedHazards = s.fixedHazards; dayTime = s.dayTime || 0.5; lotsData = s.lotsData;
+    let inc = 0;
+    lotsData.forEach((l, i) => { if (l.offer && !l.offerTtl) l.offerTtl = 24; if (l.status === "built") inc += calculateLotRent(i) / 3; });
+    const earn = Math.round(inc * Math.min((Date.now() - s.t) / 1000, 28800) * 0.5);
+    if (earn > 0) { money += earn; toast(`💤 Welcome back! Earned ${fmt(earn)} while away`); }
+  } catch (e) {}
+}
+document.addEventListener("visibilitychange", () => { if (document.hidden) saveGame(); });
+window.addEventListener("pagehide", saveGame);
+
 
 function getNeighbors(i) {
   const n = [];
@@ -728,11 +765,11 @@ function getLotParkRentBoost(i) {
 
 function calculatePropertyValue(i) {
   const lot = lotsData[i];
-  if (lot.status === "empty" || !lot.building) return lot.land;
+  if (lot.status === "empty" || !lot.building) return landPrice(lot);
   const b = BUILDINGS[lot.building];
   const renoVal = lot.renovations.reduce((acc, k) => acc + RENOVATIONS[k].vb, 0);
-  const baseValue = lot.land + b.val + renoVal;
-  return Math.max(1, Math.round(baseValue * (1 + getLotSynergyBoost(i))));
+  const baseValue = landPrice(lot) + b.val + renoVal;
+  return Math.max(1, Math.round(baseValue * (1 + getLotSynergyBoost(i)) * (hazardActive(lot.district) ? 0.85 : 1)));
 }
 
 function calculateLotRent(i) {
@@ -747,7 +784,7 @@ function calculateLotRent(i) {
 
   const d = DISTRICTS[lot.district];
   if (d.hazard && !fixedHazards.includes(lot.district)) {
-    rent = Math.round(rent * 0.5);
+    rent = Math.round(rent * 0.7);
   }
 
   return rent;
@@ -802,6 +839,22 @@ function updateTransform() {
   }
 }
 
+function zoomAt(f, cx, cy) {
+  const ns = Math.min(1.6, Math.max(0.2, scale * f)), k = ns / scale;
+  panX = cx - (cx - panX) * k; panY = cy - (cy - panY) * k; scale = ns; updateTransform();
+}
+function zoomCenter(f) { const v = document.getElementById("viewport"); zoomAt(f, v.clientWidth / 2, v.clientHeight / 2); }
+function focusAt(wx, wy, s) {
+  const v = document.getElementById("viewport"), w = document.getElementById("map-world");
+  scale = s; panX = v.clientWidth / 2 - wx * s; panY = v.clientHeight / 2 - wy * s;
+  w.style.transition = "transform .5s ease, filter 1s ease"; updateTransform();
+  setTimeout(() => { w.style.transition = "filter 1s ease"; }, 560);
+}
+function focusDistrict(id) {
+  const d = DISTRICTS[id];
+  focusAt([0, 1228, 2456][d.gridPos[1] / 2] + 586, [0, 1228][d.gridPos[0] / 2] + 586, 0.6);
+}
+
 function centerMap() {
   const viewport = document.getElementById("viewport");
   if (!viewport) return;
@@ -843,7 +896,7 @@ function renderCity() {
       hazardHTML = `
         <div class="district-hazards">
           <div class="hazard-chip ${isFixed ? 'fixed' : ''}">
-            ${isFixed ? '✓ Hazard Solved' : '⚠️ ' + d.hazard}
+            ${isFixed ? '✓ Hazard Solved' : '⚠️ ' + d.hazard + ' · ' + fixCount(d.id) + '/' + FIX_NEEDED + ' ' + BUILDINGS[d.fixBuilding].icon}
           </div>
         </div>`;
     }
@@ -877,44 +930,14 @@ function renderCity() {
         const lot = lotsData[i];
         const lotEl = document.createElement("div");
         
-        const roadFacing = (r === 0 || r === 2 || r === 4) ? "to-top" : "to-bottom";
-        const isBiz = lot.building && BUILDINGS[lot.building].biz;
-        
-        let stateClass = "";
-        if (lot.offer) stateClass = "has-offer";
-        else if (lot.status === "listed") stateClass = "listed";
-        else if (lot.status === "built") stateClass = "purchased";
-
-        let animClass = "";
-        if (lot.anim === "build") animClass = "anim-build";
-        else if (lot.anim === "demo") animClass = "anim-demo";
-
-        lotEl.className = `lot ${roadFacing} ${isBiz ? 'business-parking' : ''} ${stateClass} ${animClass} ${isUnlocked ? '' : 'locked-lot'}`;
-        
-        const stars = "⭐".repeat(lot.renovations.length);
-        let content = `<div class="lot-header"><span class="lot-num">#${i + 1}</span><span class="lot-stars">${stars}</span></div>`;
-        
-        if (lot.offer) {
-          content += `<div class="lot-art">${SPRITES[lot.building] || ''}</div>`;
-          content += `<div class="lot-footer"><div class="lot-price" style="color:var(--gold);">${fmt(lot.offer)}</div></div>`;
-        } else if (lot.status === "listed") {
-          content += `<div class="lot-art">${SPRITES[lot.building] || ''}</div>`;
-          content += `<div class="lot-footer"><div class="lot-price" style="color:var(--blue);">LISTED</div></div>`;
-        } else if (lot.status === "built") {
-          const rent = calculateLotRent(i);
-          content += `<div class="lot-art">${SPRITES[lot.building] || ''}</div>`;
-          content += `<div class="lot-footer"><div class="lot-price">$${rent}/3s</div></div>`;
-        } else {
-          content += `<div class="lot-art" style="font-size:16px; color:rgba(255,255,255,0.4); font-weight:800;">LOT</div>`;
-          content += `<div class="lot-footer"><div class="lot-price">$${lot.land}</div></div>`;
-        }
-
-        lotEl.innerHTML = content;
+        lotEls[i] = lotEl;
+        paintLot(i);
         
         lotEl.onclick = (e) => {
           if (isPanning) return;
           e.stopPropagation();
-          if (isUnlocked) openLotSheet(lot.id);
+          if (unlockedDistricts.includes(d.id)) openLotSheet(lot.id);
+          else toast(`🔒 Build ${d.req} lots to unlock ${d.name}`);
         };
 
         rowEl.appendChild(lotEl);
@@ -923,6 +946,30 @@ function renderCity() {
   });
 
   renderMinimap();
+}
+
+const lotEls = [];
+function paintLot(i) {
+  const lot = lotsData[i], el = lotEls[i];
+  if (!el) return;
+  const r = Math.floor((i % 25) / 5);
+  const unlocked = unlockedDistricts.includes(lot.district);
+  const isBiz = lot.building && BUILDINGS[lot.building].biz;
+  let st = "";
+  if (lot.offer) st = "has-offer"; else if (lot.status === "listed") st = "listed"; else if (lot.status === "built") st = "purchased";
+  const an = lot.anim === "build" ? "anim-build" : lot.anim === "demo" ? "anim-demo" : "";
+  el.className = `lot ${r % 2 === 0 ? "to-top" : "to-bottom"} ${isBiz ? "business-parking" : ""} ${st} ${an} ${unlocked ? "" : "locked-lot"}`;
+  let c = `<div class="lot-header"><span class="lot-num">#${i + 1}</span><span class="lot-stars">${"⭐".repeat(lot.renovations.length)}</span></div>`;
+  const art = `<div class="lot-art">${SPRITES[lot.building] || ""}</div>`;
+  if (lot.offer) c += art + `<div class="lot-footer"><div class="lot-price">${fmt(lot.offer)}</div></div>`;
+  else if (lot.status === "listed") c += art + `<div class="lot-footer"><div class="lot-price" style="color:var(--blue);">LISTED</div></div>`;
+  else if (lot.status === "built") c += art + `<div class="lot-footer"><div class="lot-price">$${calculateLotRent(i)}/3s</div></div>`;
+  else c += `<div class="lot-art" style="font-size:16px; color:rgba(255,255,255,0.4); font-weight:800;">LOT</div><div class="lot-footer"><div class="lot-price">$${landPrice(lot)}</div></div>`;
+  el.innerHTML = c;
+}
+function refreshSheet(i) {
+  const sh = document.getElementById("sheet");
+  if (selectedLotId === i && sh && sh.classList.contains("active")) openLotSheet(i);
 }
 
 function renderMinimap() {
@@ -963,14 +1010,16 @@ function openLotSheet(id) {
     Object.keys(BUILDINGS).forEach(k => {
       const b = BUILDINGS[k];
       const count = getBuildingCount(k);
-      const isCapped = count >= b.limit;
-      const canAfford = money >= (b.cost + lot.land);
+      const need = BUILD_UNLOCK[k] || 0;
+      const isLocked = getBuiltCount() < need;
+      const isCapped = count >= b.limit || isLocked;
+      const canAfford = money >= (b.cost + landPrice(lot));
 
       optsHTML += `
         <button class="opt-btn ${(!canAfford || isCapped) ? 'disabled' : ''}" 
                 onclick="${(canAfford && !isCapped) ? `buildOnLot('${k}')` : ''}">
           <b>${b.icon} ${b.name} (${fmt(b.cost)})</b>
-          <small>${isCapped ? `MAX BUILT (${count}/${b.limit})` : b.desc}</small>
+          <small>${isLocked ? `🔒 Build ${need} lots to unlock` : isCapped ? `MAX BUILT (${count}/${b.limit})` : b.desc}</small>
         </button>`;
     });
     optsHTML += `</div>`;
@@ -990,7 +1039,7 @@ function openLotSheet(id) {
     if (lot.offer) {
       html += `
         <div style="background:rgba(255,179,0,0.15); border:1px solid var(--gold); padding:8px; border-radius:8px; margin-bottom:10px; font-weight:800;">
-          💰 Offer Received: ${fmt(lot.offer)}
+          💰 Offer: ${fmt(lot.offer)} · you keep ${fmt(lot.offer * (1 - SALE_FEE))}
         </div>
         <div style="display:flex; gap:8px; margin-bottom:10px;">
           <button class="opt-btn btn-ok" style="flex:1;" onclick="acceptOffer(${id})">✓ Accept Offer</button>
@@ -1019,7 +1068,7 @@ function openLotSheet(id) {
       html += `
         <button class="opt-btn" onclick="listLotForSale(${id})">
           <b>🏷️ List For Sale</b>
-          <small>Pauses rent & attracts buyers</small>
+          <small>${fmt(LIST_FEE)} fee + 6% commission · pauses rent</small>
         </button>`;
     } else if (lot.status === "listed") {
       html += `
@@ -1044,7 +1093,7 @@ function openLotSheet(id) {
 function buildOnLot(key) {
   const lot = lotsData[selectedLotId];
   const b = BUILDINGS[key];
-  const totalCost = b.cost + (lot.status === 'empty' ? lot.land : 0);
+  const totalCost = b.cost + (lot.status === 'empty' ? landPrice(lot) : 0);
 
   if (money < totalCost) return;
 
@@ -1055,7 +1104,7 @@ function buildOnLot(key) {
 
   const d = DISTRICTS[lot.district];
   if (d.fixBuilding === key && !fixedHazards.includes(lot.district)) {
-    fixedHazards.push(lot.district);
+    { if (fixCount(lot.district) >= FIX_NEEDED) { fixedHazards.push(lot.district); toast(`✅ ${d.hazard} fixed in ${d.name}! Prices rising`); } }
   }
 
   document.getElementById("sheet").classList.remove("active");
@@ -1088,6 +1137,9 @@ function upgradeLot(key) {
 
 function listLotForSale(id) {
   const lot = lotsData[id];
+  if (money < LIST_FEE) { toast("Need " + fmt(LIST_FEE) + " for the listing fee"); return; }
+  money -= LIST_FEE;
+  updateHUD();
   lot.status = "listed";
   lot.offer = null;
   document.getElementById("sheet").classList.remove("active");
@@ -1106,7 +1158,7 @@ function acceptOffer(id) {
   const lot = lotsData[id];
   if (!lot.offer) return;
 
-  money += lot.offer;
+  money += Math.round(lot.offer * (1 - SALE_FEE));
   lot.status = "empty";
   lot.building = null;
   lot.renovations = [];
@@ -1169,7 +1221,7 @@ function updateHUD() {
 
   DISTRICTS.forEach(d => {
     if (!unlockedDistricts.includes(d.id) && builtCount >= d.req) {
-      unlockedDistricts.push(d.id);
+      unlockedDistricts.push(d.id); toast(`🔓 ${d.name} unlocked!`); focusDistrict(d.id); setTimeout(renderCity, 0);
     }
   });
 }
@@ -1297,60 +1349,45 @@ window.addEventListener("load", () => {
   const viewport = document.getElementById("viewport");
   
   if (viewport) {
+    const startPt = new Map();
     viewport.addEventListener("pointerdown", (e) => {
-      viewport.setPointerCapture(e.pointerId);
       activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      isPanning = false;
+      startPt.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (activePointers.size === 1) isPanning = false;
     });
-
     viewport.addEventListener("pointermove", (e) => {
       if (!activePointers.has(e.pointerId)) return;
-
       const prev = activePointers.get(e.pointerId);
-      const deltaX = e.clientX - prev.x;
-      const deltaY = e.clientY - prev.y;
-
-      if (Math.hypot(deltaX, deltaY) > 2) {
+      const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (!isPanning) {
+        const st = startPt.get(e.pointerId);
+        if (Math.hypot(e.clientX - st.x, e.clientY - st.y) < 8) return;
         isPanning = true;
       }
-
-      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
+      if (!viewport.hasPointerCapture(e.pointerId)) { try { viewport.setPointerCapture(e.pointerId); } catch (_) {} }
       if (activePointers.size === 1) {
-        panX += deltaX;
-        panY += deltaY;
-        updateTransform();
+        panX += dx; panY += dy; updateTransform();
       } else if (activePointers.size === 2) {
         const pts = Array.from(activePointers.values());
         const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-
-        if (prevPinchDist != null) {
-          const zoomRatio = dist / prevPinchDist;
-          scale *= zoomRatio;
-          updateTransform();
-        }
+        const r = viewport.getBoundingClientRect();
+        if (prevPinchDist != null) zoomAt(dist / prevPinchDist, (pts[0].x + pts[1].x) / 2 - r.left, (pts[0].y + pts[1].y) / 2 - r.top);
         prevPinchDist = dist;
       }
     });
-
     function endPointer(e) {
-      if (viewport.hasPointerCapture(e.pointerId)) {
-        viewport.releasePointerCapture(e.pointerId);
-      }
-      activePointers.delete(e.pointerId);
-      if (activePointers.size < 2) {
-        prevPinchDist = null;
-      }
+      if (viewport.hasPointerCapture(e.pointerId)) viewport.releasePointerCapture(e.pointerId);
+      activePointers.delete(e.pointerId); startPt.delete(e.pointerId);
+      if (activePointers.size < 2) prevPinchDist = null;
     }
-
     viewport.addEventListener("pointerup", endPointer);
     viewport.addEventListener("pointercancel", endPointer);
 
     viewport.addEventListener("wheel", (e) => {
       e.preventDefault();
-      const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
-      scale *= zoomFactor;
-      updateTransform();
+      const r = viewport.getBoundingClientRect();
+      zoomAt(e.deltaY < 0 ? 1.12 : 0.88, e.clientX - r.left, e.clientY - r.top);
     }, { passive: false });
   }
 
@@ -1359,17 +1396,26 @@ window.addEventListener("load", () => {
   const btnRecenter = document.getElementById("btn-recenter");
   const sheetClose = document.getElementById("sheet-close");
 
-  if (btnZoomIn) btnZoomIn.onclick = () => { scale *= 1.25; updateTransform(); };
-  if (btnZoomOut) btnZoomOut.onclick = () => { scale *= 0.8; updateTransform(); };
+  if (btnZoomIn) btnZoomIn.onclick = () => zoomCenter(1.25);
+  if (btnZoomOut) btnZoomOut.onclick = () => zoomCenter(0.8);
   if (btnRecenter) btnRecenter.onclick = centerMap;
+  const mini = document.getElementById("minimap");
+  if (mini) mini.addEventListener("pointerdown", (e) => {
+    e.stopPropagation();
+    const r = mini.getBoundingClientRect();
+    focusAt((e.clientX - r.left) / r.width * 3600, (e.clientY - r.top) / r.height * 2400, 0.6);
+  });
   if (sheetClose) sheetClose.onclick = () => {
     const sheet = document.getElementById("sheet");
     if (sheet) sheet.classList.remove("active");
   };
 
+  loadGame();
+  updateHUD();
   renderCity();
   initTraffic();
   centerMap();
+  setTimeout(() => focusDistrict(unlockedDistricts[unlockedDistricts.length - 1]), 0);
 
   function animLoop() {
     updateTraffic();
@@ -1405,16 +1451,21 @@ window.addEventListener("load", () => {
     lotsData.forEach((l, i) => {
       if (l.status === "built") {
         money += calculateLotRent(i) / 6;
+      } else if (l.status === "listed" && l.offer) {
+        if (--l.offerTtl <= 0) { l.offer = null; paintLot(i); refreshSheet(i); }
       } else if (l.status === "listed" && !l.offer) {
-        if (Math.random() < 0.12) {
+        if (Math.random() < 0.05) {
           const val = calculatePropertyValue(i);
-          l.offer = Math.round(val * (0.85 + Math.random() * 0.4));
-          renderCity();
+          l.offer = Math.round(val * (0.8 + Math.random() * 0.35));
+          l.offerTtl = 24;
+          paintLot(i);
+          refreshSheet(i);
         }
       }
     });
 
     updateHUD();
+    if (++tickN % 10 === 0) saveGame();
   }, 500);
 });
 </script>
