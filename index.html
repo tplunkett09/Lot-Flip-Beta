@@ -192,8 +192,8 @@ header {
 .lot.anim-build .lot-art {
   animation: popBuild 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
-.lot.anim-build::after {
-  content: ""; position: absolute; inset: -4px; border-radius: 12px;
+.lot .build-ring {
+  position: absolute; inset: -4px; border-radius: 12px; pointer-events: none; z-index: 7;
   border: 3px solid var(--gold); opacity: 0;
   animation: ringRipple 0.6s ease-out forwards;
 }
@@ -338,6 +338,16 @@ header { padding-top: calc(4px + env(safe-area-inset-top, 0px)); }
 .car.visitor { width: 20px; height: 10px; z-index: 12; opacity: 0; transition: opacity .4s; }
 .car.visitor.on { opacity: 1; }
 .car.visitor::after { top: 1.5px; width: 4px; height: 7px; }
+/* driveway is cut and paved during construction: dirt track pushes in from the road, then gets its surface */
+.lot.constructing.has-nub::after { transform-origin: 50% 100%; animation: paveDrive var(--d) linear var(--e) forwards; }
+.lot.constructing.has-nub::before { animation: consFade var(--d) linear var(--e) both; animation-name: curbCut; }
+@keyframes paveDrive {
+  0% { transform: scaleY(0); background: #9a7650; }
+  18% { transform: scaleY(1); background: #9a7650; }
+  78% { transform: scaleY(1); background: #8c8a82; }
+  90%, 100% { transform: scaleY(1); background: var(--nc); }
+}
+@keyframes curbCut { 0% { opacity: 0; } 4%, 100% { opacity: 1; } }
 #fx-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 60; }
 #rain-canvas { display: none !important; }
 .local-road-h, .main-avenue-v { transition: filter .9s ease, box-shadow .9s ease; }
@@ -420,7 +430,29 @@ body.is-dim .car-headlight { opacity: 1; }
 /* ---- detailed cars ---- */
 .car.svgcar { background: transparent !important; box-shadow: none !important; border-radius: 0; overflow: visible; }
 .car.svgcar::after { display: none; }
-.car.svgcar > svg { position: absolute; inset: -2px -1px; width: calc(100% + 2px); height: calc(100% + 4px); overflow: visible; }
+.car.svgcar > svg.v { position: absolute; left: 50%; top: 50%; overflow: visible; display: none; pointer-events: none; }
+.car.svgcar > .v-side { width: var(--sw, 25px); height: var(--sh, 14px); transform: translate(-50%, -66%); }
+.car.svgcar > .v-front, .car.svgcar > .v-back { width: var(--fw, 13px); height: var(--fh, 16px); transform: translate(-50%, -62%); }
+.car.svgcar[data-dir="l"] > .v-side { transform: translate(-50%, -66%) scaleX(-1); }
+.car.svgcar[data-dir="r"] > .v-side, .car.svgcar[data-dir="l"] > .v-side, .car.svgcar[data-dir="d"] > .v-front, .car.svgcar[data-dir="u"] > .v-back { display: block; }
+.car.svgcar.ev-amb { --sw: 27px; --sh: 14px; --fw: 14px; --fh: 17px; }
+.car.svgcar.ev-fire { --sw: 36px; --sh: 14px; --fw: 15px; --fh: 17px; }
+.car.svgcar[data-dir="l"] .car-headlight { right: auto; left: -8px; }
+.car.svgcar[data-dir="d"] .car-headlight { right: auto; left: 50%; margin-left: -5px; top: auto; bottom: -9px; }
+.car.svgcar[data-dir="u"] .car-headlight { display: none; }
+.car.svgcar > .v-dr, .car.svgcar > .v-ur { transform: var(--g); }
+.car.svgcar[data-dir="dr"] > .v-dr, .car.svgcar[data-dir="ur"] > .v-ur { display: block; }
+.car.svgcar[data-dir="dl"] > .v-dr, .car.svgcar[data-dir="ul"] > .v-ur { display: block; transform: var(--g) scaleX(-1); }
+.car.svgcar[data-dir="dr"] .car-headlight { right: -6px; top: 6px; }
+.car.svgcar[data-dir="dl"] .car-headlight { right: auto; left: -6px; top: 6px; }
+.car.svgcar[data-dir="ur"] .car-headlight, .car.svgcar[data-dir="ul"] .car-headlight { display: none; }
+/* ---- roads in the same 3/4 view: the far curb shows its face, the near curb is a lip ---- */
+.local-road-h { border-top: 0; border-bottom: 3px solid #c3c6bd; box-shadow: inset 0 0 4px rgba(0,0,0,.4), 0 2px 0 rgba(0,0,0,.25); }
+.local-road-h::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 6px; background: linear-gradient(#d4d7ce 0 2px, #9a9d95 2px, #7f827b); box-shadow: 0 2px 3px rgba(0,0,0,.35); pointer-events: none; }
+.local-road-h::before { top: 19px; }
+.overpass-deck { border-bottom-width: 3px; }
+.overpass-deck::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 12px; background: linear-gradient(#a3a9ad, #7c8286 70%, #5e6367); border-bottom: 2px solid #3e4245; pointer-events: none; }
+.main-avenue-v { box-shadow: inset 0 0 8px rgba(0,0,0,.5), inset 0 6px 0 rgba(0,0,0,.18); }
 .car.svgcar .car-headlight { z-index: 2; }
 /* ---- construction equipment ---- */
 .cons-crane .trolley { animation: trolleyRun 6.5s ease-in-out infinite alternate; }
@@ -680,10 +712,24 @@ const PROBLEMS = {
   crime:    { name: "Crime", icon: "🚨", base: 90, fix: { police: 45, park: 10, school: 10, civic: 10 }, tip: "Police Stations cut crime 45% · Parks, Schools & Civic Centers cut 10%" },
   vacancy:  { name: "Vacant Storefronts", icon: "🏚️", base: 100, fix: { coffee: 25, shopping: 35, bank: 40, civic: 15, apartment: 10 }, tip: "Coffee Shops −25% · Shopping −35% · Bank −40% · Apartments −10%" },
   smog:     { name: "Smog", icon: "🏭", base: 100, fix: { park: 20, pool: 10, school: 5 }, worse: { shopping: 10 }, tip: "Each Park scrubs 20% · Pools 10% · Shopping traffic adds 10%" },
-  flood:    { name: "Flood Risk", icon: "🌊", base: 90, fix: { fire: 30, pool: 5 }, roof: 10, tip: "Fire Station rescue −30% · every Modern Roof on a home −10% · floods hit during rain" },
+  flood:    { name: "Flood Risk", icon: "🌊", base: 90, fix: { fire: 30, pool: 5 }, roof: 10, extra: "every Modern Roof on a home −10% · floods hit during rain", tip: "Fire Station rescue −30% · every Modern Roof on a home −10% · floods hit during rain" },
   outage:   { name: "Power Outages", icon: "⚡", base: 100, fix: { civic: 35, bank: 20, school: 15 }, tip: "Civic Centers −35% · Banks −20% · Schools −15%" },
   gridlock: { name: "Traffic Gridlock", icon: "🚦", base: 100, fix: { hospital: 20, fire: 15, police: 15, school: 15, park: 5 }, worse: { shopping: 10 }, tip: "Hospital −20% · Fire, Police, School −15% · Shopping adds 10%" }
 };
+// Tip text built from the real numbers, listing only buildings you can build in chapter `ch`;
+// anything that unlocks later is marked with the chapter it opens in.
+function problemTip(P, ch) {
+  const now = [], later = [];
+  Object.entries(P.fix).sort((a, b) => b[1] - a[1]).forEach(([k, v]) => {
+    const need = CH_UNLOCK[k] || 0, t = `${BUILDINGS[k].name} −${v}%`;
+    (need <= ch ? now : later).push(need <= ch ? t : `${t} (Ch.${need + 1})`);
+  });
+  let s = now.join(" · ");
+  if (P.extra) s += " · " + P.extra;
+  if (P.worse) s += " · " + Object.entries(P.worse).map(([k, v]) => `${BUILDINGS[k].name} adds ${v}%`).join(" · ");
+  if (later.length) s += ` · 🔒 Later: ${later.join(" · ")}`;
+  return s;
+}
 let probCache = {};
 function invalidateProblems() { probCache = {}; }
 function problemLevel(di) {
@@ -824,7 +870,7 @@ function showIntro(c) {
   const C = CHAPTERS[c], P = PROBLEMS[DISTRICTS[c].problem];
   showStory({
     kicker: `Chapter ${c + 1} · ${DISTRICTS[c].name}`, title: C.title, text: C.intro,
-    goals: C.goals.map(g => goalInfo(g).t), problem: `${P.icon} Problem: ${P.name} — ${P.tip}`,
+    goals: C.goals.map(g => goalInfo(g).t), problem: `${P.icon} Problem: ${P.name} — ${problemTip(P, c)}`,
     btn: "Let's do it!",
     onClose: () => { storyBusy = false; focusDistrict(c); saveGame(); updateHUD(); }
   });
@@ -860,7 +906,7 @@ function questShell() {
       <div class="q-meter"><div class="q-meter-top"><span>${P.icon} ${P.name}</span><span id="q-lv"></span></div>
         <div class="q-bar"><i id="q-bar"></i><b style="left:${PROBLEM_CLEAR}%"></b></div></div>
       ${C.goals.map((g, gi) => `<div class="q-goal" id="q-g${gi}"><span class="ck"></span><span class="q-t">${goalInfo(g).t}</span><span class="q-p"></span></div>`).join("")}
-      <div class="q-tip">💡 ${P.tip}</div>
+      <div class="q-tip">💡 ${problemTip(P, chapter)}</div>
       <div class="q-btns"><button type="button" data-q="go">📍 Go there</button><button type="button" data-q="story">📜 Story</button><button type="button" class="danger" data-q="reset">${resetArmed ? "Tap again" : "↺ New Game"}</button></div>
     </div>`;
 }
@@ -1204,7 +1250,7 @@ function renderCity() {
 }
 
 const lotEls = [];
-const PARK = {"ranch":{"ar":1.805,"spots":[[0.82,0.74]],"ex":0.87,"eyb":0.79,"cx":0.77,"cy":0.55,"kind":"drive","pd":[-0.075,-0.1525]},"colonial":{"ar":1.504,"spots":[[0.785,0.765]],"ex":0.859,"eyb":0.81,"cx":0.56,"cy":0.82,"kind":"drive","pd":[-0.16,-0.09]},"mansion":{"ar":1.612,"spots":[[0.448,0.784]],"ex":0.608,"eyb":0.885,"cx":0.6,"cy":0.8,"kind":"drive","loop":{"enter":[[0.674,0.869],[0.734,0.847],[0.775,0.809],[0.788,0.76],[0.759,0.712],[0.69,0.689],[0.622,0.683],[0.559,0.692],[0.502,0.712],[0.47,0.748]],"park":[0.448,0.784],"exit":[[0.466,0.826],[0.508,0.861],[0.568,0.889]]},"pd":[-0.004,0.078]},"coffee":{"ar":1.664,"spots":[[0.444,0.865],[0.564,0.83]],"ex":0.5,"eyb":0.96,"cx":0.518,"cy":0.852,"kind":"lot","pd":[-0.12,-0.15],"via":[0.048,0.06]},"park":{"ar":1.683,"spots":[[0.4665,0.887]],"ex":0.511,"eyb":0.936,"cx":0.42,"cy":0.78,"kind":"lot","pd":[-0.089,-0.098]},"civic":{"ar":1.526,"spots":[[0.7845,0.7845]],"ex":0.8325,"eyb":0.825,"cx":0.67,"cy":0.82,"kind":"lot","pd":[-0.096,-0.081]},"apartment":{"ar":1.579,"spots":[[0.4597,0.8921],[0.5562,0.8689],[0.6455,0.8437],[0.7403,0.8163],[0.8347,0.7889]],"ex":0.9333,"eyb":0.8447,"cx":0.6,"cy":0.85,"kind":"lot","pd":[-0.00286,-0.00271],"aisle":[[0.5168,0.9463],[0.6133,0.9231],[0.7027,0.8978],[0.7975,0.8705],[0.8918,0.8431]],"pre":[[0.5225,0.9517],[0.619,0.9285],[0.7084,0.9033],[0.8032,0.8759],[0.8975,0.8485]],"stalls":true},"pool":{"ar":1.77,"spots":[[0.5765,0.821]],"ex":0.619,"eyb":0.8685,"cx":0.5,"cy":0.85,"kind":"lot","pd":[-0.084,-0.098]},"school":{"ar":1.712,"spots":[[0.328,0.878],[0.546,0.827]],"ex":0.445,"eyb":0.942,"cx":0.454,"cy":0.87,"kind":"lot","pd":[-0.12,-0.07]},"hospital":{"ar":1.531,"spots":[[0.6933,0.8316],[0.8733,0.801]],"ex":0.7533,"eyb":0.898,"cx":0.684,"cy":0.873,"kind":"lot","pd":[-0.001,-0.00487],"aisle":[[0.7034,0.8803],[0.8834,0.8497]],"pre":[[0.7054,0.89],[0.8854,0.8594]],"stalls":true},"shopping":{"ar":1.657,"spots":[[0.4925,0.739],[0.6,0.6989],[0.7017,0.6644],[0.7958,0.6215]],"ex":0.8333,"eyb":0.7901,"cx":0.62,"cy":0.75,"kind":"lot","pd":[-0.00281,-0.00297],"aisle":[[0.5656,0.8161],[0.6731,0.776],[0.7748,0.7415],[0.869,0.6987]],"pre":[[0.5769,0.8279],[0.6844,0.7879],[0.786,0.7533],[0.8802,0.7105]],"stalls":true},"fire":{"ar":1.685,"spots":[[0.43,0.7697],[0.56,0.7472],[0.6933,0.7191]],"ex":0.6533,"eyb":0.8989,"cx":0.6,"cy":0.68,"kind":"lot","pd":[-0.002,-0.00449],"aisle":[[0.466,0.8506],[0.596,0.8281],[0.7293,0.8]],"pre":[[0.472,0.864],[0.602,0.8416],[0.7353,0.8135]],"stalls":true},"police":{"ar":1.775,"spots":[[0.4805,0.7669],[0.5805,0.7433],[0.6922,0.7048],[0.8055,0.6634]],"ex":0.7733,"eyb":0.858,"cx":0.669,"cy":0.76,"kind":"lot","pd":[-0.00277,-0.00328],"aisle":[[0.5416,0.8391],[0.6416,0.8155],[0.7532,0.777],[0.8666,0.7356]],"pre":[[0.5499,0.849],[0.6499,0.8253],[0.7616,0.7868],[0.8749,0.7454]],"stalls":true},"bank":{"ar":1.483,"spots":[[0.92,0.775]],"ex":0.8,"eyb":0.855,"cx":0.5,"cy":0.8,"kind":"lot","pd":[-0.12,-0.07]}};
+const PARK = {"ranch":{"ar":1.805,"spots":[[0.82,0.74]],"ex":0.87,"eyb":0.79,"cx":0.77,"cy":0.55,"kind":"drive","pd":[-0.075,-0.1525]},"colonial":{"ar":1.504,"spots":[[0.785,0.765]],"ex":0.859,"eyb":0.81,"cx":0.56,"cy":0.82,"kind":"drive","pd":[-0.16,-0.09]},"mansion":{"ar":1.612,"spots":[[0.448,0.784]],"ex":0.608,"eyb":0.885,"cx":0.6,"cy":0.8,"kind":"drive","loop":{"enter":[[0.674,0.869],[0.734,0.847],[0.775,0.809],[0.788,0.76],[0.759,0.712],[0.69,0.689],[0.622,0.683],[0.559,0.692],[0.502,0.712],[0.47,0.748]],"park":[0.448,0.784],"exit":[[0.466,0.826],[0.508,0.861],[0.568,0.889]]},"pd":[-0.004,0.078]},"coffee":{"ar":1.664,"spots":[[0.444,0.865],[0.564,0.83]],"ex":0.5,"eyb":0.96,"cx":0.518,"cy":0.852,"kind":"lot","pd":[-0.12,-0.15],"via":[0.048,0.06]},"park":{"ar":1.683,"spots":[[0.4665,0.887]],"ex":0.511,"eyb":0.936,"cx":0.42,"cy":0.78,"kind":"lot","pd":[-0.089,-0.098]},"civic":{"ar":1.526,"spots":[[0.7845,0.7845]],"ex":0.8325,"eyb":0.825,"cx":0.67,"cy":0.82,"kind":"lot","pd":[-0.096,-0.081]},"apartment":{"ar":1.579,"spots":[[0.4597,0.8921],[0.5562,0.8689],[0.6455,0.8437],[0.7403,0.8163],[0.8347,0.7889]],"ex":0.9333,"eyb":0.8447,"cx":0.6,"cy":0.85,"kind":"lot","pd":[-0.00286,-0.00271],"aisle":[[0.5168,0.9463],[0.6133,0.9231],[0.7027,0.8978],[0.7975,0.8705],[0.8918,0.8431]],"pre":[[0.5225,0.9517],[0.619,0.9285],[0.7084,0.9033],[0.8032,0.8759],[0.8975,0.8485]],"stalls":true},"pool":{"ar":1.77,"spots":[[0.5765,0.821]],"ex":0.619,"eyb":0.8685,"cx":0.5,"cy":0.85,"kind":"lot","pd":[-0.084,-0.098]},"school":{"ar":1.712,"spots":[[0.328,0.878],[0.546,0.827]],"ex":0.445,"eyb":0.942,"cx":0.454,"cy":0.87,"kind":"lot","pd":[-0.12,-0.07]},"hospital":{"ar":1.531,"spots":[[0.6933,0.8316],[0.8733,0.801]],"ex":0.7533,"eyb":0.898,"cx":0.684,"cy":0.873,"kind":"lot","pd":[-0.001,-0.00487],"aisle":[[0.7034,0.8803],[0.8834,0.8497]],"pre":[[0.7054,0.89],[0.8854,0.8594]],"stalls":true},"shopping":{"ar":1.657,"spots":[[0.4925,0.739],[0.6,0.6989],[0.7017,0.6644],[0.7958,0.6215]],"ex":0.8333,"eyb":0.7901,"cx":0.62,"cy":0.75,"kind":"lot","pd":[-0.00281,-0.00297],"aisle":[[0.5656,0.8161],[0.6731,0.776],[0.7748,0.7415],[0.869,0.6987]],"pre":[[0.5769,0.8279],[0.6844,0.7879],[0.786,0.7533],[0.8802,0.7105]],"stalls":true},"fire":{"ar":1.685,"spots":[[0.43,0.7697],[0.56,0.7472],[0.6933,0.7191]],"ex":0.6533,"eyb":0.8989,"cx":0.6,"cy":0.68,"kind":"lot","pd":[-0.002,-0.00449],"aisle":[[0.466,0.8506],[0.596,0.8281],[0.7293,0.8]],"pre":[[0.472,0.864],[0.602,0.8416],[0.7353,0.8135]],"stalls":true},"police":{"ar":1.775,"spots":[[0.4775,0.7712],[0.5763,0.7445],[0.695,0.709],[0.825,0.6632]],"ex":0.7733,"eyb":0.858,"cx":0.669,"cy":0.76,"kind":"lot","pd":[-0.00277,-0.00328],"aisle":[[0.5299,0.8419],[0.6374,0.8167],[0.756,0.7812],[0.8861,0.7354]],"pre":[[0.5382,0.8518],[0.6457,0.8265],[0.7644,0.791],[0.8944,0.7452]],"stalls":true},"bank":{"ar":1.483,"spots":[[0.92,0.775]],"ex":0.8,"eyb":0.855,"cx":0.5,"cy":0.8,"kind":"lot","pd":[-0.12,-0.07]}};
 let LW = 204, LH = 154; const geomCache = {};
 function measureLots() {
   const e = lotEls[0]; if (e && e.clientWidth) { LW = e.clientWidth; LH = e.clientHeight; }
@@ -1221,7 +1267,8 @@ function paintLot(i) {
   let st = "";
   if (lot.offer) st = "has-offer"; else if (lot.status === "listed") st = "listed"; else if (lot.status === "built") st = "purchased"; else if (lot.status === "building") st = "constructing";
   const an = lot.anim === "build" ? "anim-build" : lot.anim === "demo" ? "anim-demo" : "";
-  const P = isDone(lot) && lot.building ? PARK[lot.building] : null;
+  const P = (isDone(lot) || lot.status === "building") && lot.building ? PARK[lot.building] : null;
+  if (lot.status === "building") { el.style.setProperty("--d", (lot.buildDur || 1) + "s"); el.style.setProperty("--e", (-Math.min(lot.buildDur || 1, (lot.buildDur || 1) - buildLeft(lot))).toFixed(2) + "s"); }
   el.className = `lot ${P ? "has-nub" : ""} ${st} ${an} ${unlocked ? "" : "locked-lot"}`;
   let price, art;
   if (lot.offer) price = fmt(lot.offer);
@@ -1230,7 +1277,7 @@ function paintLot(i) {
   else if (lot.status === "built") price = `$${calculateLotRent(i)}/3s`;
   else price = `$${landPrice(lot)}`;
   art = lot.status === "building" ? consArt(lot) : P ? `<div class="lot-art">${SPRITES[lot.building] || ""}</div>` : `<div class="lot-art empty">LOT</div>`;
-  el.innerHTML = `<div class="lot-header"><span class="lot-num">#${i + 1}</span><span class="lot-stars">${"⭐".repeat(lot.renovations.length)}</span><div class="lot-price">${price}</div></div>` + art;
+  el.innerHTML = `<div class="lot-header"><span class="lot-num">#${i + 1}</span><span class="lot-stars">${"⭐".repeat(lot.renovations.length)}</span><div class="lot-price">${price}</div></div>` + art + (an === "anim-build" ? `<i class="build-ring"></i>` : "");
   if (P) {
     const R = spriteRect(lot.building), w = P.kind === "lot" ? 34 : P.kind === "drive" ? 18 : 10;
     const nc = P.kind === "lot" ? "#4b4f53" : P.kind === "drive" ? "#adb0ae" : "#b9b49c";
@@ -1601,98 +1648,285 @@ function updateHUD() {
 }
 
 
-// ---- Detailed top-down car sprites (front of the car points right, like the old windshield) ----
+// ---- 3/4-view vehicle sprites (same camera as the buildings: looking down at an angle, light from the top-left) ----
+// Each vehicle has three drawings: side (facing right; mirrored for left), front (driving toward you) and rear (driving away).
+// The car element no longer rotates: placeCar() picks the drawing that matches its heading.
 function shade(hex, k) {
   const n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
   const f = v => Math.max(0, Math.min(255, Math.round(k < 0 ? v * (1 + k) : v + (255 - v) * k)));
   return "#" + [f(r), f(g), f(b)].map(v => v.toString(16).padStart(2, "0")).join("");
 }
 const CAR_TYPES = ["sedan", "sedan", "sedan", "suv", "suv", "pickup", "van", "hatch", "taxi"];
-function carSVG(type, color) {
-  if (type === "taxi") color = "#f5c518";
-  const dk = shade(color, -.32), lt = shade(color, .28), glass = "#9fd3ea", glassDk = "#5f8fa6", OLc = "#1b1f22";
-  const wheels = `<rect x="6" y="1" width="7" height="3" rx="1.2" fill="#15181a"/><rect x="31" y="1" width="7" height="3" rx="1.2" fill="#15181a"/><rect x="6" y="20" width="7" height="3" rx="1.2" fill="#15181a"/><rect x="31" y="20" width="7" height="3" rx="1.2" fill="#15181a"/>`;
-  const shadow = `<rect x="2" y="4.5" width="42" height="17" rx="5" fill="rgba(0,0,0,.32)"/>`;
-  const lights = `<rect x="40.6" y="5" width="2.2" height="3.6" rx="1" fill="#fff6c8"/><rect x="40.6" y="15.4" width="2.2" height="3.6" rx="1" fill="#fff6c8"/><rect x="1.2" y="5" width="1.8" height="3.4" rx=".8" fill="#e5322d"/><rect x="1.2" y="15.6" width="1.8" height="3.4" rx=".8" fill="#e5322d"/>`;
-  const mirrors = x => `<rect x="${x}" y="1.2" width="2.6" height="2.2" rx=".8" fill="${dk}"/><rect x="${x}" y="20.6" width="2.6" height="2.2" rx=".8" fill="${dk}"/>`;
-  let body = "";
-  if (type === "pickup") {
-    body = `<rect x="1" y="3" width="42" height="18" rx="3.5" fill="${color}" stroke="${OLc}" stroke-width=".9"/>
-      <rect x="2.5" y="4.6" width="17" height="14.8" rx="1.2" fill="${dk}"/><path d="M4 8.5h14M4 12h14M4 15.5h14" stroke="${shade(color, -.5)}" stroke-width=".8"/>
-      <rect x="21" y="4" width="13" height="16" rx="2.4" fill="${lt}" stroke="${OLc}" stroke-width=".6"/>
-      <path d="M34 5.2l4.6 1.6v10.4L34 18.8z" fill="${glass}" stroke="${glassDk}" stroke-width=".5"/><path d="M21 6l-1.2 1v10l1.2 1z" fill="${glassDk}"/>${mirrors(33)}`;
-  } else if (type === "van") {
-    body = `<rect x="1" y="3" width="42" height="18" rx="3" fill="${color}" stroke="${OLc}" stroke-width=".9"/>
-      <rect x="3" y="4.6" width="32.5" height="14.8" rx="2" fill="${lt}"/><path d="M10 4.6v14.8M18 4.6v14.8M26 4.6v14.8" stroke="${shade(color, .1)}" stroke-width=".7"/>
-      <path d="M35.6 4.8l4.6 1.8v10.8l-4.6 1.8z" fill="${glass}" stroke="${glassDk}" stroke-width=".5"/><rect x="1.8" y="6" width="1.4" height="12" fill="${glassDk}"/>${mirrors(34)}`;
-  } else {
-    const suv = type === "suv", hatch = type === "hatch";
-    const rx = suv ? 3 : 5, cabX = suv ? 9 : hatch ? 8 : 12, cabW = suv ? 24 : hatch ? 21 : 19;
-    body = `<rect x="1" y="3" width="42" height="18" rx="${rx}" fill="${color}" stroke="${OLc}" stroke-width=".9"/>
-      <path d="M${hatch ? 5 : 3} 6.5q-1 5.5 0 11" stroke="${dk}" stroke-width="1" fill="none"/><path d="M36 6q2.6 6 0 12" stroke="${lt}" stroke-width="1" fill="none"/>
-      <path d="M${cabX - 3.2} 5.6l3.2 1.2v10.4l-3.2 1.2z" fill="${glassDk}"/>
-      <rect x="${cabX}" y="5" width="${cabW}" height="14" rx="2.6" fill="${lt}" stroke="${OLc}" stroke-width=".5"/>
-      <path d="M${cabX + cabW} 5.4l4.6 1.8v9.6l-4.6 1.8z" fill="${glass}" stroke="${glassDk}" stroke-width=".5"/>
-      <path d="M${cabX + 3} 7.2h${cabW - 6}" stroke="rgba(255,255,255,.45)" stroke-width="1.1" stroke-linecap="round"/>
-      ${type === "taxi" ? `<rect x="${cabX + 7}" y="9.2" width="5.5" height="5.6" rx="1" fill="#fff" stroke="${OLc}" stroke-width=".5"/><path d="M${cabX + 3} 12h3M${cabX + 13.5} 12h3" stroke="#222" stroke-width="1.2" stroke-dasharray="1 1"/>` : ""}
-      ${suv ? `<path d="M${cabX + 3} 6.4v11.2M${cabX + cabW - 3} 6.4v11.2" stroke="${dk}" stroke-width=".9"/>` : ""}${mirrors(cabX + cabW + .5)}`;
+const VOL = "#1b1f22", VGL = "#9fd3ea", VGD = "#5f8fa6";
+function vSvg(cls, w, h, body) { return `<svg class="v ${cls}" viewBox="0 0 ${w} ${h}" aria-hidden="true">${body}</svg>`; }
+// Generic side view. o: { L length, paint, top (roof/hood colour), belt (top of body side), floor, cab:[x0,x1], roof, rake front/back,
+//   bed: [x0,x1] open cargo bed, deco: extra svg, lamps: extra roof svg, wheels: [x...] }
+function sideView(o) {
+  const L = o.L, H = 26, c = o.paint, dk = shade(c, -.3), lt = o.top || shade(c, .3);
+  const belt = o.belt, floor = o.floor || 20.5, [c0, c1] = o.cab, roof = o.roof, rf = o.rakeF ?? 4, rb = o.rakeB ?? 3;
+  let s = `<ellipse cx="${L / 2}" cy="23.6" rx="${L / 2 - 1}" ry="2.4" fill="rgba(0,0,0,.33)"/>`;
+  // far-side wheels peek out under the body
+  s += (o.wheels || [10, L - 11]).map(x => `<ellipse cx="${x + 1.2}" cy="${floor - .4}" rx="3.2" ry="3" fill="#0d0f10"/>`).join("");
+  // top surfaces (hood + trunk), seen from above
+  s += `<rect x="1.5" y="${belt - 3}" width="${L - 3}" height="4.2" rx="2" fill="${lt}" stroke="${VOL}" stroke-width=".8"/>`;
+  if (o.bed) s += `<rect x="${o.bed[0]}" y="${belt - 2.4}" width="${o.bed[1] - o.bed[0]}" height="3" rx=".6" fill="${shade(c, -.55)}"/>`;
+  // cabin: glass band + roof top
+  s += `<polygon points="${c0 - rb},${belt - 1} ${c0},${roof + 3.4} ${c1},${roof + 3.4} ${c1 + rf},${belt - 1}" fill="${VGL}" stroke="${VOL}" stroke-width=".8"/>`;
+  s += `<path d="M${(c0 + c1) / 2} ${roof + 3.6}V${belt - 1}" stroke="${dk}" stroke-width="1.4"/>`;
+  s += `<path d="M${c0 + 1.5} ${roof + 4.6}L${c0 + 4} ${belt - 1.6}" stroke="rgba(255,255,255,.55)" stroke-width=".9"/>`;
+  s += `<rect x="${c0 - .6}" y="${roof}" width="${c1 - c0 + 1.2}" height="3.8" rx="1.4" fill="${lt}" stroke="${VOL}" stroke-width=".8"/>`;
+  // body side (in light from the left, a touch of shine along the top)
+  s += `<rect x="1" y="${belt}" width="${L - 2}" height="${floor - belt}" rx="2.6" fill="${c}" stroke="${VOL}" stroke-width=".9"/>`;
+  s += `<path d="M3 ${belt + 1.2}H${L - 4}" stroke="${shade(c, .35)}" stroke-width=".9" stroke-linecap="round"/>`;
+  s += `<path d="M2 ${floor - 2}H${L - 2}" stroke="${dk}" stroke-width="1.6"/>`;
+  if (!o.noDoors) s += `<path d="M${(c0 + c1) / 2} ${belt + .5}V${floor - 2.4}M${c0 - 1} ${belt + .5}V${floor - 2.4}" stroke="${dk}" stroke-width=".6"/><rect x="${(c0 + c1) / 2 + 2}" y="${belt + 2.2}" width="2.4" height=".9" rx=".4" fill="${dk}"/>`;
+  s += o.deco || "";
+  // near-side wheels
+  s += (o.wheels || [10, L - 11]).map(x => `<circle cx="${x}" cy="${floor}" r="3.5" fill="#15181a"/><circle cx="${x}" cy="${floor}" r="1.5" fill="#8a9399"/>`).join("");
+  // lights: headlight front (right), tail light rear (left)
+  s += `<rect x="${L - 3}" y="${belt + .8}" width="2.2" height="2.6" rx=".8" fill="#fff6c8" stroke="${VOL}" stroke-width=".4"/>`;
+  s += `<rect x=".9" y="${belt + .8}" width="1.8" height="2.6" rx=".6" fill="#e5322d"/>`;
+  s += o.lamps || "";
+  return vSvg("v-side", L, H, s);
+}
+// Front (toward the viewer) or rear (away) view. o: { W width, paint, top, roofH, glassH, deckH, faceH, back, bed, lamps, deco, box }
+function endView(o, back) {
+  const W = o.W || 24, c = o.paint, dk = shade(c, -.3), lt = o.top || shade(c, .3), H = 30;
+  const x0 = 1.5, x1 = W - 1.5, cx = W / 2;
+  let y = 2, s = `<ellipse cx="${cx}" cy="27.4" rx="${W / 2 - .5}" ry="2.2" fill="rgba(0,0,0,.33)"/>`;
+  s += `<rect x="${x0 + .5}" y="23" width="4" height="4.6" rx="1" fill="#15181a"/><rect x="${x1 - 4.5}" y="23" width="4" height="4.6" rx="1" fill="#15181a"/>`;
+  const far = o.farH ?? 2.5, roofH = o.roofH ?? 6.5, glassH = o.glassH ?? 3.6, deckH = o.deckH ?? 4.5, faceH = o.faceH ?? 6.5;
+  // far end top surface (trunk when facing you, hood when driving away)
+  if (far) { s += `<rect x="${x0 + 1.5}" y="${y}" width="${x1 - x0 - 3}" height="${far + 1}" rx="1.2" fill="${lt}" stroke="${VOL}" stroke-width=".7"/>`; y += far; }
+  // roof
+  s += `<rect x="${x0 + 2}" y="${y}" width="${x1 - x0 - 4}" height="${roofH}" rx="1.8" fill="${lt}" stroke="${VOL}" stroke-width=".8"/>`;
+  s += o.lamps ? o.lamps(y + .6) : "";
+  y += roofH;
+  // windscreen / rear window
+  s += `<polygon points="${x0 + 2.2},${y} ${x1 - 2.2},${y} ${x1 - .4},${y + glassH} ${x0 + .4},${y + glassH}" fill="${VGL}" stroke="${VOL}" stroke-width=".8"/>`;
+  s += `<path d="M${x0 + 4} ${y + .9}L${x0 + 6.5} ${y + glassH - .8}" stroke="rgba(255,255,255,.6)" stroke-width=".9"/>`;
+  y += glassH;
+  // hood (front view) or trunk / bed (rear view)
+  if (deckH) {
+    s += `<rect x="${x0}" y="${y}" width="${x1 - x0}" height="${deckH + 1}" rx="1.2" fill="${shade(c, .14)}" stroke="${VOL}" stroke-width=".8"/>`;
+    if (back && o.bed) s += `<rect x="${x0 + 1.6}" y="${y + .8}" width="${x1 - x0 - 3.2}" height="${deckH - .6}" rx=".6" fill="${shade(c, -.55)}"/>`;
+    y += deckH;
   }
-  return `<svg viewBox="0 0 44 24" preserveAspectRatio="none" aria-hidden="true">${shadow}${wheels}${body}${lights}</svg>`;
+  // end face (grille + headlights, or tail lights + plate)
+  s += `<rect x="${x0}" y="${y}" width="${x1 - x0}" height="${faceH}" rx="1.8" fill="${c}" stroke="${VOL}" stroke-width=".9"/>`;
+  if (back) {
+    s += `<rect x="${x0 + 1}" y="${y + 1.2}" width="3.6" height="2.2" rx=".7" fill="#e5322d"/><rect x="${x1 - 4.6}" y="${y + 1.2}" width="3.6" height="2.2" rx=".7" fill="#e5322d"/>`;
+    s += `<rect x="${cx - 2.6}" y="${y + faceH - 3.4}" width="5.2" height="2.2" rx=".4" fill="#f1f1e6" stroke="${VOL}" stroke-width=".4"/>`;
+  } else {
+    s += `<rect x="${x0 + 1}" y="${y + 1.1}" width="3.8" height="2.4" rx=".9" fill="#fff6c8" stroke="${VOL}" stroke-width=".4"/><rect x="${x1 - 4.8}" y="${y + 1.1}" width="3.8" height="2.4" rx=".9" fill="#fff6c8" stroke="${VOL}" stroke-width=".4"/>`;
+    s += `<rect x="${cx - 4}" y="${y + 1.4}" width="8" height="2.6" rx=".6" fill="${shade(c, -.55)}"/>`;
+  }
+  s += `<path d="M${x0 + .6} ${y + faceH - 1}H${x1 - .6}" stroke="${dk}" stroke-width="1.4"/>`;
+  s += o.deco ? o.deco(y, back) : "";
+  return vSvg(back ? "v-back" : "v-front", W, H, s);
+}
+function vehicleSVG(side, end) { return sideView(side) + endView(end, false) + endView(end, true); }
+// ---- Diagonal views: each vehicle is built from simple 3D blocks and projected with the same camera as the
+// hand-drawn views (looking down at an angle from the front of the screen). Down-right / up-right are drawn;
+// down-left / up-left are the mirror images.
+const DG = { cy: .55, cz: 1, px: .47, th: 55 * Math.PI / 180 };   // ground depth squash, height scale, px per unit (matches the side views)
+function diagSVG(m, up) {
+  const th = up ? -DG.th : DG.th, hx = Math.cos(th), hy = Math.sin(th), rx = -hy, ry = hx;
+  const P = (a, b, z) => [a * hx + b * rx, (a * hy + b * ry) * DG.cy - z * DG.cz];
+  const N = (na, nb) => [na * hx + nb * rx, na * hy + nb * ry];          // world-space face normal
+  const vis = n => n[1] > .01;                                             // faces toward the camera (screen-down)
+  const lit = (c, n) => shade(c, n[0] < 0 ? .08 : -.14);                  // light from the left
+  const pts = [], polys = [];
+  const poly = (ps, fill, extra = "") => { ps.forEach(p => pts.push(p)); polys.push({ ps, fill, extra }); };
+  let blockExtra = "";
+  // a block: a0..a1 along the car (front +), b half-width, z0..z1; top can be inset (cabin slope)
+  function block(a0, a1, bw, z0, z1, side, top, o = {}) {
+    const ta0 = a0 + (o.rb || 0), ta1 = a1 - (o.rf || 0), tb = bw - (o.ib || 0);
+    const B = [[a0, -bw], [a1, -bw], [a1, bw], [a0, bw]].map(([a, b]) => P(a, b, z0));
+    const T = [[ta0, -tb], [ta1, -tb], [ta1, tb], [ta0, tb]].map(([a, b]) => P(a, b, z1));
+    const faces = [ // [bottom idx pair, normal, role]
+      [[1, 2], N(1, 0), "front"], [[3, 0], N(-1, 0), "back"], [[2, 3], N(0, 1), "right"], [[0, 1], N(0, -1), "left"]];
+    faces.forEach(([[i, j], n, role]) => {
+      if (!vis(n)) return;
+      const fill = typeof side === "function" ? side(role, n) : lit(side, n);
+      poly([B[i], B[j], T[j], T[i]], fill, blockExtra);
+      if (o.face) o.face(role, B[i], B[j], T[j], T[i], n);
+    });
+    poly(T, top, blockExtra);
+    return T;
+  }
+  function blockAt(a0, a1, hw, off, z0, z1, side, top) {
+    const Q = (aa, b, z) => P(aa, b + off, z), corners = [[a0, -hw], [a1, -hw], [a1, hw], [a0, hw]];
+    const B = corners.map(([x, y]) => Q(x, y, z0)), T = corners.map(([x, y]) => Q(x, y, z1));
+    [[[1, 2], N(1, 0)], [[3, 0], N(-1, 0)], [[2, 3], N(0, 1)], [[0, 1], N(0, -1)]].forEach(([[i, j], n]) => { if (vis(n)) poly([B[i], B[j], T[j], T[i]], lit(side, n), blockExtra); });
+    poly(T, top, blockExtra);
+  }
+  const L = m.L, W = m.W || 19, bw = W / 2, h0 = 2.4, h1 = m.h1 || 10, c = m.paint, lt = m.top || shade(c, .3);
+  const a = x => x - L / 2;   // side-view x (from the rear) -> along-car coordinate
+  // wheels (dark discs at the four corners, peeking under the body)
+  const wx = (m.wheels || [10, L - 11]).map(a);
+  const wheel = (aa, b) => { const [x, y] = P(aa, b, 3.2); pts.push([x - 3, y - 3.4], [x + 3, y + 3.4]); return `<ellipse cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" rx="2.7" ry="3.3" fill="#15181a"/>`; };
+  let wheels = wx.map(aa => wheel(aa, -bw + .6)).join("");
+  const nearWheels = wx.map(aa => { const [x, y] = P(aa, bw - .6, 3.2); return `<ellipse cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" rx="2.8" ry="3.4" fill="#15181a"/><ellipse cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" rx="1.1" ry="1.4" fill="#8a9399"/>`; }).join("");
+  // body
+  const lights = [];
+  block(a(1), a(L - 1), bw, h0, h1, c, lt, { face: (role, p0, p1, p2, p3) => {
+    const at = (u, v) => [p0[0] + (p1[0] - p0[0]) * u + (p3[0] - p0[0]) * v, p0[1] + (p1[1] - p0[1]) * u + (p3[1] - p0[1]) * v];
+    if (role === "front") lights.push([at(.08, .55), at(.25, .55), at(.25, .85), at(.08, .85)], [at(.75, .55), at(.92, .55), at(.92, .85), at(.75, .85)]);
+    if (role === "back") lights.push([at(.08, .55), at(.22, .55), at(.22, .85), at(.08, .85), "#e5322d"], [at(.78, .55), at(.92, .55), at(.92, .85), at(.78, .85), "#e5322d"]);
+    if (role === "right" || role === "left") polys.push({ ps: [at(0, .18), at(1, .18)], line: shade(c, -.32) });
+    if (m.stripe) polys.push({ ps: [at(0, m.stripe[0]), at(1, m.stripe[0])], line: m.stripe[1], w: m.stripe[2] || 1.2 });
+  } });
+  lights.forEach(q => polys.push({ ps: q.slice(0, 4), fill: q[4] || "#fff6c8", thin: true }));
+  if (m.bed) { const [b0, b1] = m.bed; poly([P(a(b0), -bw + 1.4, h1), P(a(b1), -bw + 1.4, h1), P(a(b1), bw - 1.4, h1), P(a(b0), bw - 1.4, h1)], shade(c, -.55)); }
+  if (m.box) {   // ambulance box body
+    const [b0, b1, zt] = m.box;
+    block(a(b0), a(b1), bw, h1 - .2, zt, (role, n) => lit(c, n), "#ffffff", { face: (role, p0, p1, p2, p3) => {
+      if (role === "right" || role === "left") { const at = v => [[p0[0] + (p3[0] - p0[0]) * v, p0[1] + (p3[1] - p0[1]) * v], [p1[0] + (p2[0] - p1[0]) * v, p1[1] + (p2[1] - p1[1]) * v]]; polys.push({ ps: at(.25), line: "#e53935", w: 1.8 }); }
+    } });
+  }
+  // cabin: glass on the sides, roof on top
+  if (m.cab) {
+    const [c0, c1] = m.cab, rb = m.rakeB ?? 3, rf = m.rakeF ?? 4, zt = h1 + (m.cabH || 7.5);
+    const T = block(a(c0 - rb), a(c1 + rf), bw - .8, h1, zt, (role, n) => role === "front" || role === "back" ? VGL : shade(VGL, n[0] < 0 ? .1 : -.08), lt,
+      { rb, rf, ib: 1.2, face: (role, p0, p1, p2, p3) => { if ((role === "right" || role === "left") && !m.noPillar) { const mid = (u) => [p0[0] + (p1[0] - p0[0]) * u, p0[1] + (p1[1] - p0[1]) * u]; const top = u => [p3[0] + (p2[0] - p3[0]) * u, p3[1] + (p2[1] - p3[1]) * u]; polys.push({ ps: [mid(.5), top(.5)], line: shade(c, -.3), w: 1.3 }); } } });
+    m._zt = zt;
+  }
+  // roof lamps / signs: parts laid side by side across the car, e.g. police red + blue
+  (m.lamps || []).forEach(l => {
+    const z0 = l.z ?? m._zt, n = l.parts.length, pw = l.wid / n;
+    l.parts.forEach((pt, k) => {
+      blockExtra = pt.cls ? ` class="${pt.cls}"` : "";
+      const b0 = -l.wid / 2 + k * pw, b1 = b0 + pw, mid = (b0 + b1) / 2;
+      // a block centred on (x, mid) — block() is centred on b=0, so shift via a tiny local wrapper
+      blockAt(a(l.x - l.len / 2), a(l.x + l.len / 2), pw / 2, mid, z0, z0 + l.h, pt.fill, pt.top || shade(pt.fill, .25));
+      blockExtra = "";
+    });
+  });
+  if (m.ladder) {
+    const [x0, x1] = m.ladder, z = h1 + .8;
+    [-4.5, 4.5].forEach(b => polys.push({ ps: [P(a(x0), b, z), P(a(x1), b, z)], line: "#cfd8dc", w: 1 }));
+    for (let x = x0 + 3; x < x1; x += 4) polys.push({ ps: [P(a(x), -4.5, z), P(a(x), 4.5, z)], line: "#cfd8dc", w: .6 });
+  }
+  if (m.deco) m.deco(P, a, bw, h1, poly, polys);
+  // fit the viewBox around everything; anchor = ground centre of the car
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const minX = Math.min(...xs) - 1.5, minY = Math.min(...ys) - 1.5, w = Math.max(...xs) + 1.5 - minX, h = Math.max(...ys) + 3 - minY;
+  const f = p => `${(p[0] - minX).toFixed(2)},${(p[1] - minY).toFixed(2)}`;
+  let s = `<ellipse cx="${(-minX).toFixed(2)}" cy="${(2 - minY).toFixed(2)}" rx="${(L * .36 + 4).toFixed(1)}" ry="5" fill="rgba(0,0,0,.3)" transform="rotate(${up ? -14 : 14} ${(-minX).toFixed(2)} ${(2 - minY).toFixed(2)})"/>`;
+  s += wheels.replace(/cx="([-\d.]+)" cy="([-\d.]+)"/g, (_, x, y) => `cx="${(+x - minX).toFixed(2)}" cy="${(+y - minY).toFixed(2)}"`);
+  polys.forEach(q => {
+    if (q.line) s += `<path d="M${f(q.ps[0])}L${f(q.ps[1])}" stroke="${q.line}" stroke-width="${q.w || .7}"/>`;
+    else s += `<polygon points="${q.ps.map(f).join(" ")}" fill="${q.fill}" stroke="${VOL}" stroke-width="${q.thin ? .4 : .8}" stroke-linejoin="round"${q.extra}/>`;
+  });
+  s += nearWheels.replace(/cx="([-\d.]+)" cy="([-\d.]+)"/g, (_, x, y) => `cx="${(+x - minX).toFixed(2)}" cy="${(+y - minY).toFixed(2)}"`);
+  const gx = (-minX * DG.px).toFixed(1), gy = ((-minY + .5) * DG.px).toFixed(1);
+  return `<svg class="v ${up ? "v-ur" : "v-dr"}" viewBox="0 0 ${w.toFixed(2)} ${h.toFixed(2)}" style="width:${(w * DG.px).toFixed(1)}px;height:${(h * DG.px).toFixed(1)}px;transform-origin:${gx}px ${gy}px;--g:translate(-${gx}px,-${gy}px)" aria-hidden="true">${s}</svg>`;
+}
+function diagPair(m) { return diagSVG(m, false) + diagSVG(m, true); }
+// 3D models for the diagonal views (numbers follow the side-view drawings: x measured from the rear)
+function diagModel(type, color) {
+  if (type === "taxi") color = "#f5c518";
+  const base = { L: 46, paint: color, h1: 10, cab: [14, 30], rakeF: 4.6, rakeB: 3.6 };
+  if (type === "taxi") return { ...base, stripe: [.6, "#222", .9], lamps: [{ x: 22, len: 5, wid: 6, h: 2.2, parts: [{ fill: "#ffffff" }] }] };
+  if (type === "hatch") return { ...base, L: 44, h1: 9.5, cab: [8, 28], rakeB: 1.2, wheels: [9, 33] };
+  if (type === "suv") return { ...base, h1: 10.5, cabH: 8.5, cab: [10, 33], rakeF: 3.6, rakeB: 1.2 };
+  if (type === "van") return { ...base, h1: 10.5, cabH: 9.5, cab: [4, 37], rakeF: 5, rakeB: .4, noPillar: true };
+  if (type === "pickup") return { ...base, cab: [23, 32], rakeF: 4, rakeB: 1, cabH: 8, bed: [3, 20] };
+  return base;
+}
+function diagEV(kind) {
+  if (kind === "police") return { L: 46, paint: "#1c2127", top: "#f4f6f8", h1: 10, cab: [14, 30], rakeF: 4.6, rakeB: 3.6, stripe: [.55, "#f4f6f8", 1.7],
+    lamps: [{ x: 22, len: 3, wid: 9, h: 1.6, parts: [{ fill: "#ff2b2b", cls: "sir-a" }, { fill: "#2b6bff", cls: "sir-b" }] }] };
+  if (kind === "amb") return { L: 50, paint: "#f7f8fa", top: "#ffffff", h1: 10, box: [1, 38, 22], cab: [39, 45], rakeF: 3.6, rakeB: .2, cabH: 6, wheels: [10, 39], noPillar: true,
+    lamps: [{ x: 33, z: 22, len: 3, wid: 8, h: 1.6, parts: [{ fill: "#ff2b2b", cls: "sir-a" }, { fill: "#ffffff", cls: "sir-b" }] }] };
+  return { L: 66, paint: "#d32f2f", top: "#e85a50", h1: 9.5, cab: [50, 60], rakeF: 3, rakeB: .2, cabH: 7, wheels: [10, 21, 54], noPillar: true, ladder: [3, 47],
+    lamps: [{ x: 55, len: 3, wid: 8, h: 1.6, parts: [{ fill: "#ff2b2b", cls: "sir-a" }, { fill: "#ffffff", cls: "sir-b" }] }] };
+}
+
+
+function carSVG(type, color) { return carSVG4(type, color) + diagPair(diagModel(type, color)); }
+function carSVG4(type, color) {
+  if (type === "taxi") color = "#f5c518";
+  const lt = shade(color, .3);
+  if (type === "pickup") return vehicleSVG(
+    { L: 46, paint: color, belt: 11.5, cab: [23, 32], roof: 3.5, bed: [3, 20], rakeF: 4, rakeB: 1 },
+    { paint: color, far: 0, roofH: 5, glassH: 3.4, deckH: 6, faceH: 6.5, bed: true });
+  if (type === "van") return vehicleSVG(
+    { L: 46, paint: color, top: lt, belt: 11, cab: [4, 37], roof: 1.5, rakeF: 5, rakeB: .4, noDoors: true,
+      deco: `<path d="M16 11.5V18M28 11.5V18" stroke="${shade(color, -.3)}" stroke-width=".6"/>` },
+    { paint: color, far: 0, roofH: 9.5, glassH: 3.8, deckH: 2, faceH: 7 });
+  if (type === "suv") return vehicleSVG(
+    { L: 46, paint: color, belt: 11, cab: [10, 33], roof: 2, rakeF: 3.6, rakeB: 1.2 },
+    { paint: color, far: 1.5, roofH: 7.5, glassH: 3.6, deckH: 3.4, faceH: 7 });
+  if (type === "hatch") return vehicleSVG(
+    { L: 44, paint: color, belt: 12, cab: [8, 28], roof: 4, rakeF: 4.6, rakeB: 1.2, wheels: [9, 33] },
+    { paint: color, W: 23, far: 1, roofH: 6.5, glassH: 3.8, deckH: 4.4, faceH: 6.2 });
+  const taxi = type === "taxi";
+  return vehicleSVG(
+    { L: 46, paint: color, belt: 12, cab: [14, 30], roof: 4.5, rakeF: 4.6, rakeB: 3.6,
+      lamps: taxi ? `<rect x="19" y="1.6" width="6.5" height="3.2" rx=".8" fill="#fff" stroke="${VOL}" stroke-width=".5"/><path d="M20 3.2h4.6" stroke="#222" stroke-width="1" stroke-dasharray="1 .8"/>` : "",
+      deco: taxi ? `<path d="M3 16.4H43" stroke="#222" stroke-width="1.3" stroke-dasharray="1.3 1.3"/>` : "" },
+    { paint: color, far: 2.5, roofH: 6.5, glassH: 3.6, deckH: 4.6, faceH: 6.2,
+      lamps: taxi ? (y => `<rect x="9" y="${y - 2.4}" width="6" height="3" rx=".7" fill="#fff" stroke="${VOL}" stroke-width=".5"/>`) : null });
 }
 function dressCar(el, color) {
   el.classList.add("svgcar");
+  el.dataset.dir = "r";
   const type = CAR_TYPES[Math.floor(Math.random() * CAR_TYPES.length)];
   el.insertAdjacentHTML("afterbegin", carSVG(type, color));
 }
+// Position a vehicle and show the drawing for its heading (radians; 0 = east, +y is down the screen).
+function placeCar(c, x, y, ang) {
+    // Eight facings, 45 degrees apart; the car keeps its current drawing until it's clearly past the halfway angle.
+  const DIRS = ["r", "dr", "d", "dl", "l", "ul", "u", "ur"];
+  const sec = ((Math.round(ang / (Math.PI / 4)) % 8) + 8) % 8;
+  let d = DIRS[sec];
+  if (c.dir && c.dir !== d) {
+    const cur = DIRS.indexOf(c.dir) * Math.PI / 4;
+    let off = ang - cur; while (off > Math.PI) off -= 2 * Math.PI; while (off < -Math.PI) off += 2 * Math.PI;
+    if (Math.abs(off) < Math.PI / 8 + .1) d = c.dir;
+  }
+  if (c.dir !== d) { c.dir = d; c.el.dataset.dir = d; }
+  c.el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+}
 
-// ---- Emergency vehicles (top-down, front points right) ----
+// ---- Emergency vehicles (same 3/4 camera) ----
 const EV = {
   police: { b: "police", cls: "ev-police", label: "🚓" },
   fire: { b: "fire", cls: "ev-fire", label: "🚒" },
   amb: { b: "hospital", cls: "ev-amb", label: "🚑" }
 };
-function evSVG(kind) {
-  const OLc = "#1b1f22", glass = "#9fd3ea", glassDk = "#5f8fa6";
-  const wheels = (xs, h) => xs.map(x => `<rect x="${x}" y="1" width="7" height="3" rx="1.2" fill="#15181a"/><rect x="${x}" y="${h - 4}" width="7" height="3" rx="1.2" fill="#15181a"/>`).join("");
+function evSVG(kind) { return evSVG4(kind) + diagPair(diagEV(kind)); }
+function evSVG4(kind) {
   if (kind === "police") {
-    return `<svg viewBox="0 0 44 24" preserveAspectRatio="none" aria-hidden="true">
-      <ellipse class="sir-glow" cx="22" cy="12" rx="22" ry="13" fill="url(#evg)" opacity=".4"/>
-      <defs><radialGradient id="evg"><stop offset="0" stop-color="#5b8cff" stop-opacity=".9"/><stop offset=".5" stop-color="#ff3b3b" stop-opacity=".45"/><stop offset="1" stop-color="#ff3b3b" stop-opacity="0"/></radialGradient></defs>
-      <rect x="2" y="4.5" width="42" height="17" rx="5" fill="rgba(0,0,0,.32)"/>${wheels([6, 31], 24)}
-      <rect x="1" y="3" width="42" height="18" rx="5" fill="#1c2127" stroke="${OLc}" stroke-width=".9"/>
-      <rect x="11" y="3.3" width="21" height="17.4" fill="#f4f6f8"/>
-      <rect x="13" y="5" width="18" height="14" rx="2.4" fill="#e9edf0" stroke="${OLc}" stroke-width=".5"/>
-      <path d="M31 5.4l4.4 1.8v9.6L31 18.6z" fill="${glass}" stroke="${glassDk}" stroke-width=".5"/><path d="M13 6.2l-3 1.1v9.4l3 1.1z" fill="${glassDk}"/>
-      <rect class="sir-a" x="19.5" y="5" width="4.4" height="6.8" rx=".8" fill="#ff2b2b"/><rect class="sir-b" x="19.5" y="12.2" width="4.4" height="6.8" rx=".8" fill="#2b6bff"/>
-      <rect x="25.5" y="9.2" width="3" height="5.6" rx=".6" fill="#1c2127"/><path d="M14.5 8h3M14.5 16h3" stroke="#1c2127" stroke-width="1.2"/>
-      <rect x="40.6" y="5" width="2.2" height="3.6" rx="1" fill="#fff6c8"/><rect x="40.6" y="15.4" width="2.2" height="3.6" rx="1" fill="#fff6c8"/>
-      <rect x="1.2" y="5" width="1.8" height="3.4" rx=".8" fill="#e5322d"/><rect x="1.2" y="15.6" width="1.8" height="3.4" rx=".8" fill="#e5322d"/></svg>`;
+    const bar = (x, y) => `<rect class="sir-a" x="${x}" y="${y}" width="3.6" height="2.4" rx=".6" fill="#ff2b2b" stroke="${VOL}" stroke-width=".4"/><rect class="sir-b" x="${x + 3.8}" y="${y}" width="3.6" height="2.4" rx=".6" fill="#2b6bff" stroke="${VOL}" stroke-width=".4"/>`;
+    return vehicleSVG(
+      { L: 46, paint: "#1c2127", top: "#f4f6f8", belt: 12, cab: [14, 30], roof: 4.5, rakeF: 4.6, rakeB: 3.6,
+        deco: `<rect x="13" y="12.8" width="18" height="5.4" fill="#f4f6f8"/><path d="M22 12.8v5.4" stroke="#9aa3ab" stroke-width=".6"/><circle cx="22" cy="15.5" r="2.1" fill="#ffc933" stroke="${VOL}" stroke-width=".5"/><circle cx="22" cy="15.5" r=".8" fill="#1c2127"/>`,
+        lamps: `<ellipse class="sir-glow" cx="22" cy="4" rx="13" ry="6" fill="#ff3b3b" opacity=".35"/>${bar(18.4, 2.4)}` },
+      { paint: "#1c2127", top: "#f4f6f8", far: 2.5, roofH: 6.5, glassH: 3.6, deckH: 4.6, faceH: 6.2,
+        lamps: y => `<ellipse class="sir-glow" cx="12" cy="${y + 1}" rx="10" ry="4" fill="#5b8cff" opacity=".35"/>${bar(8.3, y)}` });
   }
   if (kind === "amb") {
-    return `<svg viewBox="0 0 50 24" preserveAspectRatio="none" aria-hidden="true">
-      <rect x="2" y="4.5" width="48" height="17" rx="3" fill="rgba(0,0,0,.32)"/>${wheels([6, 37], 24)}
-      <rect x="1" y="3" width="48" height="18" rx="2.6" fill="#f7f8fa" stroke="${OLc}" stroke-width=".9"/>
-      <rect x="2.5" y="4.4" width="34" height="15.2" rx="1.4" fill="#eef1f4" stroke="#c9d0d6" stroke-width=".6"/>
-      <rect x="1" y="3" width="36" height="2.2" fill="#e53935"/><rect x="1" y="18.8" width="36" height="2.2" fill="#e53935"/>
-      <rect x="15" y="9.6" width="9" height="4.8" fill="#e53935"/><rect x="17.1" y="7.5" width="4.8" height="9" fill="#e53935"/>
-      <rect class="sir-a" x="33" y="5" width="3" height="6.4" rx=".7" fill="#ff2b2b"/><rect class="sir-b" x="33" y="12.6" width="3" height="6.4" rx=".7" fill="#ffffff"/>
-      <path d="M40 5.2l4.6 1.8v10l-4.6 1.8z" fill="${glass}" stroke="${glassDk}" stroke-width=".5"/>
-      <rect x="46.6" y="5" width="2.2" height="3.6" rx="1" fill="#fff6c8"/><rect x="46.6" y="15.4" width="2.2" height="3.6" rx="1" fill="#fff6c8"/>
-      <rect x="1.2" y="5" width="1.6" height="3.4" rx=".8" fill="#e5322d"/><rect x="1.2" y="15.6" width="1.6" height="3.4" rx=".8" fill="#e5322d"/></svg>`;
+    const lights = (x, y) => `<rect class="sir-a" x="${x}" y="${y}" width="3" height="2" rx=".5" fill="#ff2b2b"/><rect class="sir-b" x="${x + 3.4}" y="${y}" width="3" height="2" rx=".5" fill="#ffffff" stroke="${VOL}" stroke-width=".3"/>`;
+    return vehicleSVG(
+      { L: 50, paint: "#f7f8fa", top: "#ffffff", belt: 11, cab: [39, 45], roof: 5, rakeF: 3.6, rakeB: .2, noDoors: true, wheels: [10, 39],
+        deco: `<rect x="1" y="1.6" width="37" height="17.4" rx="1.6" fill="#f7f8fa" stroke="${VOL}" stroke-width=".9"/><rect x="1.4" y="2" width="36.2" height="2.6" rx="1" fill="#ffffff"/><rect x="1" y="14.6" width="48" height="1.8" fill="#e53935"/><rect x="15" y="8" width="8" height="2.8" fill="#e53935"/><rect x="17.6" y="6.6" width="2.8" height="5.6" fill="#e53935"/><path d="M2 18.6H48" stroke="#9aa3ab" stroke-width="1.4"/>`,
+        lamps: lights(30, .2) },
+      { paint: "#f7f8fa", top: "#ffffff", W: 25, far: 0, roofH: 10, glassH: 3.4, deckH: 1.6, faceH: 7,
+        deco: (y) => `<rect x="1.5" y="${y + 4.2}" width="22" height="1.4" fill="#e53935"/>`,
+        lamps: y => lights(9.3, y) });
   }
   // fire truck
-  return `<svg viewBox="0 0 66 26" preserveAspectRatio="none" aria-hidden="true">
-    <rect x="2" y="5" width="64" height="18" rx="3" fill="rgba(0,0,0,.32)"/>${wheels([7, 18, 50], 26)}
-    <rect x="1" y="3" width="64" height="20" rx="2.6" fill="#d32f2f" stroke="${OLc}" stroke-width=".9"/>
-    <rect x="2.5" y="5" width="44" height="16" rx="1.2" fill="#b71c1c"/>
-    <rect x="4" y="8" width="40" height="10" fill="none" stroke="#cfd8dc" stroke-width="1.4"/>
-    <path d="M8 8v10M12 8v10M16 8v10M20 8v10M24 8v10M28 8v10M32 8v10M36 8v10M40 8v10" stroke="#cfd8dc" stroke-width=".9"/>
-    <circle cx="44" cy="13" r="2.2" fill="#90a4ae" stroke="#37474f" stroke-width=".6"/>
-    <rect x="48" y="4.5" width="12" height="17" rx="1.6" fill="#e53935" stroke="${OLc}" stroke-width=".5"/>
-    <rect class="sir-a" x="49" y="5.2" width="3" height="7" rx=".7" fill="#ff2b2b"/><rect class="sir-b" x="49" y="13.8" width="3" height="7" rx=".7" fill="#ffffff"/>
-    <path d="M60 5.4l4.2 1.6v12l-4.2 1.6z" fill="${glass}" stroke="${glassDk}" stroke-width=".5"/>
-    <rect x="62.8" y="5" width="2" height="3.6" rx="1" fill="#fff6c8"/><rect x="62.8" y="17.4" width="2" height="3.6" rx="1" fill="#fff6c8"/>
-    <rect x="1.2" y="5" width="1.6" height="3.4" rx=".8" fill="#ff5252"/><rect x="1.2" y="17.6" width="1.6" height="3.4" rx=".8" fill="#ff5252"/></svg>`;
+  const fl = (x, y) => `<rect class="sir-a" x="${x}" y="${y}" width="3" height="2" rx=".5" fill="#ff2b2b"/><rect class="sir-b" x="${x + 3.4}" y="${y}" width="3" height="2" rx=".5" fill="#ffffff" stroke="${VOL}" stroke-width=".3"/>`;
+  return vehicleSVG(
+    { L: 66, paint: "#d32f2f", top: "#e85a50", belt: 10, cab: [50, 60], roof: 3, rakeF: 3, rakeB: .2, noDoors: true, wheels: [10, 21, 54],
+      deco: `<rect x="3" y="11.6" width="44" height="5" rx=".6" fill="#b71c1c"/><path d="M8 11.6v5M14 11.6v5M20 11.6v5M26 11.6v5M32 11.6v5M38 11.6v5M44 11.6v5" stroke="#8e1515" stroke-width=".6"/><path d="M2 17.2H64" stroke="#cfd8dc" stroke-width="1"/>`,
+      lamps: `<rect x="3" y="5.2" width="44" height="2.4" fill="none" stroke="#cfd8dc" stroke-width="1"/><path d="M7 5.2v2.4M11 5.2v2.4M15 5.2v2.4M19 5.2v2.4M23 5.2v2.4M27 5.2v2.4M31 5.2v2.4M35 5.2v2.4M39 5.2v2.4M43 5.2v2.4" stroke="#cfd8dc" stroke-width=".7"/>${fl(52, 1)}` },
+    { paint: "#d32f2f", top: "#e85a50", W: 26, far: 1, roofH: 8, glassH: 3.2, deckH: 2.6, faceH: 8,
+      deco: (y, back) => back ? `<path d="M5 ${y - 9}v8M21 ${y - 9}v8" stroke="#cfd8dc" stroke-width="1"/>` : `<rect x="9" y="${y + 4.2}" width="8" height="1.4" fill="#cfd8dc"/>`,
+      lamps: y => fl(9.8, y) });
 }
 function stationLots(kind) {
   const b = EV[kind].b;
@@ -1708,7 +1942,7 @@ function syncHighwayEV() {
     for (let n = have.length; n < want; n++) {
       const horiz = Math.random() > .5, el = document.createElement("div");
       el.className = `car ev ${EV[kind].cls} svgcar ${horiz ? "overpass-car" : "underpass-car"}`;
-      el.innerHTML = evSVG(kind);
+      el.innerHTML = evSVG(kind); el.dataset.dir = "r";
       const hl = document.createElement("div"); hl.className = "car-headlight"; el.appendChild(hl); container.appendChild(el);
       const sp = 3.6 + Math.random() * 1.2; let x, y, dx = 0, dy = 0;
       if (horiz) { const e = Math.random() > .5; x = Math.random() * 3600; y = 1172 + (e ? 32 : 12); dx = e ? sp : -sp; }
@@ -1716,6 +1950,7 @@ function syncHighwayEV() {
       carsData.push({ el, x, y, dx, dy, targetSpeed: sp, ev: kind });
     }
   }
+  settleTraffic();
 }
 // Local streets: patrols drive past their own neighborhood's lots
 let evT = 5;
@@ -1776,7 +2011,7 @@ function initTraffic() {
     }
 
     carsData.push({ el: carEl, x, y, dx, dy, targetSpeed: Math.abs(dx || dy) });
-  }
+  }  settleTraffic();
 }
 
 
@@ -1810,7 +2045,7 @@ function lotGeom(i) {
 }
 function makeVisitorEl(ev) {
   const el = document.createElement("div"); el.className = "car visitor";
-  if (ev) { el.classList.add("ev", EV[ev].cls, "svgcar"); el.insertAdjacentHTML("afterbegin", evSVG(ev)); }
+  if (ev) { el.classList.add("ev", EV[ev].cls, "svgcar"); el.dataset.dir = "r"; el.insertAdjacentHTML("afterbegin", evSVG(ev)); }
   else dressCar(el, carColors[Math.floor(Math.random() * carColors.length)]);
   const h = document.createElement("div"); h.className = "car-headlight"; el.appendChild(h);
   document.getElementById("traffic-layer").appendChild(el); return el;
@@ -1915,11 +2150,11 @@ function updateVisitors(dt) {
       else if (!holdUp(c, w, dt) && moveTo(c, w.x, w.y, c.stage < n ? 32 : 40, dt, true)) { c.stage++; if (c.stage > n) { busySpots.delete(c.i + ":" + c.k); c.state = "leave"; } }
     } else if (c.state === "backout") {
       const w = c.stage >= 0 ? c.wp[c.stage] : { x: g.nx, y: c.lane };
-      if (c.stage === -1 && c.y < g.up - 11 && !roadClear(c)) { c.el.style.transform = `translate3d(${(c.x - 10).toFixed(1)}px, ${(c.y - 5).toFixed(1)}px, 0) rotate(${c.ang.toFixed(3)}rad)`; continue; }
+      if (c.stage === -1 && c.y < g.up - 11 && !roadClear(c)) { placeCar(c, c.x - 10, c.y - 5, c.ang); continue; }
       if (!holdUp(c, w, dt) && moveTo(c, w.x, w.y, c.stage >= 0 ? 28 : 40, dt, true, true)) { c.stage--; if (g.fwdOut && c.stage === 0) { c.state = "exitloop"; c.stage = 0; c.xp = [c.wp[0]]; } else if (c.stage < -1) { busySpots.delete(c.i + ":" + c.k); c.state = "leave"; } }
     }
     if (c.state === "done") { c.el.remove(); visitors.splice(n, 1); continue; }
-    c.el.style.transform = `translate3d(${(c.x - 10).toFixed(1)}px, ${(c.y - 5).toFixed(1)}px, 0) rotate(${c.ang.toFixed(3)}rad)`;
+    placeCar(c, c.x - 10, c.y - 5, c.ang);
   }
 }
 let lastVis = performance.now(), spawnT = 0;
@@ -1937,53 +2172,68 @@ function stepVisitors() {
   updateVisitors(dt);
 }
 
-function updateTraffic() {
-  const mapW = 3600;
-  const mapH = 2400;
-  const SAFE_DISTANCE = 34;
-
-  carsData.forEach((c, idx) => {
-    let currentSpeed = c.targetSpeed * wxSpeed;
-
-    for (let j = 0; j < carsData.length; j++) {
-      if (idx === j) continue;
-      const other = carsData[j];
-
-      if (c.dy === 0 && other.dy === 0 && Math.abs(c.y - other.y) < 6) {
-        if (c.dx > 0 && other.x > c.x && (other.x - c.x) < SAFE_DISTANCE) {
-          currentSpeed = Math.min(currentSpeed, Math.max(0, other.targetSpeed * 0.8));
-        } else if (c.dx < 0 && other.x < c.x && (c.x - other.x) < SAFE_DISTANCE) {
-          currentSpeed = Math.min(currentSpeed, Math.max(0, other.targetSpeed * 0.8));
-        }
-      }
-
-      if (c.dx === 0 && other.dx === 0 && Math.abs(c.x - other.x) < 6) {
-        if (c.dy > 0 && other.y > c.y && (other.y - c.y) < SAFE_DISTANCE) {
-          currentSpeed = Math.min(currentSpeed, Math.max(0, other.targetSpeed * 0.8));
-        } else if (c.dy < 0 && other.y < c.y && (other.y - c.y) < SAFE_DISTANCE) {
-          currentSpeed = Math.min(currentSpeed, Math.max(0, other.targetSpeed * 0.8));
-        }
+// Highway traffic: cars in the same lane keep a real gap to the car ahead (bumper to bumper),
+// using that car's actual speed this frame, so nobody can drive into the car in front.
+const HW_SPAN = { w: 3600 + 80, h: 2400 + 80 };   // a lane wraps from -40 to size+40
+function hwLen(c) {   // length along the direction of travel, in px, matching the sprite drawn
+  const horiz = c.dy === 0, k = c.ev;
+  if (horiz) return k === "fire" ? 38 : k === "amb" ? 29 : 26;
+  return k === "fire" || k === "amb" ? 19 : 17;
+}
+function hwLanes() {
+  const lanes = {};
+  carsData.forEach(c => {
+    // keep every car inside its lane's wrap range so "who is ahead" is always correct
+    if (c.dy === 0) { while (c.x < -40) c.x += HW_SPAN.w; while (c.x >= 3640) c.x -= HW_SPAN.w; }
+    else { while (c.y < -40) c.y += HW_SPAN.h; while (c.y >= 2440) c.y -= HW_SPAN.h; }
+    const horiz = c.dy === 0, key = horiz ? "h" + Math.round(c.y) + (c.dx > 0 ? "+" : "-") : "v" + Math.round(c.x) + (c.dy > 0 ? "+" : "-");
+    const sgn = horiz ? Math.sign(c.dx) : Math.sign(c.dy);
+    c._p = (horiz ? c.x : c.y) * sgn; c._len = hwLen(c); c._span = horiz ? HW_SPAN.w : HW_SPAN.h;
+    (lanes[key] = lanes[key] || []).push(c);
+  });
+  Object.values(lanes).forEach(l => l.sort((a, b) => a._p - b._p));
+  return lanes;
+}
+// Push apart any cars that start out on top of each other (new spawns, emergency vehicles joining).
+function settleTraffic() {
+  Object.values(hwLanes()).forEach(lane => {
+    for (let i = lane.length - 2; i >= 0; i--) {
+      const c = lane[i], lead = lane[i + 1], need = (c._len + lead._len) / 2 + 10;
+      if (lead._p - c._p < need) {
+        c._p = lead._p - need;
+        const sgn = c.dy === 0 ? Math.sign(c.dx) : Math.sign(c.dy);
+        if (c.dy === 0) c.x = c._p * sgn; else c.y = c._p * sgn;
       }
     }
+  });
+}
+function updateTraffic() {
+  const mapW = 3600, mapH = 2400, MIN_GAP = 6, FOLLOW = 30;
+  Object.values(hwLanes()).forEach(lane => {
+    const n = lane.length;
+    // Move the front-most car first so each follower reacts to where its leader actually is now.
+    for (let i = n - 1; i >= 0; i--) {
+      const c = lane[i];
+      let v = c.targetSpeed * wxSpeed;
+      if (n > 1) {
+        const lead = lane[(i + 1) % n];
+        let dp = lead._p - c._p; if (i === n - 1) dp += c._span;   // leader is around the wrap
+        const gap = dp - (c._len + lead._len) / 2;
+        if (gap < FOLLOW) v = Math.min(v, (lead._v ?? v) * (gap < MIN_GAP + 8 ? 0.6 : 1));
+        v = Math.max(0, Math.min(v, gap - MIN_GAP));   // never close the gap past MIN_GAP
+      }
+      c._v = v; c._p += v;
+      const sgn = c.dy === 0 ? Math.sign(c.dx) : Math.sign(c.dy);
+      if (c.dy === 0) c.x = c._p * sgn; else c.y = c._p * sgn;
 
-    const stepX = c.dx === 0 ? 0 : (c.dx > 0 ? currentSpeed : -currentSpeed);
-    const stepY = c.dy === 0 ? 0 : (c.dy > 0 ? currentSpeed : -currentSpeed);
+      if (c.dx > 0 && c.x > mapW + 40) c.x -= HW_SPAN.w;
+      if (c.dx < 0 && c.x < -40) c.x += HW_SPAN.w;
+      if (c.dy > 0 && c.y > mapH + 40) c.y -= HW_SPAN.h;
+      if (c.dy < 0 && c.y < -40) c.y += HW_SPAN.h;
 
-    c.x += stepX;
-    c.y += stepY;
-
-    if (c.dx > 0 && c.x > mapW + 40) c.x = -40;
-    if (c.dx < 0 && c.x < -40) c.x = mapW + 40;
-    if (c.dy > 0 && c.y > mapH + 40) c.y = -40;
-    if (c.dy < 0 && c.y < -40) c.y = mapH + 40;
-
-    let angle = 0;
-    if (c.dx > 0) angle = 0;
-    else if (c.dx < 0) angle = 180;
-    else if (c.dy > 0) angle = 90;
-    else if (c.dy < 0) angle = 270;
-
-    c.el.style.transform = `translate3d(${c.x.toFixed(1)}px, ${c.y.toFixed(1)}px, 0px) rotate(${angle}deg)`;
+      const angle = c.dx > 0 ? 0 : c.dx < 0 ? 180 : c.dy > 0 ? 90 : 270;
+      placeCar(c, c.x, c.y, angle * Math.PI / 180);
+    }
   });
 }
 
