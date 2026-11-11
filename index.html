@@ -465,10 +465,10 @@ body.is-dim .car-headlight { opacity: 1; }
 @keyframes beacon { 0% { opacity: 1; } 100% { opacity: .15; } }
 .cons-mixer { position: absolute; left: 2%; bottom: 3%; width: 30%; overflow: visible; pointer-events: none; animation: consEarly var(--d) linear var(--e) forwards; }
 .cons-mixer .drum { animation: drumSpin .9s linear infinite; }
-@keyframes drumSpin { to { stroke-dashoffset: -14; } }
+@keyframes drumSpin { to { stroke-dashoffset: -12; } }
 @keyframes consEarly { 0% { opacity: 0; transform: translateX(-14px); } 4% { opacity: 1; transform: none; } 30% { opacity: 1; transform: none; } 37% { opacity: 0; transform: translateX(-18px); } 100% { opacity: 0; } }
 .lot-art svg.cons-crane { width: auto; height: 74%; max-height: none; filter: drop-shadow(0 3px 3px rgba(0,0,0,.35)); }
-.lot-art svg.cons-mixer { width: 26%; height: auto; max-height: none; filter: drop-shadow(0 3px 3px rgba(0,0,0,.35)); }
+.lot-art svg.cons-mixer { width: 30%; height: auto; max-height: none; filter: drop-shadow(0 3px 3px rgba(0,0,0,.35)); }
 @media (prefers-reduced-motion: reduce) { .cons-crane .trolley, .cons-crane .cable, .cons-crane .load, .cons-crane .beacon, .cons-mixer .drum { animation: none; } }
 
 /* ---- emergency vehicles ---- */
@@ -485,6 +485,107 @@ body.is-dim .car-headlight { opacity: 1; }
 .car.ev .sir-glow { animation: sirGlow .5s ease-in-out infinite alternate; }
 @keyframes sirGlow { from { opacity: .15; } to { opacity: .75; } }
 @media (prefers-reduced-motion: reduce) { .car.ev .sir-a, .car.ev .sir-b, .car.ev .sir-glow { animation: none; } }
+
+/* ---- renovation overlays: new paint / new roof / luxury lit windows ---- */
+.lot-art.stack img { position: absolute; left: 0; top: 0; }
+.lot-art img.up-lux { opacity: .35; transition: opacity 1.2s ease; filter: drop-shadow(0 0 2px rgba(255,210,120,.9)); }
+body.is-dim .lot-art img.up-lux { opacity: 1; animation: winFlick 6s ease-in-out infinite; }
+.district.power-out .lot-art img.up-lux { opacity: 0 !important; animation: none; }
+@keyframes winFlick { 0%,100% { opacity: 1; } 48% { opacity: .82; } 52% { opacity: 1; } }
+.lot-art.lux img:first-child { filter: drop-shadow(0 0 5px rgba(255,200,80,.55)) drop-shadow(0 5px 6px rgba(0,0,0,.4)); }
+.lux-spark { position: absolute; font-size: 11px; pointer-events: none; z-index: 7; opacity: 0; animation: luxSpark 3.2s ease-in-out infinite; }
+.lux-spark.s2 { animation-delay: 1.1s; } .lux-spark.s3 { animation-delay: 2.2s; }
+@keyframes luxSpark { 0%, 70%, 100% { opacity: 0; transform: scale(.4); } 80% { opacity: 1; transform: scale(1.1); } 90% { opacity: .6; transform: scale(.8); } }
+
+/* ---- renovation in progress ---- */
+.lot.renovating { border: 3px dashed #4fc3f7; box-shadow: inset 0 0 14px rgba(79,195,247,.18); }
+.reno-time { color: #81d4fa; }
+.reno-wipe { position: absolute; inset: 0; pointer-events: none; }
+.reno-wipe img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; }
+.reno-paint .reno-wipe, .reno-roof .reno-wipe { clip-path: inset(0 100% 0 0); animation: renoWipe var(--d) linear var(--e) forwards; }
+.reno-luxury .reno-wipe { opacity: 0; animation: renoFade var(--d) ease-in var(--e) forwards; }
+@keyframes renoWipe { 0%, 8% { clip-path: inset(0 100% 0 0); } 92%, 100% { clip-path: inset(0 0 0 0); } }
+@keyframes renoFade { 0%, 15% { opacity: 0; } 95%, 100% { opacity: 1; } }
+.reno-scaf { position: absolute; inset: 0; pointer-events: none; opacity: .75; }
+.reno-scaf img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; object-position: center bottom;
+  filter: brightness(0) invert(78%) sepia(40%) saturate(500%) hue-rotate(160deg);
+  -webkit-mask-image: repeating-linear-gradient(0deg, #000 0 1px, transparent 1px 9px), repeating-linear-gradient(90deg, #000 0 1px, transparent 1px 11px);
+          mask-image: repeating-linear-gradient(0deg, #000 0 1px, transparent 1px 9px), repeating-linear-gradient(90deg, #000 0 1px, transparent 1px 11px); }
+.reno-tool { position: absolute; top: 18%; left: 8%; font-size: 18px; z-index: 8; pointer-events: none; filter: drop-shadow(0 2px 2px rgba(0,0,0,.5)); }
+.reno-paint .reno-tool { animation: rollerRun var(--d) linear var(--e) forwards, toolBob .5s ease-in-out infinite alternate; }
+.reno-roof .reno-tool { top: 6%; animation: rollerRun var(--d) linear var(--e) forwards, hammerSwing .35s ease-in-out infinite alternate; transform-origin: 80% 80%; }
+.reno-luxury .reno-tool { left: 44%; top: 26%; animation: toolBob .8s ease-in-out infinite alternate; }
+@keyframes rollerRun { 0%, 8% { left: 4%; } 92%, 100% { left: 82%; } }
+@keyframes toolBob { from { margin-top: 0; } to { margin-top: 6px; } }
+@keyframes hammerSwing { from { rotate: -25deg; } to { rotate: 20deg; } }
+.reno-drip { position: absolute; top: 40%; width: 3px; height: 8px; border-radius: 0 0 2px 2px; pointer-events: none; z-index: 8; animation: drip 1.4s ease-in infinite; }
+@keyframes drip { 0% { transform: translateY(0) scaleY(.4); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(26px) scaleY(1.3); opacity: 0; } }
+.reno-chip { position: absolute; top: 12%; width: 6px; height: 4px; background: #3c5f8a; border: 1px solid #1d2a1b; pointer-events: none; z-index: 8; animation: shingle 1.1s ease-in infinite; }
+@keyframes shingle { 0% { transform: translate(0,0) rotate(0); opacity: 1; } 100% { transform: translate(14px, 40px) rotate(160deg); opacity: 0; } }
+.reno-spark { position: absolute; font-size: 12px; pointer-events: none; z-index: 8; animation: luxSpark 1.6s ease-in-out infinite; }
+.reno-bar { position: absolute; left: 16%; right: 16%; bottom: 3px; height: 7px; border-radius: 4px; background: rgba(0,0,0,.65); border: 1px solid rgba(255,255,255,.25); overflow: hidden; z-index: 9; pointer-events: none; }
+.reno-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #29b6f6, #b3e5fc); animation: consBar var(--d) linear var(--e) forwards; }
+.lot.anim-reno .lot-art { animation: renoPop .7s ease-out; }
+@keyframes renoPop { 0% { filter: brightness(1.8) saturate(1.4); transform: scale(1.06); } 100% { filter: none; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .reno-tool, .reno-drip, .reno-chip, .reno-spark, .lux-spark, body.is-dim .lot-art img.up-lux { animation: none; } }
+
+/* ---- street lights on the neighborhood roads ---- */
+.lamp { position: absolute; width: 22px; height: 34px; margin-left: -4px; pointer-events: none; z-index: 6; }
+.lamp::before { content: ""; position: absolute; left: 3px; bottom: 0; width: 3px; height: 31px; background: linear-gradient(90deg, #6f767b, #3a3f43); border-radius: 1px; }
+.lamp::after { content: ""; position: absolute; left: 3px; top: 1px; width: 15px; height: 3px; background: #4a5055; border-radius: 2px; }
+.lamp i { position: absolute; left: 14px; top: 2px; width: 7px; height: 4px; border-radius: 1px 1px 4px 4px; background: #8c9296; border: 1px solid #2c3033; }
+.lamp-bulb, .lamp-pool { position: absolute; pointer-events: none; z-index: 41; opacity: 0; transition: opacity 1.4s ease; }
+.lamp-bulb { width: 26px; height: 26px; margin: -12px 0 0 -13px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,248,220,1) 0 12%, rgba(255,214,140,.65) 26%, rgba(255,190,90,0) 70%); }
+.lamp-pool { width: 96px; height: 44px; margin: -6px 0 0 -48px; border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 35%, rgba(255,214,140,.42), rgba(255,190,100,.16) 45%, rgba(255,180,80,0) 72%); mix-blend-mode: screen; }
+#map-world.lamps-on .district:not(.locked):not(.power-out) .lamp-bulb,
+#map-world.lamps-on .district:not(.locked):not(.power-out) .lamp-pool { opacity: 1; }
+#map-world.lamps-on .district:not(.locked):not(.power-out) .lamp i { background: #fff1c4; box-shadow: 0 0 6px #ffd27a; }
+.district.power-out .lamp i { background: #5d6366; }
+
+/* ---- police cruisers parked at the station ---- */
+.car.ev.lights-off .sir-a, .car.ev.lights-off .sir-b { animation: none; opacity: .35; }
+.car.ev.lights-off .sir-glow { animation: none; opacity: 0; }
+.car.visitor.cruiser.on-over { z-index: 36; }
+
+/* ---- side streets reach the avenues: the road runs through the district edge and cuts the avenue curb ---- */
+.local-road-h { margin-left: -32px; width: calc(100% + 64px); z-index: 3; }
+.local-road-h .stop { position: absolute; width: 3px; height: 12px; background: #e9e9e1; border-radius: 1px; opacity: .9; pointer-events: none; }
+.local-road-h .stop.l { left: 40px; top: 4px; }
+.local-road-h .stop.r { right: 40px; top: 20px; }
+.local-road-h .xwalk { position: absolute; top: 3px; bottom: 3px; width: 12px; pointer-events: none; opacity: .75;
+  background: repeating-linear-gradient(0deg, #e9e9e1 0 3px, transparent 3px 6px); }
+.local-road-h .xwalk.l { left: 24px; } .local-road-h .xwalk.r { right: 24px; }
+
+/* ---- builder crews ---- */
+.stat-box.crews { cursor: pointer; }
+.stat-box.crews.full { border-color: #ff9800; color: #ffb74d; }
+.crew-banner { background: rgba(255,152,0,.14); border: 1px solid #ff9800; border-radius: 10px; padding: 8px 10px; margin-bottom: 10px; font-size: 12px; line-height: 1.4; }
+.crew-banner b { color: #ffb74d; }
+
+/* ---- storm damage ---- */
+.lot.damaged { border: 3px dashed #ef5350; box-shadow: inset 0 0 16px rgba(239,83,80,.22); }
+.lot.damaged .lot-art img:first-child { filter: saturate(.5) brightness(.8) contrast(1.05) drop-shadow(0 5px 6px rgba(0,0,0,.4)); }
+.lot.damaged .lot-art img.up-lux { opacity: 0 !important; animation: none; }
+.lot-art img.tarp { filter: hue-rotate(-12deg) saturate(2.2) brightness(1.55); opacity: .92; clip-path: polygon(40% 16%, 58% 12%, 63% 27%, 44% 31%); }
+.dmg-bit { position: absolute; font-size: 13px; pointer-events: none; z-index: 7; filter: drop-shadow(0 2px 2px rgba(0,0,0,.5)); }
+.dmg-warn { position: absolute; left: 50%; top: 24%; transform: translateX(-50%); font-size: 20px; z-index: 8; pointer-events: none; animation: dmgPulse 1.2s ease-in-out infinite; }
+@keyframes dmgPulse { 50% { transform: translateX(-50%) scale(1.18); } }
+.dmg-time { color: #ff8a80; }
+.lot.zap::after { content: ""; position: absolute; inset: -6px; border-radius: 14px; background: rgba(220,235,255,.85); z-index: 30; pointer-events: none; animation: zap .6s ease-out forwards; }
+@keyframes zap { 0%, 30% { opacity: 1; } 15% { opacity: .2; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .dmg-warn { animation: none; } }
+
+/* ---- alert chips in the info bar ---- */
+.alerts { display: contents; }
+.stat-box.alert { cursor: pointer; border-color: #ef5350; background: rgba(229,57,53,.22); color: #ffcdd2; animation: alertGlow 1.6s ease-in-out infinite; }
+.stat-box.alert.offer { border-color: var(--gold); background: rgba(255,179,0,.18); color: #ffe082; }
+.stat-box.alert.lock { border-color: #29b6f6; background: rgba(41,182,246,.16); color: #b3e5fc; }
+@keyframes alertGlow { 50% { box-shadow: 0 0 10px rgba(239,83,80,.6); } }
+.stat-box.alert.offer { animation-name: offerGlow; } @keyframes offerGlow { 50% { box-shadow: 0 0 10px rgba(255,179,0,.6); } }
+.stat-box.crews.free { border-color: #66bb6a; color: #a5d6a7; }
+@media (prefers-reduced-motion: reduce) { .stat-box.alert { animation: none; } }
 </style>
 </head>
 <body>
@@ -493,11 +594,13 @@ body.is-dim .car-headlight { opacity: 1; }
   <header>
     <div class="title">🏡 Lot Flip</div>
     <div class="stats">
+      <div class="alerts" id="alerts"></div>
       <div class="stat-box">💰 <span id="stat-money" class="val-gold">$15,000</span></div>
       <div class="stat-box">📈 <span id="stat-income" class="val-green">$0/s</span></div>
       <div class="stat-box"><span id="stat-tod" class="val-blue">☀️ 12:00 PM</span></div>
       <div class="stat-box"><span id="stat-weather">🌤️ Clear</span></div>
       <div class="stat-box">🏗️ <span id="stat-lots">0 / 150</span></div>
+      <div class="stat-box crews" id="stat-crews-box" onclick="openCrewSheet()">👷 <span id="stat-crews">0/2</span></div>
     </div>
   </header>
 
@@ -619,33 +722,176 @@ const BUILDINGS = {
   ranch: { name: "Ranch Home", cost: 250, val: 300, rm: 1.0, cat: "h", limit: Infinity, icon: "🏡", biz: false, desc: "Val $300 · 1.0× rent" },
   colonial: { name: "Colonial House", cost: 450, val: 540, rm: 1.3, boost: 0.15, cat: "h", limit: Infinity, icon: "🏛️", biz: false, desc: "Val $540 · +15% nearby" },
   mansion: { name: "Luxury Mansion", cost: 800, val: 960, rm: 1.8, boost: 0.30, cat: "h", limit: Infinity, icon: "🏰", biz: false, desc: "Val $960 · +30% nearby" },
-  coffee: { name: "Local Coffee Shop", cost: 650, val: 600, rm: 0, boost: 0.18, rb: 0.15, rev: 10, cat: "i", limit: 5, icon: "☕", biz: true, desc: "+18% val, +15% rent nearby · +$10/3s" },
+  coffee: { name: "Local Coffee Shop", cost: 650, val: 600, rm: 0, boost: 0.18, rb: 0.15, rev: 7, cat: "i", limit: 5, icon: "☕", biz: true, desc: "+18% val, +15% rent nearby · +$7/3s" },
   park: { name: "City Park", cost: 400, val: 400, rm: 0, boost: 0.25, rb: 0.20, cat: "i", limit: 10, icon: "🌳", biz: true, desc: "+25% val, +20% rent nearby" },
-  civic: { name: "Civic Center", cost: 800, val: 800, rm: 0, globalBoost: 0.15, rev: 9, cat: "i", limit: 4, icon: "🏛️", biz: true, desc: "+15% all lots · +$9/3s" },
+  civic: { name: "Civic Center", cost: 800, val: 800, rm: 0, globalBoost: 0.15, rev: 6, cat: "i", limit: 4, icon: "🏛️", biz: true, desc: "+15% all lots · +$6/3s" },
   apartment: { name: "Apartment Building", cost: 2000, val: 2300, rm: 2.2, boost: 0.10, cat: "h", limit: 6, icon: "🏢", biz: true, desc: "High rent · lowers nearby mansion values" },
   pool: { name: "Swimming Pool", cost: 900, val: 700, rm: 0, boost: 0.10, rb: 0.25, cat: "i", limit: 4, icon: "🏊", biz: true, desc: "+10% val, +25% rent nearby" },
   school: { name: "School", cost: 1400, val: 1300, rm: 0, boost: 0.15, cat: "i", limit: 4, icon: "🏫", biz: true, desc: "+15% nearby property value" },
   hospital: { name: "Hospital", cost: 1800, val: 1900, rm: 0, boost: 0.20, cat: "i", limit: 2, icon: "🏥", biz: true, desc: "+20% nearby property value" },
-  shopping: { name: "Shopping Center", cost: 2500, val: 2400, rm: 0, rev: 18, cat: "i", limit: 3, icon: "🛍️", biz: true, desc: "Generates $18/3s · traffic lowers home values" },
+  shopping: { name: "Shopping Center", cost: 2500, val: 2400, rm: 0, rev: 12, cat: "i", limit: 3, icon: "🛍️", biz: true, desc: "Generates $12/3s · traffic lowers home values" },
   fire: { name: "Fire Station", cost: 1600, val: 1600, rm: 0, streetBoost: 0.15, cat: "i", limit: 4, icon: "🚒", biz: true, desc: "+15% home value along street" },
   police: { name: "Police Station", cost: 1500, val: 1500, rm: 0, boost: 0.15, cat: "i", limit: 4, icon: "🚓", biz: true, desc: "+15% nearby value · big crime cut" },
-  bank: { name: "Bank", cost: 3000, val: 3000, rm: 0, rev: 22, cat: "i", limit: 3, icon: "🏦", biz: true, desc: "Generates $22/3s income" }
+  bank: { name: "Bank", cost: 3000, val: 3000, rm: 0, rev: 15, cat: "i", limit: 3, icon: "🏦", biz: true, desc: "Generates $15/3s income" }
 };
 
+const UPG_ART = {"ranch": {"paint": "iVBORw0KGgoAAAANSUhEUgAAAOcAAACACAMAAADH247wAAAAwFBMVEUAAACSuYibxJCEqHt4mHChzJZriGSm05uJroB+oHYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADxp7RdAAAAQHRSTlMA////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApWf7YwAAAu5JREFUeNrtmYtuwjAMRWM7TtL//+HZTh8UmLTRqYXsnmkMECs63MROQkoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPxHWsrlH2gKN6JpdNNMLKbKLEOHms2QaP6VUU2LBxmm5mk/NGamhXSWDM+4GTDTQqskbb6UB5yaK0Qii2gbqvjKlqA5SiNeM7U/ZaAKNA/WtnPsxZd4jIpUaAvzdnLe6I4QaaEHbl3tpnItY3TNp5JaVSnbnSl/vGeRnSIthrVy67PSVrypfLpnaUuEa3mtVfm2bXqW8uGehXivWPlhteeeHz5uM1Wd86x+73bxU8q6grB+yhd7yhHLmJqqMU7LpldKzmLVSe0h2cv0es8j75+9Z0y8X6oXlzfF2K/4C7Ll6U9c6slywJNqTkK8GvYnQ7I7slrWYnn6o2s96aBn6Z6WorXJfskF5Xm/ku0kRU7zLDZrHmajeb6+b+JKqZEPSE8uZqNqV6XUW40vEzxPplPGbY5uzmyV795Tj3jGuPVEe2+J29SLz5Jr5CmW9gmeNj/6nMn36R3ypDp5bBKHJJZd76G3V+etDp3RP22VGZ9tFZ7uPesBTyszZim0HH75W/D9G3j/9Dp0wrCtMVPC8y/HbXSOiYSW4mqfpz6bNZa0pHM8I9DamP7W0w66qLEt2u1S6vP0eZ+VUzTNU2Pk6mOetmrJr3v2dQJHiuH5zckRpZM8O5Vsh7T3bMxyLE/zXIrOt4U5pdPyjLr/NM+Xj1jjuLZ78tpSrqTOW6e9Z/Y+42Pv1UDjou6pPi/0cs1S5/3h5mknNr5TlFL2He/39bZp6x/iG+yF67wLVmt2vstQL/TZF4I5P0zZ36wTog7F7uwt9vx1WZYJueFkelnafKbMB/Z08f9ZiNObeM5fYOUgvhLwdVoM5yO7neyD9100ex3qZ+RtPbI60E+uahs/mEk+OeN4g2fPqmlY+gFymCYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAc4Av1pgycjJcgMQAAAABJRU5ErkJggg==", "roof": "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", "lux": "iVBORw0KGgoAAAANSUhEUgAAAOcAAACACAMAAADH247wAAAAwFBMVEUAAAD/1m7/524AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABTljdAAAAQHRSTlMA//8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOG9a2wAAAFxJREFUeNrt1dEJwCAQREH3+i86CXbgX9YZsIAHsrcWAAAAAAAAAAAAAAAAAADwN0naC983SXvo15f+ztzUuf/tDQM0M+1LO3uHnJW66wIAAAAAAAAAAAAAAHDiAW+cAEDoWsbvAAAAAElFTkSuQmCC"}, "colonial": {"paint": "iVBORw0KGgoAAAANSUhEUgAAAM4AAACJCAMAAABTnPciAAAAwFBMVEUAAACWttakx+q85P+x1/vC7P+MqsjK9f+fwOKdvuCFob2CnrkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC5rdGeAAAAQHRSTlMA//////////////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANG/KNQAABB1JREFUeNrtW9l26yAMtBYEOP//v1cSrhs3Tq/7FJmjeWmW9hzGI0YLdFkSiUQikUgkEolEIpFIJBKJRCKRSCQSiUQiMTN4KjYCOBEbAOGp6MBM8iDgTPL0jgjz8MG56DSlw/Pw6W0uOoA4UbipTTPjNF6Nrg4KTaKOWQGqv8EswWaYxQ02Ooap6MBfdo/EV+cP4aZla9y840ZtbvCXyihw3tHVtT+ZdS0lcrCNiLueS2PTcTbcm8xAp7VNnTaFOs2ZqB+gVQYiN6ejfNqw6tZZ1it84tIRcHE2PhWA+dZ0ZM+j3KFSqZeCrUYNNtFo2wudqrhCp4bdO12nBeZsGnANiqpTb63OUMbIIEi5FmylUFxn2zuEDuXaYy9xjVqs+HRva13VoQvPXQrHVqfjFmz/k8eSkmAhCmvUXnx6rDX5ZY/LV5ZixSkdIAyRR7vxMXMDorMwql8DLA1F4vHjpAkiKgwxjkSUjRl2Pfg07eskW+pgM968WgFroOrXn58IKZ0+Ak6djb4zpC8NFiq0UbAkW+yF+vkrG/9Wv/o4IdEq1AnJQR3R+s3e2zoroaAMEWzVP4LN/lA/ZK+VPh5xLo8W1lItnDS8cGGqAxZ0/FRll/pKR8j7i2ETtsc+zcdiraMZtQYSORcX6qS8Ht/Brgsvwm34nYVlgGjTVIJWiTodr9vsx7tOoWm80aYXk8apC0LmBA2CdD1aioLR8X3Cv48NhHaqoEW4cqmFcQ3WJyidqo/7wgPWwFr3l/os4lUHq+uj/nvpIXcOO9Z9sje42sYQPx5L9NssuhEuzql1c91AHqjXtgGU/kwHo8pTr62sl2cfAwzZLqzqbO/UOX6OFeXxlLRi0hGhNzuiHQ90OuH6eMc1UCv3Luk0xuPeeTZqCdpqG53ztIPHigdrgWVdt8uKXDgsnfNo+9FNt6q/uHrqAa5cg556v9s7K/1Ux2bz67ihVJmiHuJTOw02nSEciGqweS+n2mhDzhT1pJTOa7H2s1uwvTOIFaVTotLhcy/A+mawtnJRlwurzlLknE49p/MAskOUuBdGToNN9wq9a2NVnXKz+y+7OvJ4LfQIQO5FR+dvvKUfPOm0K9yNjvJ4LDYfebm5Izpc4HFdXmS9BR3xaa3w2Vljr3o5Ca278DHbLfiQX3GppxM0sTmDaOFmjN292/J6mHr8twcT8pPdOfyerZTKsIOH6Nztx2iHfLC914XiQyOIe4nMRlOrH+hrYWovvmsLMNXYg1A1gW8qofn4WNipNL+ANaLOxqk0hr3LIHJkE9kQV1ut5SXlxLQN5mkccI1DpFeEtr9R9eB2bmWqfDvAtn65DZux68uXJHaUwO0o3o202TsMP6cr47zn5frPDoE5rqEnEolEIpFIJBKJRCKRSCQSiUQikfgY/gG2hBXWYiDgdAAAAABJRU5ErkJggg==", "roof": "iVBORw0KGgoAAAANSUhEUgAAAM4AAACJCAMAAABTnPciAAAAwFBMVEUAAABEZpI9XINejco5VXkxSmpOdaclN1AYJDRAX4hXg7ssQV0eLUEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABNVOw5AAAAQHRSTlMA////////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVT4wvwAAC11JREFUeNrtW+tyHK0OHAkBA8z7P+/Rjcusne/kR2biVKFKyuv1epdGUqsl8HFse8ZCSECx5SP980gUSMvXKZb/YSAV1CVsV2uRYo7tjP9OOKUU+jdAFKMAOXOOSJFInojxusLPdwJvfMvnGTElAEBHwkBiJMWChR1FyN/n+IM9UhOvlh1wnteVW9RFRzWGURDFKUgMkPQhW8vlZ2Y4A5FQYijsBijmFUMCggIwMhB+WlCxY7BYxLXw44JLkBhTZQKCxEuXkAIxdgQWiS7GAeIhxqF+4mcFT84/J7ogSkYoDnUDQNEVo7hB88NBycoFDDtJ/hUFql7KV/wZTomXZonFkya97Hrx5Wu4sQPkacUmD8gfioM8fdix9a+juc7LuQp1xbL5hoPdw/EGCqPY4vm/gQRLnqIIDZXguf42GkGiCFCpSzNdHWSukOxX32CHoXwAMEGpLwVXpL8bbkZQIMxkLNU3nfEkdQMZgY3F66OiX1CfJw1HzSQNt+uvaTddu6xBwBTAuduOSb72R75q9Z05z4D5PhT5qemFVzHwbiap8F4UCXA6pu879G1XxxBLAv4PKa0eEgof+N1Zlj70pvqS4sEyuPF/LSK6BugsNTZ9pgYvOyWExSWCS9lPXqfv0LdDKS7D8zgCr0F0VVOXaKpI2CDaA5IkwZngfeG6bNVlliTjJ4Wc6qjHYPEUYjp4VhxwhXPdyGmCLk4QRlGcoTZDSYu/sIE7SmuQpjt02KXH3u2ttFt4nItZy0uJxMUHmjPgNZ3KGl53D1n91ygztp5uRBM9k7Zlbx5mt6ziV9dge20ixR7hrYB4biStoUYGFOnG06U4yvmkOzDqroh+zY+FW2bfu+ZCHAsbOmaUFfJIWlTB57LdDalowrmsk29KMV4gkxVIrT1UJkmCTAkYPaTQclo9gL3095T5xldfI6/nzdfXmGjlD73gGTiNlHTGh5Ov3IqIFs8Ev1q6EbTrg6XoIPkm2LtacKI6V1nuqVahdRXjbclaPpa9xWTiLDk/OT2PFyqBdDf2DCqlzE1a0Jo+yPgAnBqh+2TGQ5n+0CxfsoNokTRWKDWwEuA3IZimOGD/9FKWVMs+wgYhzuXNir5EHq7s1lWMrtPIoqy5hJ3EsMsa+5+m9FFw2pq2+ERjFk2NoLb81D+WfNHFVLE0K/Afpr20kmAZ0VrA/bGUnJUUMKYn3GMdDH2NlbLSsRWhiMM7tlLv5xZ6Vw/231zCFrWQSf4lG2FJgD+AJ1tolFEffXlpFBO0GVrS/kuHNJMGTG6mEaPTG5pm33iyGCoQwf6A9lRuK72FpDgWSUM449h6fhwHuNGNjjTzf30a8pFat+gU7RbjI+7RzSqjMRlFMM2yeFMAI8x6SIH3oLfGYf2qjcLiU9k6qdpPlNI8aXpycvF9x5ui8VbGZFkZkpnm7KZzIq6QnObGmMepBZ/AE9rI5UHS6aY4Ow9T51pvtMfKu6ijlbx8BAcfqoK85S4qSR/InhJ9yYX6PmOZuLwL6zOAlIbWHNtA5R5iuCiGUaTmFjhDSi1tf74P5eyx4QyWpZ8ZNbOP/5Rhp75huVrKsuPGZaWHae9A1wnDwvg+fwwPtNU8rgXVYTS51JU10ke6T315596iw841+T+ozBzlIxUqqQazPw/nCKaiu8aE2Gs8qUsS3fuZob/xPmODlUdcgeqGFK9jEl08p+9I+ITu/PPekYFa1IFZ94UOZmUnS48kP4zSpsxbvSJTHsky/KgsEmbyfqRc5hMcARI5uLrx6dATsXboO4Yr9sEgIs7kTaYVihZXHbETebXvcqynBc5YVAHD4sGF0weSqiePCR6ItA7niM1OZyz+ySi29GG0H6PxyN2GbdMlXTC7ZCU/5HElrvMhmi4JErkcaonlQJYgfwpOyGP+bP5ZWwHoEg7XM5xeGr0l03pEfobIJsdztAaXmGGCMD/4GTgHd4eog/WuEkeTtkxphAtkzpRmmoAftalHddRQ9KAxwgBSBUpIfL0gBtkHG3s8dDDSz89zp19TXklDJ7mav9X0sgqXMoZAKn5IjkyHU5JpdIryzXmcucqEwKRAfBQOZ4+fL/dZrLYmXbKlpa+jMf9DO12YibL4pIdWyIwj2OdE+zCBcz4MR9wDfsjpyy1TmC3T6TEEHOANyZInUlIiinso1j6yYVSu0DDwgZ7BSU/BOaRWUKS1kGMsS1e9CDFaXMIZXz+Zq8j2pzMCE1g8j2yD48vhUDizQ4PH4IQ8hrM6tLxJ/NElkFUccaLcKsA0g2vysdZ6SNG699NmajyZJuVmDsgX4Bw8/UDsx1HjdOomldFO0eREnkZhNI/w167CglKXlXwI6HDYjzTwvgBHJu+Kh+x4Si83oM4HvAeQH8kpFqzBZSgqXziog1aGegoTTjQ4kM4scMrjcMDIegzLRj/m38bVJUJ31X2SqCVOkfFW/JjZLHCeB5zeOSWd0pFafAcOu6foSO92cGsFMq4ucSRaSzDkEriyLAsLnFTiq2SjFYfTTvZO1iOLcOUTH2Y2I2vWZWNwS34TbUEiSluZePwuBOKQorAsLMo9l2ZphIGmdwzOoXDgeThH1mNR9RH6Dag0oVijkug6l1WYAEuh3uHEzE7khiYznOtyOOxJ/k2+Fnq+AydcNv7yzrfbCC4GIzk/LtbwwrxnucM5zuus0gOkVsFvgZp3vC04fUeehXNIoLelOdGMF0DE0SO9C2c4w+m/xA9BAyiuvYsQG9NXEDjxRgXh5tKnqUDef63w1Vpg5V2hVzhS1qJxTDhMXeGoSgv9rVCrjJBeTTlhv6N7nl/HUE/D8YhKI/t5U33PQzQ3nHF4h68UFw9HnD7TCMo1EXNG5dwxOATh66c+DKeK/q8SXOIejEx23RnkSXKDI6WR6YJTIU04QUOrapbIW30dCYRK+JJ3pPZJTtDIpnPI+kN64g84ieMtNoZzrHAkqb5vOiUPL37T9gacw7N2cDGXjcuDjV/rgqv/0nUJW3HpybWu5eto8N0QjZlFeokm1/z0NDG8Aicxz4YJxzK59V5mhSPke5WQc4LpHciHNqR3JDYIidqPazEQtjjegTNWrEU9SIHJzFRJ6swC55S2RhR/VfXgtUThL9eI+KKy3N+PeomhNFL1J21sPl6Cc/iKWYtxsGmtyVVzqK5wvMhwvjepv02udoFfICLPFK/KqAD4UdOb70XmIye+A2fo+yAahcOIo8oPzj/gKAlXvfcqau/MMukAxpK1ZrIAvfyirh5Fyv0dHfVcGetzY8OP2wbiHRGQXNR5PUZhbRD11Gw5Q+GXiZTg/M7M7qwBGA5By3YwnRihz0f4+ivLdf6DhWvMFd6BI1ycWACAbq9yFc8qTA5LgVmDjeuT+YaczRKnu1xbCi5p4Mw2XJVr4bcJyZOTnHvutLNWi654DMFlT6RF5NgMQO9YU+aF6vgmwJXl0MGZQX4haj8OYbFaj7fgVEkPX307XXB1MRxquJ+sKk3FrJ1pJRU9saEcsHV2PPKUgurAdhxneB1Oslx2OMd3hbHZzVFDY5VSncD8BotIW7FEy6r3/lgkORwZx0aVoBW+/fSUjX1bR2N/sKA1FMaFXBETos55Ws1T8EEqr8JJriB5EeHXR/geaO3mOBHYfq7X3QJSiY+L31jGDsfLt9uFvFxB/nonuePnSOP71pk+w5AbnRlfcI6JdBB1DfAyHBE29f+VBVnnqdorffNSfgqlmWXGJxtLG5zwREf9G+el4XeOvKUXl7SB737MpTciZ5V4p3jLxH484tve+d0/gdMsE6L47ofEXkjJXuZ9jcyoGc4//+e927Zt27Zt27Zt27Zt27Zt27Zt27Zt27Zt27Zt27Zt27Zt27Zt27Zt27Zt27Zt27Zt27Zt27Ztb9j/AH44VoF6T2F4AAAAAElFTkSuQmCC", "lux": "iVBORw0KGgoAAAANSUhEUgAAAM4AAACJCAMAAABTnPciAAAAwFBMVEUAAAD/2G7/4W4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACWWvTXAAAAQHRSTlMA//8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOG9a2wAAAIxJREFUeNrt1zESg1AIBUAe9z+0Jq2/NROY3dLKN4BCFQAAAAAAAAAAAAAAAAAAvCqr0nSiOl7+jTDZ1FrZFedutV1zD9i5RqTprNogB8c5/NTTlpQ/CXMfJ/14Onbm87y1emq9jnEy91PwabbuNXG+vVWb4uQ0O5M3gDj1VedX5XFBAAAAAAAAAEDVBeHNAIKyxjdxAAAAAElFTkSuQmCC"}, "mansion": {"paint": "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", "roof": "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", "lux": "iVBORw0KGgoAAAANSUhEUgAAAO0AAACTCAMAAABVu24MAAAAwFBMVEUAAAD/2G7/424AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB3ZNTQAAAAQHRSTlMA//8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOG9a2wAAATxJREFUeNrt2kESgjAMBVCT+x9a3UERUXRBk/e2zDjzJzRNi7cbAAAAAAAAcE60ChuhtgAAmMXM2T/IXmkzGi3TcrVd5onMMW61sIuEQ9os2HWXCbN4Q36kjT7bzyPtXpeK9bMSaZebzBB93rTxybg0dKnrvslxdgRcPYkZl9/793X+XrSdC/ZniOmOOWO2o7BXXoOfVDK/K1BMvHkel7LSpHBiI5x5LMpvuu78p+xXw33Ve4btKoy6tX2eW7LODnP+lFYzrvtkN6w/X7D2SVuxz78pXypg1bSRFfvu/sSWfT7XRvEpZpi/r1vbv1xOjL8R1w37j0kgZnkFM4v3lPXxttGUV7l/Ro9JoOCH1eiUdrPpbcNl2fuCiCj9j7TcXJ122Ui7nT8B//92X6+2AAAAAAAAAAAAAAAAHLkDGRYBa+dshDAAAAAASUVORK5CYII="}, "apartment": {"paint": "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", "roof": "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", "lux": "iVBORw0KGgoAAAANSUhEUgAAASwAAAC+CAMAAAC4esK7AAAAwFBMVEUAAAD/1W7/4W4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABtuoVuAAAAQHRSTlMA//8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOG9a2wAABEFJREFUeNrtndl2wjAMRD3+/49uKQQoxFsWRUruPacvLZRkotiyRg4pAQAAAAAAAAAAAAAAAAAAAAAAAMRDSNCv1S+o0CmUUGtIKuQa0wq5BtVCroJM00SIWgMTILE1ki2g1VBqFVIqPY7cPg8NqNXtcG2O+vtDgql1P9osq9Bq/sa3WNlMrPBj+V0suzFLoYshylQaBscFo5OILpZkecmVIoulZ+pwvSUqYrV1Ks8zLSU8iCXjGaakVnP99fjboVqZfPhDpt9EKed6ZLkecg1zvGcKHna+NhcrKWzeLMvVQ87BFxlGY9ZLp+Z8F0UsLQ/N1lv10ClXBAkVWQuOdZruG+98jFmNV4aKrAVX9k0stQf4tli+1xlDYmlhZHWKleR73tOnWLk25Hz/h36xXil43MaZT8snV4ccldYo7SFLkfqcOsajkli6L1QeSeXnTTz9GCUoVsuzLrVmfv27nruLNXMb9izqtpRJbmrwTbGOnMdMSzQdn1KuntzuznzsOuA2CtQvme0qsPSa3FTE4AT+wvswR7o7QtQ2zmVnsmZ5qS+onlPq0EJPTgeMWVpYjioe52YnoI7FuJFaS0/tfbWy010ota35YwyLZZG1ZzrYs2iKYoXtfoBnEmv3wO4XK13DNqz2OSqpw2S9RAn+XaZZQbragXUVw+Il03zr3jOy2B52j5mcW32OmKz/xWpohVj/TNYcuN3uYyvBbk176uvBSunEvuFtZO42hup97IoVWUt9w/Z2jdfiMmtpf1Y037BosqrbZC1GljOtShd0wDdcL1aq1Xnc3IUqps7rfUNLk9VG0JIl/T1aF3zDPOsb9vaFbGCy2lphC92yXDRZJ61NTFZvVtj8xX+J5cM3lJNcvSZWpcvRyjd0JVbJN8w5Hd5ZdTdZk5vbsDgGN9MDGyvMsGVJ64aLhlhWKVIAv6Jtsu5/EopSxmmarAZaSRE2TRqYrCOpQ4rQNCgPR+FeLCc1OQf9u+KquNxlrvLcL9yduXpYqVKEWN8Fg0KlVNyGM5szs85isspIrLCP6ZCBIzxVSqObrFutWpp15a4XKp1bLPXtElFPDf3skdW1OfNZ40mNHRLniayKb5g6fcMNosfNQ46Kp1y0CgZ3sq4TS8mTu1MSdEon56ywqTMk7W6ymnYra4XFXzBZe099i4KBqRW2fMx6E0tHPyBRfppHqva9TDZktXaFZf+l0r/jPPwggqRiHryCGO5OcjG0yvZpkvv5hulsG8r3nLRl4xsevdFpo2tq9lyHKA8budQ+v7NfUwAAviPQpz2p853Sbv852iMIdlz99WxZSIh11q/qRKx9rbDzfNnIZtd/fT3rOmKpbIUh1g7uzuXEIrL6xaq7OyfLolYUrnLT3RElr4FHbyJWx96dIAaVC8NCQTwXN5GFUAOOHVrh7gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACk9ANZ0giTcKJypQAAAABJRU5ErkJggg=="}};
 const RENOVATIONS = {
   paint: { name: "Fresh Paint", cost: 150, vb: 110 },
   roof: { name: "Modern Roof", cost: 300, vb: 240 },
   luxury: { name: "Luxury Interior", cost: 500, vb: 420 }
 };
+// Renovations take time (seconds) and the home earns no rent while the crew is working.
+const RENO_TIME = { paint: 25, roof: 40, luxury: 60 };
+// Builder crews: every construction, renovation or repair job needs a free crew.
+let crews = 2;
+const MAX_CREWS = 8;
+const crewCost = () => Math.round(1500 * Math.pow(2.6, crews - 2));       // 3rd crew $1,500 · 4th $3,900 · 5th $10,140 …
+const busyCrews = () => lotsData.filter(l => l.status === "building" || l.reno).length;
+function crewFree() { return busyCrews() < crews; }
+function crewBlocked() { toast(`👷 All ${crews} crews are busy — hire another or rush a job`); }
+function hireCrew(reopen) {
+  if (crews >= MAX_CREWS) { toast("👷 That's the biggest crew roster the city allows"); return; }
+  const c = crewCost(); if (money < c) { toast(`Need ${fmt(c)} to hire crew #${crews + 1}`); return; }
+  money -= c; crews++; toast(`👷 Crew #${crews} hired — ${crews} jobs can run at once`);
+  updateHUD(); saveGame();
+  if (reopen === "crew") openCrewSheet(); else if (selectedLotId != null) refreshSheet(selectedLotId);
+}
+function crewBanner(where) {
+  if (crewFree()) return "";
+  const c = crewCost(), can = crews < MAX_CREWS;
+  return `<div class="crew-banner">👷 <b>All ${crews} crews are busy.</b> Wait for one to finish, rush a job, or hire another crew.
+    ${can ? `<div class="build-opts" style="margin-top:8px"><button class="opt-btn ${money >= c ? 'btn-ok' : 'disabled'}" onclick="hireCrew('${where}')"><b>👷 Hire crew #${crews + 1} (${fmt(c)})</b><small>One more job at a time, for good</small></button></div>` : ""}</div>`;
+}
+// Things that need you, as tappable chips in the info bar; each tap jumps to the next matching lot.
+const ALERTS = [
+  { k: "repair", cls: "", test: l => l.damage && !l.reno, label: n => `⛈️ ${n} need${n > 1 ? "" : "s"} repair` },
+  { k: "offer", cls: "offer", test: l => l.status === "listed" && l.offer, label: n => `💰 ${n} offer${n > 1 ? "s" : ""}` }
+];
+let alertKey = "", alertIdx = {};
+function renderAlerts() {
+  const box = document.getElementById("alerts"); if (!box) return;
+  const found = ALERTS.map(a => ({ a, lots: lotsData.map((l, i) => i).filter(i => a.test(lotsData[i], i)) })).filter(o => o.lots.length);
+  const key = found.map(o => o.a.k + o.lots.length).join("|"); if (key === alertKey) return; alertKey = key;
+  box.innerHTML = found.map(o => `<div class="stat-box alert ${o.a.cls}" onclick="alertGo('${o.a.k}')" title="Tap to go to the lot">${o.a.label(o.lots.length)}</div>`).join("");
+}
+function goToLot(i) {
+  const el = lotEls[i]; if (!el) return;
+  const w = worldOf(el); focusAt(w.x + el.offsetWidth / 2, w.y + el.offsetHeight / 2 + 60, Math.max(scale, 0.9));
+  setTimeout(() => openLotSheet(i), 350);
+}
+function alertGo(k) {
+  const a = ALERTS.find(x => x.k === k); if (!a) return;
+  const lots = lotsData.map((l, i) => i).filter(i => a.test(lotsData[i], i)); if (!lots.length) return;
+  alertIdx[k] = ((alertIdx[k] ?? -1) + 1) % lots.length;
+  goToLot(lots[alertIdx[k]]);
+}
+function openCrewSheet() {
+  selectedLotId = null;
+  const sheet = document.getElementById("sheet"), title = document.getElementById("sheet-title"), body = document.getElementById("sheet-body");
+  if (!sheet) return;
+  const jobs = lotsData.map((l, i) => ({ l, i })).filter(o => o.l.status === "building" || o.l.reno);
+  title.textContent = `👷 Builder crews (${busyCrews()}/${crews} busy)`;
+  const c = crewCost();
+  body.innerHTML = `
+    <div style="font-size:12px;margin-bottom:10px;line-height:1.5">
+      ${jobs.length ? jobs.map(o => `<div>• Lot #${o.i + 1}: ${o.l.status === "building" ? BUILDINGS[o.l.building].icon + " " + BUILDINGS[o.l.building].name + " · " + fmtTime(buildLeft(o.l)) : renoLabel(o.l.reno.key) + " · " + fmtTime(renoLeft(o.l))}</div>`).join("") : `<div style="color:var(--mut)">No jobs running — every crew is free.</div>`}
+    </div>
+    <div class="build-opts">
+      ${crews < MAX_CREWS ? `<button class="opt-btn ${money >= c ? 'btn-ok' : 'disabled'}" onclick="hireCrew('crew')"><b>👷 Hire crew #${crews + 1} (${fmt(c)})</b><small>Each crew runs one build, renovation or repair at a time</small></button>` : `<button class="opt-btn disabled"><b>👷 ${crews} crews</b><small>Maximum roster</small></button>`}
+    </div>`;
+  sheet.classList.add("active");
+}
 
-let money = 2000;
-const RENT_RATE = 0.015;
+// ---- Storm damage: a storm hits homes 50–75% of the time; damaged homes pay no rent until repaired ----
+const renoLabel = k => k === "repair" ? "⛈️ Storm repairs" : RENOVATIONS[k].name;
+const REPAIR_TIME = 20;
+let stormT = null;
+function stormDamage() {
+  const homes = lotsData.map((l, i) => i).filter(i => { const l = lotsData[i]; return l.status === "built" && l.building && BUILDINGS[l.building].cat === "h" && !l.reno && !l.damage && unlockedDistricts.includes(l.district); });
+  if (!homes.length) return;
+  const odds = 0.5 + 0.25 * Math.min(1, homes.length / 20);            // 50% with a few homes, up to 75% with a big portfolio
+  if (Math.random() > odds) { toast("⛈️ The storm passed — no damage this time"); return; }
+  const n = Math.min(homes.length, 1 + Math.floor(Math.random() * Math.min(4, 1 + homes.length / 8)));
+  const hit = [];
+  for (let k = 0; k < n; k++) {
+    // Modern Roofs make a home much less likely to take damage
+    const pool = homes.filter(i => !hit.includes(i)), w = pool.map(i => lotsData[i].renovations.includes("roof") ? .3 : 1);
+    let r = Math.random() * w.reduce((a, b) => a + b, 0), pick = pool[0];
+    for (let j = 0; j < pool.length; j++) { r -= w[j]; if (r <= 0) { pick = pool[j]; break; } }
+    hit.push(pick);
+  }
+  hit.forEach((i, k) => setTimeout(() => {
+    const l = lotsData[i]; if (!l || l.status !== "built" || l.damage) return;
+    l.damage = { cost: Math.max(40, Math.round(calculatePropertyValue(i) * (0.08 + Math.random() * 0.07))) };
+    stats.events++;
+    paintLot(i);
+    const el = lotEls[i]; if (el) { el.classList.remove("zap"); void el.offsetWidth; el.classList.add("zap"); setTimeout(() => el.classList.remove("zap"), 700); }
+    flashLot(i, "⚡");
+    if (selectedLotId === i) refreshSheet(i);
+    updateHUD(); saveGame();
+  }, k * 900));
+  toast(`⛈️ Storm damage! ${n} home${n > 1 ? "s need" : " needs"} repairs before rent resumes`);
+}
+function repairLot(id) {
+  const l = lotsData[id]; if (!l || !l.damage || l.reno) return;
+  if (!crewFree()) { crewBlocked(); refreshSheet(id); return; }
+  if (money < l.damage.cost) { toast(`Need ${fmt(l.damage.cost)} for repairs`); return; }
+  money -= l.damage.cost;
+  const dur = Math.round(REPAIR_TIME * (1 + 0.5 * l.district));
+  l.reno = { key: "repair", dur, end: Date.now() + dur * 1000, cost: l.damage.cost };
+  toast(`🔨 Repair crew on the way — rent back in ${fmtTime(dur)}`);
+  openLotSheet(id); updateHUD(); renderCity(); saveGame();
+}
+function renoLeft(l) { return l.reno ? Math.max(0, (l.reno.end - Date.now()) / 1000) : 0; }
+function renoRushCost(l) { return Math.max(20, Math.round((l.reno.key === "repair" ? l.reno.cost : renoCost(l.reno.key, l.district)) * 0.5 * renoLeft(l) / (l.reno.dur || 1))); }
+// The building picture with every finished renovation layered on top.
+function upImg(b64, cls) { return `<img class="${cls}" src="data:image/png;base64,${b64}" alt="" draggable="false">`; }
+function spriteStack(l) {
+  const U = UPG_ART[l.building], r = l.renovations || [];
+  let h = SPRITES[l.building] || "";
+  if (l.damage && !l.reno) {
+    return h + (U ? upImg(U.roof, "tarp") : "") + `<span class="dmg-bit" style="left:12%;bottom:8%">🪵</span><span class="dmg-bit" style="right:14%;bottom:14%">🌿</span><span class="dmg-bit" style="left:38%;bottom:4%">🧱</span><span class="dmg-warn">⚠️</span>`;
+  }
+  if (U && r.includes("paint")) h += upImg(U.paint, "up-paint");
+  if (U && r.includes("roof")) h += upImg(U.roof, "up-roof");
+  if (U && r.includes("luxury")) h += upImg(U.lux, "up-lux") + `<span class="lux-spark" style="left:18%;top:22%">✨</span><span class="lux-spark s2" style="left:70%;top:14%">✨</span><span class="lux-spark s3" style="left:46%;top:44%">✨</span>`;
+  return h;
+}
+function renoArt(l) {
+  const k = l.reno.key, U = UPG_ART[l.building] || {}, dur = l.reno.dur, done = Math.min(dur, dur - renoLeft(l));
+  const layer = k === "paint" ? U.paint : k === "roof" ? U.roof : k === "luxury" ? U.lux : null;
+  const tool = k === "paint" ? "🖌️" : k === "roof" || k === "repair" ? "🔨" : "🛋️";
+  let fx = "";
+  if (k === "paint") fx = [22, 48, 72].map((x, n) => `<i class="reno-drip" style="left:${x}%;background:${["#9cc79a", "#a9cbe8", "#f3d7a3"][n]};animation-delay:${n * .45}s"></i>`).join("");
+  else if (k === "roof" || k === "repair") fx = [30, 55, 74].map((x, n) => `<i class="reno-chip" style="left:${x}%;animation-delay:${n * .35}s"></i>`).join("");
+  else fx = [[24, 30], [62, 20], [44, 52]].map(([x, y], n) => `<span class="reno-spark" style="left:${x}%;top:${y}%;animation-delay:${n * .5}s">✨</span>`).join("");
+  return `<div class="lot-art stack reno-${k}" style="--d:${dur}s;--e:${(-done).toFixed(2)}s">
+    ${spriteStack(l)}
+    ${layer ? `<div class="reno-wipe">${upImg(layer, "")}</div>` : ""}
+    <div class="reno-scaf">${SPRITES[l.building] || ""}</div>
+    <span class="reno-tool">${tool}</span>${fx}
+    <div class="reno-bar"><i></i></div></div>`;
+}
+
+let money = 3000;
+const RENT_RATE = 0.01;
+// Each neighborhood is pricier than the last: building/renovation costs, building value and business
+// revenue all scale by the district's multiplier, and construction takes longer further into the story.
+// Costs climb faster than what buildings return, so each new district takes real saving up
+// (a building pays for itself in ~2½ min in Suburban Springs, ~10+ min by the Metropolis Hub).
+const COST_MULT = [1, 3, 7, 14, 25, 40];
+const VAL_MULT  = [1, 2, 3.5, 5.5, 8, 11];
+const dm = d => COST_MULT[d] || 1, vm = d => VAL_MULT[d] || 1;
+const costOf = (key, d) => Math.round(BUILDINGS[key].cost * dm(d));
+const renoCost = (key, d) => Math.round(RENOVATIONS[key].cost * dm(d));
+const buildSecs = (key, d) => Math.round((BUILD_TIME[key] || 30) * (1 + 0.5 * d));
 // Construction time in seconds (real time, keeps going while you're away)
 const BUILD_TIME = { park: 15, ranch: 20, coffee: 25, colonial: 30, pool: 35, police: 45, fire: 50, mansion: 60, school: 60, civic: 60, shopping: 80, apartment: 90, bank: 100, hospital: 120 };
 function isDone(l) { return l.status === "built" || l.status === "listed"; }
 function buildLeft(l) { return Math.max(0, ((l.buildEnd || 0) - Date.now()) / 1000); }
 function fmtTime(sec) { sec = Math.ceil(sec); return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`; }
-function rushCost(l) { return Math.max(25, Math.round(BUILDINGS[l.building].cost * 0.6 * buildLeft(l) / (l.buildDur || 1))); }   // rent per 3s as a share of property value (was 0.035)
+function rushCost(l) { return Math.max(25, Math.round(costOf(l.building, l.district) * 0.6 * buildLeft(l) / (l.buildDur || 1))); }   // rent per 3s as a share of property value (was 0.035)
 let unlockedDistricts = [0];
 let fixedHazards = [];
 let selectedLotId = null;
@@ -684,7 +930,7 @@ const SAVE_KEY = "lotflip2_save";
 let resetting = false;
 function saveGame() {
   if (resetting) return;
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify({ money, unlockedDistricts, chapter, stats, introShown, dayTime, t: Date.now(), lotsData: lotsData.map(l => ({ ...l, anim: null })) })); } catch (e) {}
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify({ money, crews, unlockedDistricts, chapter, stats, introShown, dayTime, t: Date.now(), lotsData: lotsData.map(l => ({ ...l, anim: null })) })); } catch (e) {}
 }
 function loadGame() {
   try {
@@ -694,15 +940,77 @@ function loadGame() {
     // older saves (pre-story) keep the districts they had already opened
     chapter = Number.isInteger(s.chapter) ? s.chapter : Math.max(0, (s.unlockedDistricts || [0]).length - 1);
     stats = Object.assign({ sales: 0, events: 0 }, s.stats || {});
+    crews = Math.max(2, Math.min(MAX_CREWS, s.crews || 2));
     introShown = Number.isInteger(s.introShown) ? s.introShown : -1;
     syncUnlocks(); invalidateProblems();
     let inc = 0;
     lotsData.forEach((l, i) => { if (l.offer && !l.offerTtl) l.offerTtl = 24; if (l.status === "built") inc += calculateLotRent(i) / 3; });
-    const earn = Math.round(inc * Math.min((Date.now() - s.t) / 1000, 28800) * 0.5);
-    if (earn > 0) { money += earn; toast(`💤 Welcome back! Earned ${fmt(earn)} while away`); }
+    if (s.t) pendingAway = (Date.now() - s.t) / 1000;
   } catch (e) {}
 }
-document.addEventListener("visibilitychange", () => { if (document.hidden) saveGame(); });
+// ---- Time away ----
+// The city clock and rent stop while the game isn't on screen. When you come back, the city pays
+// part of what it would have earned (capped), and every unsolved district problem had a chance to
+// strike while nobody was watching — the longer you're gone, the more of them pile up.
+const AWAY = { minSec: 120, cap: 4 * 3600, bands: [[1800, 0.4], [7200, 0.2], [14400, 0.1]] };
+// diminishing returns: 40% of normal rent for the first 30 min, 20% up to 2h, 10% up to 4h, then nothing
+function awayPaidSec(sec) { let paid = 0, from = 0; for (const [to, r] of AWAY.bands) { paid += Math.max(0, Math.min(sec, to) - from) * r; from = to; } return paid; }
+const AWAY_MSG = {
+  crime: ["🚨 Break-in at an empty house", "🚨 Burglars hit a rental", "🚨 Copper pipes stolen"],
+  vacancy: ["🏚️ Squatters moved into a storefront", "🏚️ Vandals smashed shop windows", "🏚️ Graffiti cleanup"],
+  smog: ["😷 Tenants claimed smog rent credits", "😷 Air-filter replacements", "😷 Health-complaint refunds"],
+  flood: ["🌊 Basement flooded", "🌊 Storm-drain backup repairs", "🌊 Water-damaged drywall"],
+  outage: ["⚡ Blackout spoiled shop stock", "⚡ Power surge fried appliances", "⚡ Generator rental"],
+  gridlock: ["🚦 Deliveries stuck in traffic", "🚦 Tenants late on rent", "🚦 Towing fees"]
+};
+let pendingAway = 0, hiddenAt = 0;
+function fmtDur(sec) { const h = Math.floor(sec / 3600), m = Math.round((sec % 3600) / 60); return h ? `${h}h ${m}m` : `${m}m`; }
+function settleAway(sec, after) {
+  if (!(sec >= AWAY.minSec)) { if (after) after(); return; }
+  const used = Math.min(sec, AWAY.cap), hrs = used / 3600, paid = awayPaidSec(used);
+  let gross = 0, lost = 0; const hits = [];
+  for (const di of unlockedDistricts) {
+    const inc = districtIncome(di) * paid;
+    gross += inc;
+    const key = DISTRICTS[di].problem;
+    if (!key || !hazardActive(di) || inc <= 0) continue;
+    // odds grow with how bad the problem is and how long you were gone
+    const lv = problemLevel(di) / 100, n = Math.min(8, Math.floor(lv * (0.6 + hrs * 1.1) + Math.random()));
+    let dl = 0;
+    for (let k = 0; k < n; k++) dl += inc * (0.05 + Math.random() * 0.07);
+    dl = Math.round(Math.min(dl, inc * 0.7));
+    if (n && dl > 0) { lost += dl; hits.push({ di, n, dl, msg: AWAY_MSG[key][Math.floor(Math.random() * 3)] }); stats.events += n; }
+  }
+  gross = Math.round(gross);
+  const net = gross - lost;
+  money = Math.max(0, money + net);
+  updateHUD(); saveGame();
+  showAway({ sec, used, paid, gross, lost, net, hits }, after);
+}
+function showAway(r, after) {
+  const m = document.getElementById("story-modal"), card = document.getElementById("story-card");
+  const msg = `💤 Away ${fmtDur(r.sec)} — ${r.net >= 0 ? "+" : "−"}${fmt(Math.abs(r.net))}`;
+  if (!m || !card || m.classList.contains("show") || (r.gross === 0 && !r.hits.length)) { if (r.gross || r.lost) toast(msg); if (after) after(); return; }
+  storyBusy = true;
+  const capped = r.sec > AWAY.cap;
+  card.innerHTML = `
+    <div class="story-top"><div class="story-mayor">🌙</div>
+      <div><div class="story-kicker">While you were away · ${fmtDur(r.sec)}</div><div class="story-title">City report</div></div></div>
+    <div class="story-goals">
+      <div class="q-goal"><span class="ck">🏠</span><span>Rent collected (≈${Math.round(r.paid / r.used * 100)}% while unmanaged)</span><span class="q-p">+${fmt(r.gross)}</span></div>
+      ${r.hits.map(h => `<div class="q-goal"><span class="ck">${h.msg.split(" ")[0]}</span><span>${h.msg.slice(h.msg.indexOf(" ") + 1)}${h.n > 1 ? ` ×${h.n}` : ""} · ${DISTRICTS[h.di].name}</span><span class="q-p" style="color:#ff8a80">−${fmt(h.dl)}</span></div>`).join("")}
+      ${r.hits.length ? "" : `<div class="q-goal"><span class="ck">✅</span><span>No trouble — your solved districts kept the peace</span></div>`}
+      <div class="q-goal" style="border-top:1px solid var(--line);margin-top:4px;padding-top:6px;font-weight:800"><span class="ck">💰</span><span>Net</span><span class="q-p" style="color:${r.net >= 0 ? "var(--acc)" : "#ff8a80"}">${r.net >= 0 ? "+" : "−"}${fmt(Math.abs(r.net))}</span></div>
+      <div class="q-tip">⏳ Unmanaged rent shrinks the longer you're gone and stops after ${AWAY.cap / 3600}h. ${r.hits.length ? "Solve each district's problem to stop losses while you're gone." : "Unsolved problems strike more often the longer you're away."}</div>
+    </div>
+    <button class="story-btn" id="story-btn">Collect</button>`;
+  m.classList.add("show");
+  document.getElementById("story-btn").onclick = () => { m.classList.remove("show"); storyBusy = false; if (after) after(); };
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) { saveGame(); hiddenAt = Date.now(); }
+  else if (hiddenAt) { const sec = (Date.now() - hiddenAt) / 1000; hiddenAt = 0; fx.last = 0; settleAway(sec); }
+});
 window.addEventListener("pagehide", saveGame);
 
 
@@ -761,9 +1069,9 @@ const CHAPTERS = [
       { t: "Build 12 homes in Suburban Springs", n: () => inD(0, HOMES), g: 12 },
       { t: "Open a Police Station in Suburban Springs", n: () => inD(0, ["police"]), g: 1 },
       { meter: 0 },
-      { t: "Earn $35/s in rent", n: () => lastIncome, g: 35, kind: "rate" }
+      { t: "Earn $30/s in rent", n: () => lastIncome, g: 30, kind: "rate" }
     ] },
-  { title: "Grand Reopening", reward: 2500,
+  { title: "Grand Reopening", reward: 3000,
     intro: "Downtown Core is a ghost town — boarded-up shops on every block, and the few landlords left can't fill a single storefront. Bring businesses back to Main Street, and show the bankers you can flip a property for real money.",
     outro: "Main Street is buzzing! The coffee lines go around the block. Bad news though: the Industrial Zone is next door, and you can taste the air from here.",
     goals: [
@@ -771,18 +1079,18 @@ const CHAPTERS = [
       { t: "Fill 15 lots Downtown", n: () => inD(1), g: 15 },
       { meter: 1 },
       { t: "Flip a property — accept a buyer's offer", n: () => stats.sales, g: 1 },
-      { t: "Earn $80/s from Downtown properties", n: () => districtIncome(1), g: 80, kind: "rate" }
+      { t: "Earn $100/s from Downtown properties", n: () => districtIncome(1), g: 100, kind: "rate" }
     ] },
-  { title: "Clear Skies", reward: 4000,
+  { title: "Clear Skies", reward: 8000,
     intro: "The Industrial Zone sits under a brown haze from the old factories. Nobody wants to breathe it, so nobody buys. Plant some green, clear the air, and those cheap lots turn into gold.",
     outro: "Blue sky over the smokestacks for the first time in twenty years! The zoning board is impressed. Now head south — Waterfront Bay has a water problem.",
     goals: [
       { t: "Build 3 Parks in the Industrial Zone", n: () => inD(2, ["park"]), g: 3 },
       { meter: 2 },
       { t: "Build 10 homes in the Industrial Zone", n: () => inD(2, HOMES), g: 10 },
-      { t: "Save up $15,000 cash", n: () => money, g: 15000, kind: "cash" }
+      { t: "Save up $60,000 cash", n: () => money, g: 60000, kind: "cash" }
     ] },
-  { title: "High Water", reward: 6000,
+  { title: "High Water", reward: 20000,
     intro: "Waterfront Bay has million-dollar views and ten-cent drainage. Every time it rains the streets flood, and owners pay for it. Get rescue crews in place and storm-proof those roofs before the next big one.",
     outro: "The last storm rolled through and not one basement flooded. Waterfront is the hottest address in town! Up on the hill, Historic Heights keeps going dark…",
     goals: [
@@ -791,23 +1099,23 @@ const CHAPTERS = [
       { meter: 3 },
       { t: "Fill 18 lots in Waterfront Bay", n: () => inD(3), g: 18 }
     ] },
-  { title: "Keep the Lights On", reward: 8000,
+  { title: "Keep the Lights On", reward: 40000,
     intro: "Historic Heights is the prettiest neighborhood in the city — when the lights work. The old grid browns out every evening. And the preservation board has one rule: classic homes only, no apartment towers.",
     outro: "The streetlamps glow and the old homes shine. The preservation board even sent a thank-you card! One last challenge: the Metropolis Hub, where traffic hasn't moved since Tuesday.",
     goals: [
       { meter: 4 },
       { t: "Build 8 Colonial Houses in Historic Heights", n: () => inD(4, ["colonial"]), g: 8 },
       { t: "Fill 18 lots — no apartments allowed", n: () => inD(4, ["apartment"]) ? 0 : inD(4), g: 18 },
-      { t: "Earn $180/s from Historic Heights properties", n: () => districtIncome(4), g: 180, kind: "rate" }
+      { t: "Earn $400/s from Historic Heights properties", n: () => districtIncome(4), g: 400, kind: "rate" }
     ] },
-  { title: "City of Tomorrow", reward: 20000,
+  { title: "City of Tomorrow", reward: 100000,
     intro: "This is it — the Metropolis Hub. Twelve lanes of honking, all standing still. Untangle the gridlock and build it into the heart of the city, and this town becomes the best place in the state to live.",
     outro: "Traffic flows, the skyline sparkles, and the whole city came out to cheer. Six neighborhoods, six comebacks. Here's the key to the city — every lot is yours to build as you please. Freestyle on!",
     goals: [
       { meter: 5 },
       { t: "Open a Hospital in Metropolis Hub", n: () => inD(5, ["hospital"]), g: 1 },
       { t: "Fill 22 lots in Metropolis Hub", n: () => inD(5), g: 22 },
-      { t: "Earn $300/s from Metropolis properties", n: () => districtIncome(5), g: 300, kind: "rate" }
+      { t: "Earn $600/s from Metropolis properties", n: () => districtIncome(5), g: 600, kind: "rate" }
     ] }
 ];
 
@@ -961,15 +1269,19 @@ const EVENT_MSG = {
   vacancy: (i, $) => `🏚️ Vandals hit the empty storefronts near Lot #${i + 1} — cleanup cost ${$}`
 };
 const EVENT_ICON = { crime: "🚨", smog: "😷", flood: "🌊", outage: "⚡", gridlock: "🚦", vacancy: "🏚️" };
-let eventCooldown = 12;
+let eventCooldown = 20;
 function problemEvents(dt) {
   if (storyBusy) return;
   eventCooldown -= dt; if (eventCooldown > 0) return;
   for (const di of unlockedDistricts) {
     const key = DISTRICTS[di].problem; if (!key || !hazardActive(di)) continue;
     if (key === "flood" && wxLv.rain < .3) continue;            // floods only when it's raining
-    const chance = (key === "flood" ? 0.05 : 0.014) * problemLevel(di) / 100;
-    if (Math.random() < chance) { if (problemEvent(di, key)) { eventCooldown = 10; return; } }
+    // starter grace: a district needs 3 finished buildings before trouble finds it
+    if (lotsData.filter(l => l.district === di && l.status === "built").length < 3) continue;
+    // odds are per second of play (this used to roll every animation frame, ~60×/s):
+    // a 100% problem averages ~1 incident a minute; crime ~3 a minute; floods ~3 a minute, but only in rain
+    const perMin = (key === "flood" || key === "crime" ? 3 : 1) * problemLevel(di) / 100;
+    if (Math.random() < perMin / 60 * dt) { if (problemEvent(di, key)) { eventCooldown = key === "crime" ? 8 : 20; return; } }
   }
 }
 function problemEvent(di, key) {
@@ -982,11 +1294,15 @@ function problemEvent(di, key) {
   if (!pool.length || money <= 0) return false;
   const i = pool[Math.floor(Math.random() * pool.length)], lot = lotsData[i];
   if (key === "flood" && lot.renovations.includes("roof")) return false;
-  const loss = Math.round(Math.min(money * 0.05, 25 + calculatePropertyValue(i) * 0.06));
+  // a hit costs about 12–28 seconds of that lot's rent (businesses: its revenue), never more than 5% of cash,
+  // so frequent break-ins sting without stalling a small portfolio
+  const perSec = Math.max(calculateLotRent(i) / 3, 0.5);
+  const loss = Math.round(Math.min(money * 0.05, Math.max(8, perSec * (12 + Math.random() * 16))));
   if (loss <= 0) return false;
   money -= loss; stats.events++;
   if (key === "flood" && lot.renovations.includes("paint")) { lot.renovations = lot.renovations.filter(r => r !== "paint"); paintLot(i); }
-  toast(EVENT_MSG[key](i, fmt(loss)));
+  const cops = key === "crime" && dispatchPolice(i);
+  toast(EVENT_MSG[key](i, fmt(loss)) + (cops ? " · 🚓 Police on the way" : ""));
   flashLot(i, EVENT_ICON[key]);
   return true;
 }
@@ -1064,8 +1380,8 @@ function calculatePropertyValue(i) {
   if (lot.status === "empty" || !lot.building) return landPrice(lot);
   const b = BUILDINGS[lot.building];
   const renoVal = lot.renovations.reduce((acc, k) => acc + RENOVATIONS[k].vb, 0);
-  const baseValue = landPrice(lot) + b.val + renoVal;
-  return Math.max(1, Math.round(baseValue * (1 + getLotSynergyBoost(i)) * (hazardActive(lot.district) ? 0.85 : 1)));
+  const baseValue = landPrice(lot) + (b.val + renoVal) * vm(lot.district);
+  return Math.max(1, Math.round(baseValue * (1 + getLotSynergyBoost(i)) * (hazardActive(lot.district) ? 0.85 : 1) * (lot.damage ? 0.8 : 1)));
 }
 
 function calculateLotRent(i) {
@@ -1073,8 +1389,9 @@ function calculateLotRent(i) {
   if (lot.status !== "built" || !lot.building) return 0;
   const b = BUILDINGS[lot.building];
   
-  if (b.cat === "i") return b.rev || 0;
-  
+  if (b.cat === "i") return Math.round((b.rev || 0) * vm(lot.district));
+  if (lot.reno || lot.damage) return 0;   // crew on site / storm-damaged — no tenants until it's fixed
+
   const val = calculatePropertyValue(i);
   let rent = Math.round(val * RENT_RATE * b.rm * (1 + getLotParkRentBoost(i)));
 
@@ -1220,6 +1537,12 @@ function renderCity() {
     `;
 
     layer.appendChild(distEl);
+    const dark = d.problem === "outage" && hazardActive(d.id);
+    distEl.classList.toggle("power-out", dark);
+    if (isUnlocked) addStreetLights(distEl);
+    const col = d.gridPos[1] / 2;
+    distEl.querySelectorAll(".local-road-h").forEach(r => r.insertAdjacentHTML("beforeend",
+      (col > 0 ? `<i class="xwalk l"></i><i class="stop l"></i>` : "") + (col < 2 ? `<i class="xwalk r"></i><i class="stop r"></i>` : "")));
 
     const startIdx = d.id * 25;
     for (let r = 0; r < 5; r++) {
@@ -1249,6 +1572,23 @@ function renderCity() {
   renderMinimap();
 }
 
+// Lamp posts stand on the far curb in the gaps between lots; bulb + light pool sit above the night shade.
+function addStreetLights(distEl) {
+  // posts go in the 4 gaps between the 5 lots of each row; drawn on the district canvas (not inside the
+  // road) so rain-wet road filters can't push the bulbs under the night shade
+  const cv = distEl.querySelector(".district-canvas"); if (!cv) return;
+  const spots = [1, 2, 3, 4].map(c => `(${c} * (100% - 64px) / 5 + ${16 * c - 8}px)`);
+  let html = "";
+  cv.querySelectorAll(".local-road-h").forEach(road => {
+    const y = road.offsetTop;
+    spots.forEach(x => {
+      html += `<div class="lamp" style="left:calc${x};top:${y - 29}px"><i></i></div>` +
+        `<div class="lamp-bulb" style="left:calc(${x} + 14px);top:${y - 25}px"></div>` +
+        `<div class="lamp-pool" style="left:calc(${x} + 14px);top:${y + 8}px"></div>`;
+    });
+  });
+  cv.insertAdjacentHTML("beforeend", html);
+}
 const lotEls = [];
 const PARK = {"ranch":{"ar":1.805,"spots":[[0.82,0.74]],"ex":0.87,"eyb":0.79,"cx":0.77,"cy":0.55,"kind":"drive","pd":[-0.075,-0.1525]},"colonial":{"ar":1.504,"spots":[[0.785,0.765]],"ex":0.859,"eyb":0.81,"cx":0.56,"cy":0.82,"kind":"drive","pd":[-0.16,-0.09]},"mansion":{"ar":1.612,"spots":[[0.448,0.784]],"ex":0.608,"eyb":0.885,"cx":0.6,"cy":0.8,"kind":"drive","loop":{"enter":[[0.674,0.869],[0.734,0.847],[0.775,0.809],[0.788,0.76],[0.759,0.712],[0.69,0.689],[0.622,0.683],[0.559,0.692],[0.502,0.712],[0.47,0.748]],"park":[0.448,0.784],"exit":[[0.466,0.826],[0.508,0.861],[0.568,0.889]]},"pd":[-0.004,0.078]},"coffee":{"ar":1.664,"spots":[[0.444,0.865],[0.564,0.83]],"ex":0.5,"eyb":0.96,"cx":0.518,"cy":0.852,"kind":"lot","pd":[-0.12,-0.15],"via":[0.048,0.06]},"park":{"ar":1.683,"spots":[[0.4665,0.887]],"ex":0.511,"eyb":0.936,"cx":0.42,"cy":0.78,"kind":"lot","pd":[-0.089,-0.098]},"civic":{"ar":1.526,"spots":[[0.7845,0.7845]],"ex":0.8325,"eyb":0.825,"cx":0.67,"cy":0.82,"kind":"lot","pd":[-0.096,-0.081]},"apartment":{"ar":1.579,"spots":[[0.4597,0.8921],[0.5562,0.8689],[0.6455,0.8437],[0.7403,0.8163],[0.8347,0.7889]],"ex":0.9333,"eyb":0.8447,"cx":0.6,"cy":0.85,"kind":"lot","pd":[-0.00286,-0.00271],"aisle":[[0.5168,0.9463],[0.6133,0.9231],[0.7027,0.8978],[0.7975,0.8705],[0.8918,0.8431]],"pre":[[0.5225,0.9517],[0.619,0.9285],[0.7084,0.9033],[0.8032,0.8759],[0.8975,0.8485]],"stalls":true},"pool":{"ar":1.77,"spots":[[0.5765,0.821]],"ex":0.619,"eyb":0.8685,"cx":0.5,"cy":0.85,"kind":"lot","pd":[-0.084,-0.098]},"school":{"ar":1.712,"spots":[[0.328,0.878],[0.546,0.827]],"ex":0.445,"eyb":0.942,"cx":0.454,"cy":0.87,"kind":"lot","pd":[-0.12,-0.07]},"hospital":{"ar":1.531,"spots":[[0.6933,0.8316],[0.8733,0.801]],"ex":0.7533,"eyb":0.898,"cx":0.684,"cy":0.873,"kind":"lot","pd":[-0.001,-0.00487],"aisle":[[0.7034,0.8803],[0.8834,0.8497]],"pre":[[0.7054,0.89],[0.8854,0.8594]],"stalls":true},"shopping":{"ar":1.657,"spots":[[0.4925,0.739],[0.6,0.6989],[0.7017,0.6644],[0.7958,0.6215]],"ex":0.8333,"eyb":0.7901,"cx":0.62,"cy":0.75,"kind":"lot","pd":[-0.00281,-0.00297],"aisle":[[0.5656,0.8161],[0.6731,0.776],[0.7748,0.7415],[0.869,0.6987]],"pre":[[0.5769,0.8279],[0.6844,0.7879],[0.786,0.7533],[0.8802,0.7105]],"stalls":true},"fire":{"ar":1.685,"spots":[[0.43,0.7697],[0.56,0.7472],[0.6933,0.7191]],"ex":0.6533,"eyb":0.8989,"cx":0.6,"cy":0.68,"kind":"lot","pd":[-0.002,-0.00449],"aisle":[[0.466,0.8506],[0.596,0.8281],[0.7293,0.8]],"pre":[[0.472,0.864],[0.602,0.8416],[0.7353,0.8135]],"stalls":true},"police":{"ar":1.775,"spots":[[0.4775,0.7712],[0.5763,0.7445],[0.695,0.709],[0.825,0.6632]],"ex":0.7733,"eyb":0.858,"cx":0.669,"cy":0.76,"kind":"lot","pd":[-0.00277,-0.00328],"aisle":[[0.5299,0.8419],[0.6374,0.8167],[0.756,0.7812],[0.8861,0.7354]],"pre":[[0.5382,0.8518],[0.6457,0.8265],[0.7644,0.791],[0.8944,0.7452]],"stalls":true},"bank":{"ar":1.483,"spots":[[0.92,0.775]],"ex":0.8,"eyb":0.855,"cx":0.5,"cy":0.8,"kind":"lot","pd":[-0.12,-0.07]}};
 let LW = 204, LH = 154; const geomCache = {};
@@ -1265,8 +1605,8 @@ function paintLot(i) {
   if (!el) return;
   const unlocked = unlockedDistricts.includes(lot.district);
   let st = "";
-  if (lot.offer) st = "has-offer"; else if (lot.status === "listed") st = "listed"; else if (lot.status === "built") st = "purchased"; else if (lot.status === "building") st = "constructing";
-  const an = lot.anim === "build" ? "anim-build" : lot.anim === "demo" ? "anim-demo" : "";
+  if (lot.offer) st = "has-offer"; else if (lot.status === "listed") st = "listed"; else if (lot.reno) st = "renovating"; else if (lot.damage) st = "damaged"; else if (lot.status === "built") st = "purchased"; else if (lot.status === "building") st = "constructing";
+  const an = lot.anim === "build" ? "anim-build" : lot.anim === "demo" ? "anim-demo" : lot.anim === "reno" ? "anim-reno" : "";
   const P = (isDone(lot) || lot.status === "building") && lot.building ? PARK[lot.building] : null;
   if (lot.status === "building") { el.style.setProperty("--d", (lot.buildDur || 1) + "s"); el.style.setProperty("--e", (-Math.min(lot.buildDur || 1, (lot.buildDur || 1) - buildLeft(lot))).toFixed(2) + "s"); }
   el.className = `lot ${P ? "has-nub" : ""} ${st} ${an} ${unlocked ? "" : "locked-lot"}`;
@@ -1274,9 +1614,11 @@ function paintLot(i) {
   if (lot.offer) price = fmt(lot.offer);
   else if (lot.status === "listed") price = `<span style="color:var(--blue)">LISTED</span>`;
   else if (lot.status === "building") price = `<span class="cons-time">🏗️ ${fmtTime(buildLeft(lot))}</span>`;
+  else if (lot.reno) price = `<span class="reno-time">🔧 ${fmtTime(renoLeft(lot))}</span>`;
+  else if (lot.damage) price = `<span class="dmg-time">⛈️ Repair</span>`;
   else if (lot.status === "built") price = `$${calculateLotRent(i)}/3s`;
   else price = `$${landPrice(lot)}`;
-  art = lot.status === "building" ? consArt(lot) : P ? `<div class="lot-art">${SPRITES[lot.building] || ""}</div>` : `<div class="lot-art empty">LOT</div>`;
+  art = lot.status === "building" ? consArt(lot) : lot.reno ? renoArt(lot) : P ? `<div class="lot-art stack${(lot.renovations || []).includes("luxury") ? " lux" : ""}">${spriteStack(lot)}</div>` : `<div class="lot-art empty">LOT</div>`;
   el.innerHTML = `<div class="lot-header"><span class="lot-num">#${i + 1}</span><span class="lot-stars">${"⭐".repeat(lot.renovations.length)}</span><div class="lot-price">${price}</div></div>` + art + (an === "anim-build" ? `<i class="build-ring"></i>` : "");
   if (P) {
     const R = spriteRect(lot.building), w = P.kind === "lot" ? 34 : P.kind === "drive" ? 18 : 10;
@@ -1310,16 +1652,33 @@ const CRANE = `<svg class="cons-crane" viewBox="0 0 72 92" aria-hidden="true">
     </g>
   </g>
 </svg>`;
-const MIXER = `<svg class="cons-mixer" viewBox="0 0 60 34" aria-hidden="true">
-  <ellipse cx="30" cy="31" rx="27" ry="3" fill="rgba(0,0,0,.3)"/>
-  <rect x="3" y="20" width="50" height="6" rx="1.5" fill="#4a4f53"/>
-  <path d="M40 8h12l4 7v8H40z" fill="#e8f0f4" stroke="#33393d" stroke-width=".9"/><path d="M43 10h8l2.6 5H43z" fill="#9fd3ea"/>
-  <g><ellipse cx="22" cy="14" rx="17" ry="9" fill="#f08a24" stroke="#7a3d00" stroke-width=".9"/>
-    <path class="drum" d="M7 14c5-7 10 7 15 0s10 7 15 0" fill="none" stroke="#ffd29a" stroke-width="2" stroke-dasharray="4 3"/></g>
-  <path d="M36 9l4-3" stroke="#555" stroke-width="2"/>
-  <circle cx="12" cy="27" r="4" fill="#1b1f22"/><circle cx="12" cy="27" r="1.6" fill="#888"/>
-  <circle cx="30" cy="27" r="4" fill="#1b1f22"/><circle cx="30" cy="27" r="1.6" fill="#888"/>
-  <circle cx="48" cy="27" r="4" fill="#1b1f22"/><circle cx="48" cy="27" r="1.6" fill="#888"/>
+const MIXER = `<svg class="cons-mixer" viewBox="0 0 66 32" aria-hidden="true" stroke-linejoin="round">
+  <ellipse cx="33" cy="28.4" rx="31" ry="2.6" fill="rgba(0,0,0,.33)"/>
+  <ellipse cx="12.2" cy="23.6" rx="3.2" ry="3" fill="#0d0f10"/><ellipse cx="22.2" cy="23.6" rx="3.2" ry="3" fill="#0d0f10"/><ellipse cx="53.2" cy="23.6" rx="3.2" ry="3" fill="#0d0f10"/>
+  <rect x="2" y="18.2" width="61" height="5.2" rx="1.4" fill="#4a5258" stroke="#1b1f22" stroke-width=".9"/>
+  <path d="M3.4 19.6H61" stroke="#6f787f" stroke-width=".8"/>
+  <path d="M5 13.5L2.4 17.6M6.6 13.2L5 17.6" stroke="#5c646a" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M7.6 12.8L1.6 15.4" stroke="#7a828a" stroke-width="2.2" stroke-linecap="round"/>
+  <g class="drum-body">
+    <path d="M7 14.6L11.6 4.6Q25 -.6 39.4 5.4L42.6 15.6Q25 20.6 7 14.6Z" fill="#f08a24" stroke="#1b1f22" stroke-width=".9"/>
+    <path d="M8.4 13.4L12.6 5.6Q25 1.2 38.6 6.4" fill="none" stroke="#ffc07a" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M7.6 14.4Q25 19.4 42 15.2" fill="none" stroke="#b35a00" stroke-width="1.6"/>
+    <path class="drum" d="M12 5.4L9 14.4M18 3.2L14.6 15.8M24.4 2.4L21.4 16.6M30.8 2.6L28.4 16.6M36.8 4.2L35 16" stroke="#ffe0b5" stroke-width="1.6" stroke-dasharray="3 3" stroke-linecap="round"/>
+    <ellipse cx="41" cy="10.4" rx="2.4" ry="5.4" fill="#d8731a" stroke="#1b1f22" stroke-width=".8"/>
+  </g>
+  <path d="M41.6 16.4L44 7.4" stroke="#7a828a" stroke-width="1.2"/>
+  <polygon points="44,9 46.4,6.2 61.6,6.2 63,9" fill="#ffffff" stroke="#1b1f22" stroke-width=".8"/>
+  <rect x="44" y="9" width="19" height="10" rx="1.6" fill="#e9eef1" stroke="#1b1f22" stroke-width=".9"/>
+  <polygon points="53,10.2 59.6,10.2 61.8,14.6 53,14.6" fill="#9fd3ea" stroke="#1b1f22" stroke-width=".7"/>
+  <path d="M54.2 11L56.4 14" stroke="rgba(255,255,255,.6)" stroke-width=".8"/>
+  <rect x="45.4" y="10.2" width="6.2" height="4.4" rx=".6" fill="#9fd3ea" stroke="#1b1f22" stroke-width=".6"/>
+  <path d="M44.4 16.4H62.6" stroke="#f08a24" stroke-width="1.6"/>
+  <path d="M52.4 10V18.4" stroke="#b9c2c8" stroke-width=".6"/>
+  <rect x="61.2" y="11.4" width="1.8" height="2.4" rx=".6" fill="#fff6c8" stroke="#1b1f22" stroke-width=".4"/>
+  <rect x="47.6" y="4.8" width="4.2" height="1.6" rx=".5" fill="#ffb300" stroke="#1b1f22" stroke-width=".4"/>
+  <circle cx="11" cy="23" r="3.5" fill="#15181a"/><circle cx="11" cy="23" r="1.5" fill="#8a9399"/>
+  <circle cx="21" cy="23" r="3.5" fill="#15181a"/><circle cx="21" cy="23" r="1.5" fill="#8a9399"/>
+  <circle cx="52" cy="23" r="3.5" fill="#15181a"/><circle cx="52" cy="23" r="1.5" fill="#8a9399"/>
 </svg>`;
 function consArt(l) {
   const dur = l.buildDur || 1, done = Math.min(dur, dur - buildLeft(l)), img = SPRITES[l.building] || "";
@@ -1351,9 +1710,44 @@ function rushBuild(id) {
   document.getElementById("sheet").classList.remove("active");
   finishBuild(id);
 }
+function finishReno(i) {
+  const l = lotsData[i]; if (!l || !l.reno) return;
+  const k = l.reno.key, wasBad = hazardActive(l.district);
+  delete l.reno;
+  if (k === "repair") delete l.damage;
+  else if (!l.renovations.includes(k)) l.renovations.push(k);
+  l.anim = "reno";
+  announceSolved(l.district, wasBad);
+  toast(`✨ ${k === "repair" ? "Storm repairs" : renoLabel(k)} finished at Lot #${i + 1} — rent is back on`);
+  renderCity();
+  if (lotEls[i]) triggerSmokeEffect(lotEls[i]);
+  refreshSheet(i); updateHUD(); saveGame();
+  setTimeout(() => { l.anim = null; }, 800);
+}
+function rushReno(id) {
+  const l = lotsData[id]; if (!l || !l.reno) return;
+  const c = renoRushCost(l);
+  if (money < c) { toast(`Need ${fmt(c)} to rush the crew`); return; }
+  money -= c;
+  document.getElementById("sheet").classList.remove("active");
+  finishReno(id);
+}
 function tickConstruction() {
   const sh = document.getElementById("sheet"), open = sh && sh.classList.contains("active");
   lotsData.forEach((l, i) => {
+    if (l.reno) {
+      const left = renoLeft(l);
+      if (left <= 0) { finishReno(i); return; }
+      const t = lotEls[i] && lotEls[i].querySelector(".reno-time");
+      if (t) t.textContent = `🔧 ${fmtTime(left)}`;
+      if (open && selectedLotId === i) {
+        const a = document.getElementById("reno-left"), r = document.getElementById("reno-rush-cost"), btn = document.getElementById("reno-rush-btn"), c = renoRushCost(l);
+        if (a) a.textContent = fmtTime(left);
+        if (r) r.textContent = `⚡ Rush it (${fmt(c)})`;
+        if (btn) { btn.classList.toggle("disabled", money < c); btn.classList.toggle("btn-ok", money >= c); }
+      }
+      return;
+    }
     if (l.status !== "building") return;
     const left = buildLeft(l);
     if (left <= 0) { finishBuild(i); return; }
@@ -1407,7 +1801,10 @@ function openLotSheet(id) {
   body.innerHTML = "";
 
   if (lot.status === "empty") {
-    let optsHTML = `<div class="build-opts">`;
+    let optsHTML = dm(lot.district) > 1 ? `<div style="font-size:11px;color:var(--mut);margin:-4px 0 8px">🏷️ ${DISTRICTS[lot.district].name} prices: ×${dm(lot.district)} build cost · ×${vm(lot.district)} value & business revenue</div>` : "";
+    optsHTML += crewBanner("lot");
+    const noCrew = !crewFree();
+    optsHTML += `<div class="build-opts">`;
     Object.keys(BUILDINGS).forEach(k => {
       const b = BUILDINGS[k];
       const count = getBuildingCount(k);
@@ -1415,15 +1812,15 @@ function openLotSheet(id) {
       const isLocked = chapter < need;
       const P = PROBLEMS[DISTRICTS[lot.district].problem];
       const cut = P && hazardActive(lot.district) ? (P.fix[k] || 0) - ((P.worse && P.worse[k]) || 0) : 0;
-      const isCapped = count >= b.limit || isLocked;
-      const canAfford = money >= (b.cost + landPrice(lot));
+      const isCapped = count >= b.limit || isLocked || noCrew;
+      const canAfford = money >= (costOf(k, lot.district) + landPrice(lot));
 
       optsHTML += `
         <button class="opt-btn ${(!canAfford || isCapped) ? 'disabled' : ''}" 
                 onclick="${(canAfford && !isCapped) ? `buildOnLot('${k}')` : ''}">
-          <b>${b.icon} ${b.name} (${fmt(b.cost)})</b>
-          <small style="color:#ffb74d">⏱ ${fmtTime(BUILD_TIME[k] || 30)} to build</small>
-          <small>${isLocked ? `🔒 Unlocks after Chapter ${need}` : isCapped ? `MAX BUILT (${count}/${b.limit})` : b.desc}${!isLocked && cut ? `<br><span style="color:${cut > 0 ? '#81c784' : '#ff8a80'}">${P.icon} ${cut > 0 ? '−' : '+'}${Math.abs(cut)}% ${P.name.toLowerCase()}</span>` : ''}</small>
+          <b>${b.icon} ${b.name} (${fmt(costOf(k, lot.district))})</b>
+          <small style="color:#ffb74d">⏱ ${fmtTime(buildSecs(k, lot.district))} to build</small>
+          <small>${isLocked ? `🔒 Unlocks after Chapter ${need}` : noCrew ? `👷 No free crew` : isCapped ? `MAX BUILT (${count}/${b.limit})` : b.desc}${!isLocked && cut ? `<br><span style="color:${cut > 0 ? '#81c784' : '#ff8a80'}">${P.icon} ${cut > 0 ? '−' : '+'}${Math.abs(cut)}% ${P.name.toLowerCase()}</span>` : ''}</small>
         </button>`;
     });
     optsHTML += `</div>`;
@@ -1450,7 +1847,9 @@ function openLotSheet(id) {
       <div style="margin-bottom:12px; font-size:13px; line-height:1.4;">
         <p style="margin:0 0 4px 0;">Building: <b>${b.icon} ${b.name}</b></p>
         <p style="margin:0 0 4px 0; color:var(--gold);">Property Value: <b>${fmt(val)}</b></p>
-        ${lot.status === "built" ? `<p style="margin:0 0 8px 0; color:var(--acc);">Rental Income: <b>${fmt(rent)} / 3s</b></p>` : ''}
+        ${lot.reno ? `<p style="margin:0 0 4px 0; color:#81d4fa;">🔧 ${renoLabel(lot.reno.key)} in progress · done in <b id="reno-left">${fmtTime(renoLeft(lot))}</b></p>
+          <p style="margin:0 0 8px 0; color:var(--mut); font-size:11px;">Tenants are out while the crew works — no rent until it's finished.</p>`
+          : lot.status === "built" ? `<p style="margin:0 0 8px 0; color:var(--acc);">Rental Income: <b>${fmt(rent)} / 3s</b></p>` : ''}
       </div>`;
 
     if (lot.offer) {
@@ -1464,24 +1863,45 @@ function openLotSheet(id) {
         </div>`;
     }
 
+    if (lot.damage && !lot.reno) {
+      html += `<div class="crew-banner" style="background:rgba(239,83,80,.14);border-color:#ef5350">⛈️ <b style="color:#ff8a80">Storm damage.</b> Tenants can't stay until it's repaired — no rent from this home.</div>`;
+    }
+    if ((lot.damage && !lot.reno) || (BUILDINGS[lot.building].cat === "h" && lot.status === "built" && !lot.reno)) html += crewBanner("lot");
     html += `<div class="build-opts">`;
+    if (lot.damage && !lot.reno) {
+      const rd = Math.round(REPAIR_TIME * (1 + 0.5 * lot.district)), ok = money >= lot.damage.cost && crewFree();
+      html += `
+        <button class="opt-btn ${ok ? 'btn-ok' : 'disabled'}" onclick="repairLot(${id})">
+          <b>🔨 Repair (${fmt(lot.damage.cost)})</b><small style="color:#81d4fa">⏱ ${fmtTime(rd)} · rent resumes when done</small>
+        </button>`;
+    }
 
+    if (lot.reno) {
+      const c = renoRushCost(lot);
+      html += `
+        <button class="opt-btn ${money >= c ? 'btn-ok' : 'disabled'}" id="reno-rush-btn" onclick="rushReno(${id})">
+          <b id="reno-rush-cost">⚡ Rush it (${fmt(c)})</b><small>Pay overtime to finish now</small>
+        </button>`;
+    }
     if (b.cat === "h") {
       Object.keys(RENOVATIONS).forEach(rk => {
         const r = RENOVATIONS[rk];
         const owned = lot.renovations.includes(rk);
-        const canAfford = money >= r.cost;
+        const busy = !!lot.reno || !!lot.damage || lot.status !== "built" || !crewFree();
+        const canAfford = money >= renoCost(rk, lot.district);
+        const ok = !owned && !busy && canAfford;
 
         html += `
-          <button class="opt-btn ${(owned || !canAfford) ? 'disabled' : ''}" 
-                  onclick="${(!owned && canAfford) ? `upgradeLot('${rk}')` : ''}">
-            <b>👷 ${r.name} (${fmt(r.cost)})</b>
-            <small>${owned ? 'Already Installed' : `+${fmt(r.vb)} Property Value`}${!owned && rk === 'roof' && PROBLEMS[DISTRICTS[lot.district].problem].roof && hazardActive(lot.district) ? `<br><span style="color:#81c784">🌊 −${PROBLEMS[DISTRICTS[lot.district].problem].roof}% flood risk</span>` : ''}</small>
+          <button class="opt-btn ${ok ? '' : 'disabled'}" 
+                  onclick="${ok ? `upgradeLot('${rk}')` : ''}">
+            <b>👷 ${r.name} (${fmt(renoCost(rk, lot.district))})</b>
+            <small style="color:#81d4fa">⏱ ${fmtTime(RENO_TIME[rk])} · no rent while working</small>
+            <small>${owned ? 'Already Installed' : lot.reno && lot.reno.key === rk ? 'Crew working on it now' : busy ? (lot.reno ? 'One renovation at a time' : lot.damage ? 'Repair the storm damage first' : !crewFree() ? 'No free crew' : 'Remove the listing first') : `+${fmt(r.vb * vm(lot.district))} Property Value`}${!owned && rk === 'roof' && PROBLEMS[DISTRICTS[lot.district].problem].roof && hazardActive(lot.district) ? `<br><span style="color:#81c784">🌊 −${PROBLEMS[DISTRICTS[lot.district].problem].roof}% flood risk</span>` : ''}</small>
           </button>`;
       });
     }
 
-    if (lot.status === "built") {
+    if (lot.status === "built" && !lot.reno) {
       html += `
         <button class="opt-btn" onclick="listLotForSale(${id})">
           <b>🏷️ List For Sale</b>
@@ -1510,14 +1930,15 @@ function openLotSheet(id) {
 function buildOnLot(key) {
   const lot = lotsData[selectedLotId];
   const b = BUILDINGS[key];
-  const totalCost = b.cost + (lot.status === 'empty' ? landPrice(lot) : 0);
+  const totalCost = costOf(key, lot.district) + (lot.status === 'empty' ? landPrice(lot) : 0);
 
   if (money < totalCost) return;
+  if (!crewFree()) { crewBlocked(); return; }
 
   money -= totalCost;
   lot.status = "building";
   lot.building = key;
-  lot.buildDur = BUILD_TIME[key] || 30;
+  lot.buildDur = buildSecs(key, lot.district);
   lot.buildEnd = Date.now() + lot.buildDur * 1000;
   toast(`🏗️ Construction started — ${b.name} ready in ${fmtTime(lot.buildDur)}`);
 
@@ -1540,21 +1961,19 @@ function upgradeLot(key) {
   const lot = lotsData[selectedLotId];
   const r = RENOVATIONS[key];
 
-  if (money < r.cost || lot.renovations.includes(key)) return;
+  const rc = renoCost(key, lot.district);
+  if (money < rc || lot.renovations.includes(key) || lot.reno || lot.damage || lot.status !== "built") return;
+  if (!crewFree()) { crewBlocked(); refreshSheet(selectedLotId); return; }
 
-  const wasBad = hazardActive(lot.district);
-  money -= r.cost;
-  lot.renovations.push(key);
-  lot.anim = "build";
-  announceSolved(lot.district, wasBad);
+  money -= rc;
+  const dur = RENO_TIME[key] || 30;
+  lot.reno = { key, dur, end: Date.now() + dur * 1000 };
+  toast(`👷 ${r.name} started — rent paused for ${fmtTime(dur)}`);
 
   openLotSheet(selectedLotId);
   updateHUD();
   renderCity();
-
-  setTimeout(() => {
-    lot.anim = null;
-  }, 600);
+  saveGame();
 }
 
 function listLotForSale(id) {
@@ -1582,6 +2001,7 @@ function acceptOffer(id) {
 
   money += Math.round(lot.offer * (1 - SALE_FEE));
   stats.sales++;
+  delete lot.reno; delete lot.damage;
   lot.status = "empty";
   lot.building = null;
   lot.renovations = [];
@@ -1617,6 +2037,7 @@ function demolishLot() {
     lot.status = "empty";
     lot.building = null;
     lot.renovations = [];
+    delete lot.reno; delete lot.damage;
     lot.offer = null;
     lot.anim = null;
     updateHUD();
@@ -1641,6 +2062,11 @@ function updateHUD() {
   if (elMoney) elMoney.textContent = fmt(money);
   if (elIncome) elIncome.textContent = `$${totalIncomePerSec.toFixed(1)}/s`;
   if (elLots) elLots.textContent = `${builtCount} / 150`;
+  const elCrew = document.getElementById("stat-crews"), bc = busyCrews(), free = Math.max(0, crews - bc);
+  if (elCrew) elCrew.textContent = free ? `${free} of ${crews} free` : `all ${crews} busy`;
+  const cb = document.getElementById("stat-crews-box");
+  if (cb) { cb.classList.toggle("full", !free); cb.classList.toggle("free", !!free); cb.title = `Builder crews: ${bc} working, ${free} free — tap to manage`; }
+  renderAlerts();
 
   lastIncome = totalIncomePerSec;
   checkStory();
@@ -1936,21 +2362,31 @@ function stationLots(kind) {
 function syncHighwayEV() {
   const container = document.getElementById("traffic-layer"); if (!container) return;
   for (const kind in EV) {
-    const want = Math.min(2, stationLots(kind).length);
-    const have = carsData.filter(c => c.ev === kind);
-    while (have.length > want) { const c = have.pop(); c.el.remove(); carsData.splice(carsData.indexOf(c), 1); }
-    for (let n = have.length; n < want; n++) {
-      const horiz = Math.random() > .5, el = document.createElement("div");
+    const st = stationLots(kind).length, want = st ? Math.min(3, st + 1) : 0;
+    const have = carsData.filter(c => c.ev === kind), total = have.length + visitors.filter(v => v.ev === kind).length;
+    if (total > want) {                                   // retire extras only once they've driven off-screen
+      const off = have.find(c => c.y < -20 || c.y > 2420 || c.x < -20 || c.x > 3620);
+      if (off) { off.el.remove(); carsData.splice(carsData.indexOf(off), 1); }
+    }
+    if (total < want) {
+      const horiz = Math.random() > .6, el = document.createElement("div");
       el.className = `car ev ${EV[kind].cls} svgcar ${horiz ? "overpass-car" : "underpass-car"}`;
       el.innerHTML = evSVG(kind); el.dataset.dir = "r";
       const hl = document.createElement("div"); hl.className = "car-headlight"; el.appendChild(hl); container.appendChild(el);
       const sp = 3.6 + Math.random() * 1.2; let x, y, dx = 0, dy = 0;
-      if (horiz) { const e = Math.random() > .5; x = Math.random() * 3600; y = 1172 + (e ? 32 : 12); dx = e ? sp : -sp; }
-      else { const ax = Math.random() > .5 ? 1172 : 2398, sb = Math.random() > .5; x = ax + (sb ? 10 : 34); y = Math.random() * 2400; dy = sb ? sp : -sp; }
+      if (horiz) { const e = Math.random() > .5; x = e ? -40 : 3640; y = 1172 + (e ? 32 : 12); dx = e ? sp : -sp; }
+      else { const ax = Math.random() > .5 ? 1172 : 2398, sb = Math.random() > .5; x = ax + (sb ? 10 : 34); y = sb ? -40 : 2440; dy = sb ? sp : -sp; }
+      rollLights(el, true);
       carsData.push({ el, x, y, dx, dy, targetSpeed: sp, ev: kind });
     }
   }
-  settleTraffic();
+  // patrols mostly cruise quietly; now and then one lights up for a while
+  for (const o of [...carsData, ...visitors]) if (o.ev && o.el && (o.el.lightT -= 0.5) <= 0) rollLights(o.el);
+}
+function rollLights(el, first) {
+  const on = Math.random() < (first ? 0.3 : 0.4);
+  el.classList.toggle("lights-off", !on);
+  el.lightT = on ? 8 + Math.random() * 12 : 12 + Math.random() * 22;
 }
 // Local streets: patrols drive past their own neighborhood's lots
 let evT = 5;
@@ -1963,7 +2399,7 @@ function stepEmergency(dt) {
   if (onRoad >= cap) return;
   const o = kinds[Math.floor(Math.random() * kinds.length)], st = o.lots[Math.floor(Math.random() * o.lots.length)], di = lotsData[st].district;
   const near = lotsData.map((l, i) => i).filter(i => { const l = lotsData[i]; return l.district === di && l.status === "built" && PARK[l.building]; });
-  spawnVisitor(true, { ev: o.k, lot: near.length ? near[Math.floor(Math.random() * near.length)] : st });
+  if (!spawnVisitor(true, { ev: o.k, lot: near.length ? near[Math.floor(Math.random() * near.length)] : st })) evT = 1.5;
 }
 
 const carsData = [];
@@ -2071,9 +2507,66 @@ function spawnVisitor(through, opt) {
   }
   const g = c.g, lane = east ? g.dn : g.up, sx = east ? g.x0 - 16 : g.x1 + 16;
   if (visitors.some(o => Math.hypot(o.x - sx, o.y - lane) < 32)) { if (!through) busySpots.delete(c.i + ":" + c.k); return; }
-  Object.assign(c, { el: makeVisitorEl(opt.ev), x: sx, y: lane, ang: east ? 0 : Math.PI, state: "drive", lane, wait: 0, speed: opt.ev ? 105 + Math.random() * 20 : 70 + Math.random() * 30, through, ev: opt.ev || null });
+  const a = aveAt(g, east ? "l" : "r");
+  let el, start = { x: sx, y: lane, ang: east ? 0 : Math.PI, state: "drive" };
+  if (a != null) {
+    // a real car already driving the avenue slows down and turns onto the side street
+    const car = pullHighwayCar(a, lane, opt.ev);
+    if (!car) { if (!through) busySpots.delete(c.i + ":" + c.k); return; }
+    const south = car.dy > 0;
+    el = car.el; el.classList.remove("underpass-car", "overpass-car"); el.classList.add("visitor", "on");
+    start = { x: car.x + 11, y: car.y + 6, ang: south ? Math.PI / 2 : -Math.PI / 2, state: "rampIn",
+      rin: { x: aveLane(a, south), y: lane }, hwX: laneLeftX(a, south), entryV: Math.abs(car._v ?? car.targetSpeed) * 60 };
+    c.dir = car.dir;
+  } else { el = makeVisitorEl(opt.ev); if (opt.ev) rollLights(el, true); }                  // map-edge streets: drive in from off the map
+  Object.assign(c, { el, lane, wait: 0, speed: opt.ev ? 105 + Math.random() * 20 : 70 + Math.random() * 30, through, ev: opt.ev || null }, start);
   visitors.push(c);
-  requestAnimationFrame(() => c.el.classList.add("on"));
+  if (!el.classList.contains("on")) requestAnimationFrame(() => el.classList.add("on"));
+  return true;
+}
+// ---- avenue <-> side street hand-offs (the overpass has no ramps, so its cars never turn) ----
+const laneLeftX = (a, south) => AVE[a] + (south ? 10 : 34);   // highway cars store their top-left corner
+function pullHighwayCar(a, laneY, kind) {
+  let best = null, bd = 1e9;
+  for (const car of carsData) {
+    if ((car.ev || null) !== (kind || null) || car.dy === 0) continue;
+    const south = car.dy > 0; if (Math.round(car.x) !== laneLeftX(a, south)) continue;
+    const cy = car.y + 6, d = south ? laneY - cy : cy - laneY;
+    if (d > 45 && d < (kind ? 1400 : 520) && d < bd && !visitors.some(v => v.hwX === laneLeftX(a, south) && Math.abs(v.y - laneY) < 30)) { bd = d; best = car; }
+  }
+  if (best) carsData.splice(carsData.indexOf(best), 1);
+  return best;
+}
+function mergeClear(hwX, y, self) {
+  for (const car of carsData) if (Math.round(car.x) === hwX && Math.abs(car.y + 6 - y) < 70) return false;
+  for (const v of visitors) if (v !== self && v.hwX === hwX && (v.state === "rampIn" || v.state === "rampOut") && Math.abs(v.y - y) < 36) return false;
+  return true;
+}
+function newHighwayCar(horiz, x, y, dx, dy, sp) {
+  const container = document.getElementById("traffic-layer"), el = document.createElement("div");
+  el.className = `car ${horiz ? "overpass-car" : "underpass-car"}`;
+  dressCar(el, carColors[Math.floor(Math.random() * carColors.length)]);
+  const h = document.createElement("div"); h.className = "car-headlight"; el.appendChild(h); container.appendChild(el);
+  carsData.push({ el, x, y, dx, dy, targetSpeed: sp });
+}
+// keep roughly the same number of everyday cars on the highways as they come and go from side streets
+function balanceHighway() {
+  const civ = carsData.filter(c => !c.ev);
+  if (civ.length < 22) {
+    const horiz = Math.random() < 0.4, sp = 2.2 + Math.random() * 2.6;
+    if (horiz) { const e = Math.random() < 0.5, y = 1172 + (e ? 32 : 12), x = e ? -36 : 3636;
+      if (!carsData.some(c => c.dy === 0 && Math.abs(c.y - y) < 2 && Math.abs(c.x - x) < 80)) newHighwayCar(true, x, y, e ? sp : -sp, 0, sp);
+    } else { const a = Math.random() < 0.5 ? 0 : 1, south = Math.random() < 0.5, x = laneLeftX(a, south), y = south ? -36 : 2436;
+      if (!carsData.some(c => Math.round(c.x) === x && Math.abs(c.y - y) < 80)) newHighwayCar(false, x, y, 0, south ? sp : -sp, sp);
+    }
+  } else if (civ.length > 30) {
+    const off = civ.find(c => c.y < -20 || c.y > 2420 || c.x < -20 || c.x > 3620);
+    if (off) { off.el.remove(); carsData.splice(carsData.indexOf(off), 1); }
+  }
+}
+function aveAt(g, side) {
+  const col = DISTRICTS[parseInt(g.road)].gridPos[1] / 2;
+  return side === "l" ? (col > 0 ? col - 1 : null) : (col < 2 ? col : null);
 }
 function turnTo(c, target, dt, rate) {
   let d = target - c.ang; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
@@ -2089,7 +2582,7 @@ function moveTo(c, tx, ty, v, dt, face, rev) {
 function blocked(c) {
   for (const o of visitors) {
     if (o === c) continue;
-    const inLane = Math.abs(o.y - c.lane) < 8 && o.g.road === c.g.road && (o.state === "drive" || o.state === "leave") && o.east === c.east;
+    const inLane = Math.abs(o.y - c.lane) < 8 && o.g.road === c.g.road && (o.state === "drive" || o.state === "leave" || o.state === "rampOut") && o.east === c.east;
     const dir = c.east ? 1 : -1, ahead = (o.x - c.x) * dir;
     if (inLane && ahead > 0 && ahead < 26) return true;
     if ((o.state === "backout" || o.state === "enter" || o.state === "exitloop") && o.g.road === c.g.road && Math.abs(o.y - c.lane) < 13 && ahead > 0 && ahead < 26) return true;
@@ -2135,8 +2628,34 @@ function updateVisitors(dt) {
           moveTo(c, tx, c.lane, c.speed, dt, true);
           if (c.state === "leave") turnTo(c, c.east ? 0 : Math.PI, dt, 5);
           if (stopX != null && Math.abs(c.x - stopX) < 0.5) { if (stopX === g.nx) { c.state = "enter"; c.stage = 0; } else c.holding = true; }
-          if (stopX == null && ((c.east && c.x >= g.x1 + 22) || (!c.east && c.x <= g.x0 - 22))) c.state = "done";
+          const a = stopX == null ? aveAt(g, c.east ? "r" : "l") : null;
+          if (a != null && ((c.east && c.x >= g.x1 - 30) || (!c.east && c.x <= g.x0 + 30))) {
+            // reach the avenue: turn onto it (usually a right turn) and join the highway traffic
+            const south = Math.random() < 0.7 ? c.east : !c.east, lx = aveLane(a, south);
+            c.state = "rampOut"; c.rout = [{ x: lx, y: c.lane }, { x: lx, y: c.lane + (south ? 150 : -150) }]; c.stage = 0;
+            c.rout.length = 1; c.hwX = laneLeftX(a, south); c.hwSouth = south; c.ave = a;
+          } else if (stopX == null && ((c.east && c.x >= g.x1 + 22) || (!c.east && c.x <= g.x0 - 22))) c.state = "done";
         }
+      }
+    } else if (c.state === "rampIn") {
+      // highway cars brake from cruising speed down to street speed as they reach the corner
+      const v = c.entryV ? (c.entryV = Math.max(c.speed * 0.8, c.entryV - 260 * dt)) : c.speed * 0.8;
+      if (moveTo(c, c.rin.x, c.rin.y, v, dt, true)) { c.state = "drive"; delete c.hwX; }
+    } else if (c.state === "rampOut") {
+      const w = c.rout[c.stage];
+      const onAve = c.hwX != null && Math.abs(c.x - (c.hwX + 11)) < 30;
+      if (c.hwX != null && !onAve && !mergeClear(c.hwX, c.lane, c)) { placeCar(c, c.x - 10, c.y - 5, c.ang); continue; }   // wait for a gap
+      if (moveTo(c, w.x, w.y, c.speed * (c.stage ? 1.1 : 0.75), dt, true)) {
+        c.stage++;
+        if (c.hwX != null) {                              // now part of the avenue traffic: it may turn into another street or leave the map
+          visitors.splice(n, 1);
+          c.el.classList.remove("visitor", "on"); c.el.classList.add("underpass-car");
+          const sp = c.ev ? 3.6 + Math.random() * 1.2 : 2.2 + Math.random() * 2.6;
+          carsData.push({ el: c.el, x: c.hwX, y: c.lane - 6, dx: 0, dy: c.hwSouth ? sp : -sp, targetSpeed: sp * 0.45, cruise: sp, baseSpeed: sp, dir: c.dir, ev: c.ev || undefined });
+          continue;
+        }
+        if (c.stage === 1) c.el.classList.remove("on");   // emergency patrols fade out up/down the avenue
+        if (c.stage >= c.rout.length) c.state = "done";
       }
     } else if (c.state === "enter") {
       const w = c.wp[c.stage];
@@ -2157,6 +2676,103 @@ function updateVisitors(dt) {
     placeCar(c, c.x - 10, c.y - 5, c.ang);
   }
 }
+
+// ---- Police response: every Police Station keeps 2 cruisers in its lot. When a break-in happens, the
+// nearest free cruiser lights up, drives the roads (and avenues/overpass if needed) to the house,
+// pulls into the driveway for 3 seconds, then drives back and parks in its stall.
+const cruisers = [];
+const AVE = [1172, 2398], OVER_E = 1209, OVER_W = 1189;
+const aveLane = (a, south) => AVE[a] + (south ? 21 : 45);
+const distCol = d => DISTRICTS[d].gridPos[1] / 2;
+function roadInfo(i) { const g = lotGeom(i); return g && { d: lotsData[i].district, id: g.road, up: g.up, dn: g.dn, g }; }
+const laneY = (r, east) => east ? r.dn : r.up;
+// Waypoints (car centres) from x=xa on road r1 to x=xb on road r2.
+function routeBetween(r1, xa, r2, xb) {
+  if (r1.id === r2.id) { const e = xb > xa, y = laneY(r1, e); return [{ x: xa, y }, { x: xb, y }]; }
+  const touch = c => c === 0 ? [0] : c === 2 ? [1] : [0, 1];
+  const c1 = distCol(r1.d), c2 = distCol(r2.d), shared = touch(c1).filter(a => touch(c2).includes(a));
+  const pts = [];
+  const leg = (a, xFrom, rFrom, yTarget) => {           // road → avenue a → down/up to yTarget
+    const ax = AVE[a] + 33, y1 = laneY(rFrom, ax > xFrom), lx = aveLane(a, yTarget > y1);
+    pts.push({ x: xFrom, y: y1 }, { x: lx, y: y1 }, { x: lx, y: yTarget });
+    return lx;
+  };
+  if (shared.length) {
+    const a = shared.sort((p, q) => (Math.abs(AVE[p] - xa) + Math.abs(AVE[p] - xb)) - (Math.abs(AVE[q] - xa) + Math.abs(AVE[q] - xb)))[0];
+    const y2 = laneY(r2, xb > AVE[a] + 33);
+    const lx = leg(a, xa, r1, y2); pts.push({ x: xb, y: y2 });
+  } else {                                               // opposite sides of town: hop across on the overpass
+    const a1 = c1 === 0 ? 0 : 1, a2 = c2 === 0 ? 0 : 1, oy = AVE[a2] > AVE[a1] ? OVER_E : OVER_W;
+    leg(a1, xa, r1, oy);
+    const y2 = laneY(r2, xb > AVE[a2] + 33), lx2 = aveLane(a2, y2 > oy);
+    pts.push({ x: lx2, y: oy, over: true }, { x: lx2, y: y2 }, { x: xb, y: y2 });
+  }
+  return pts;
+}
+function syncCruisers() {
+  const stations = stationLots("police");
+  for (let n = cruisers.length - 1; n >= 0; n--) {
+    const c = cruisers[n];
+    if (!stations.includes(c.st)) { c.el.remove(); busySpots.delete(c.st + ":" + c.k); cruisers.splice(n, 1); }
+  }
+  stations.forEach(st => {
+    const g = lotGeom(st); if (!g) return;
+    [0, 1].forEach(k => {
+      if (cruisers.some(c => c.st === st && c.k === k)) return;
+      if (busySpots.has(st + ":" + k)) return;            // a visitor is in that stall — wait for it to leave
+      busySpots.add(st + ":" + k);
+      const S = g.wps[k][g.wps[k].length - 1], el = makeVisitorEl("police");
+      el.classList.add("cruiser", "lights-off", "on");
+      const c = { el, st, k, x: S.x, y: S.y, ang: g.ph != null ? g.ph : -Math.PI / 2, state: "home", segs: [], idx: 0 };
+      cruisers.push(c); placeCar(c, c.x - 10, c.y - 5, c.ang);
+    });
+  });
+}
+function dispatchPolice(target) {
+  const tr = roadInfo(target); if (!tr) return false;
+  const tl = lotsData[target], free = cruisers.filter(c => c.state === "home");
+  if (!free.length) return false;
+  free.sort((a, b) => ((lotsData[a.st].district !== tl.district) - (lotsData[b.st].district !== tl.district)) || (Math.abs(a.x - tr.g.nx) + Math.abs(a.y - tr.g.ey)) - (Math.abs(b.x - tr.g.nx) + Math.abs(b.y - tr.g.ey)));
+  const c = free[0], sr = roadInfo(c.st); if (!sr) return false;
+  const w = sr.g.wps[c.k];                                // [mouth, pre, aisle, stall]
+  const route = routeBetween(sr, sr.g.nx, tr, tr.g.nx);
+  c.segs = [
+    { ...w[2], v: 28, rev: true }, { ...w[1], v: 28, rev: true }, { ...w[0], v: 38 },
+    ...route.map(p => ({ ...p, v: 155 })),
+    { x: tr.g.nx, y: tr.g.ey, v: 45 }
+  ];
+  c.idx = 0; c.state = "out"; c.target = target;
+  c.el.classList.remove("lights-off");
+  return true;
+}
+function stepCruisers(dt) {
+  for (const c of cruisers) {
+    if (c.state === "home") continue;
+    if (c.state === "scene") {
+      c.t -= dt; placeCar(c, c.x - 10, c.y - 5, c.ang);
+      if (c.t <= 0) {                                     // head home, lights off
+        const tr = roadInfo(c.target), sr = roadInfo(c.st);
+        if (!tr || !sr) { c.state = "home"; continue; }
+        const route = routeBetween(tr, tr.g.nx, sr, sr.g.nx), w = sr.g.wps[c.k];
+        c.segs = [{ ...route[0], v: 30, rev: true }, ...route.slice(1).map(p => ({ ...p, v: 115 })),
+          { ...w[0], v: 38 }, { ...w[1], v: 30 }, { ...w[2], v: 28 }, { ...w[3], v: 22 }];
+        c.idx = 0; c.state = "back"; c.el.classList.add("lights-off");
+      }
+      continue;
+    }
+    const seg = c.segs[c.idx];
+    if (!seg) continue;
+    c.el.classList.toggle("on-over", !!seg.over);
+    if (moveTo(c, seg.x, seg.y, seg.v * wxSpeed, dt, true, seg.rev)) {
+      c.idx++;
+      if (c.idx >= c.segs.length) {
+        if (c.state === "out") { c.state = "scene"; c.t = 3; c.el.classList.remove("on-over"); }
+        else { c.state = "home"; const g = lotGeom(c.st); if (g && g.ph != null) c.ang = g.ph; }
+      }
+    }
+    placeCar(c, c.x - 10, c.y - 5, c.ang);
+  }
+}
 let lastVis = performance.now(), spawnT = 0;
 function stepVisitors() {
   const now = performance.now(), dt = Math.min(0.05, (now - lastVis) / 1000) * wxSpeed; lastVis = now;
@@ -2165,10 +2781,13 @@ function stepVisitors() {
     spawnT = 4 + Math.random() * 4;
     const park = visitors.filter(v => !v.through).length, thru = visitors.filter(v => v.through && !v.ev).length;
     let lots = 0; lotsData.forEach(l => { if (l.status === "built" && l.building && PARK[l.building] && PARK[l.building].spots.length) lots++; });
-    if (lots && park < Math.min(6, 1 + lots)) spawnVisitor(false);
-    else if (thru < 3 && Math.random() < 0.4) spawnVisitor(true);
+    let ok = true;
+    if (lots && park < Math.min(6, 1 + lots)) ok = spawnVisitor(false);
+    else if (thru < 3 && Math.random() < 0.4) ok = spawnVisitor(true);
+    if (!ok) spawnT = 0.8;   // no avenue car in position yet — look again shortly
   }
   stepEmergency(dt);
+  stepCruisers(dt);
   updateVisitors(dt);
 }
 
@@ -2209,18 +2828,36 @@ function settleTraffic() {
 }
 function updateTraffic() {
   const mapW = 3600, mapH = 2400, MIN_GAP = 6, FOLLOW = 30;
+  const ghosts = visitors.filter(v => v.hwX != null && (v.state === "rampIn" || v.state === "rampOut") && Math.abs(v.x - (v.hwX + 11)) < 18);
   Object.values(hwLanes()).forEach(lane => {
     const n = lane.length;
     // Move the front-most car first so each follower reacts to where its leader actually is now.
     for (let i = n - 1; i >= 0; i--) {
       const c = lane[i];
+      if (c.gapPref == null) c.gapPref = 18 + Math.random() * 110;     // some drivers tailgate, some hang way back
+      if (c.baseSpeed == null) c.baseSpeed = c.targetSpeed;
+      if ((c.reroll = (c.reroll ?? Math.random() * 600) - 1) <= 0) {   // every ~5–15 s ease to a new cruising speed
+        c.reroll = 300 + Math.random() * 600;
+        c.cruise = c.baseSpeed * (0.8 + Math.random() * 0.4);
+        if (Math.random() < 0.35) c.gapPref = 18 + Math.random() * 110;
+      }
+      c.targetSpeed += ((c.cruise ?? c.baseSpeed) - c.targetSpeed) * 0.01;
       let v = c.targetSpeed * wxSpeed;
       if (n > 1) {
         const lead = lane[(i + 1) % n];
         let dp = lead._p - c._p; if (i === n - 1) dp += c._span;   // leader is around the wrap
         const gap = dp - (c._len + lead._len) / 2;
-        if (gap < FOLLOW) v = Math.min(v, (lead._v ?? v) * (gap < MIN_GAP + 8 ? 0.6 : 1));
+        if (gap < c.gapPref) v = Math.min(v, (lead._v ?? v) * (gap < c.gapPref * 0.7 ? 0.85 : 1));
+        if (gap < MIN_GAP + 8) v = Math.min(v, (lead._v ?? v) * 0.6);
         v = Math.max(0, Math.min(v, gap - MIN_GAP));   // never close the gap past MIN_GAP
+      }
+      if (c.dy !== 0 && ghosts.length) {
+        const sg = Math.sign(c.dy), lx = Math.round(c.x);
+        for (const gh of ghosts) {
+          if (gh.hwX !== lx) continue;
+          const ahead = (gh.y - (c.y + 6)) * sg - 16;
+          if (ahead > -10 && ahead < c.gapPref + 20) v = Math.max(0, Math.min(v, (ahead - MIN_GAP) * 0.5));
+        }
       }
       c._v = v; c._p += v;
       const sgn = c.dy === 0 ? Math.sign(c.dx) : Math.sign(c.dy);
@@ -2294,7 +2931,7 @@ function setWeather(t) {
   const prev = wxType; wxType = currentWeather = t;
   const el = document.getElementById("stat-weather"); if (el) el.textContent = WX[t].icon;
   if (t !== "clear" || prev === "rain" || prev === "storm" || prev === "fog") toast(WX_NEWS[t]);
-  if (t === "storm") boltT = 2 + Math.random() * 3;
+  if (t === "storm") { boltT = 2 + Math.random() * 3; stormT = 8 + Math.random() * 17; } else stormT = null;
 }
 function pickWeather() {
   wxTimer = 55 + Math.random() * 70;
@@ -2308,6 +2945,7 @@ function wxStep(dt) {
   for (const key of ["rain", "fog", "cloud", "dark", "speed"]) wxLv[key] += (T[key] - wxLv[key]) * k;
   wxSpeed = wxLv.speed;
   wxTimer -= dt; if (wxTimer <= 0) pickWeather();
+  if (stormT != null && !storyBusy && (stormT -= dt) <= 0) { stormT = null; stormDamage(); }
   const w = document.getElementById("map-world"); if (w) w.classList.toggle("wet", wxLv.rain > .22);
 }
 function makeBolt(w, h) {
@@ -2379,7 +3017,9 @@ function applyAmbient() {
   const [r, g, b, a] = ambientAt(dayTime), aw = wxLv.dark * .3, w1 = a * (1 - aw), w2 = aw, A = a + aw - a * aw;
   const den = (w1 + w2) || 1, R = Math.round((r * w1 + 30 * w2) / den), G = Math.round((g * w1 + 40 * w2) / den), B = Math.round((b * w1 + 55 * w2) / den);
   const ov = document.getElementById("night-overlay"); if (ov) ov.style.background = `rgba(${R},${G},${B},${A.toFixed(3)})`;
-  document.body.classList.toggle("is-dim", A > .24 || wxLv.fog > .5 || wxLv.rain > .55);
+  const dim = A > .24 || wxLv.fog > .5 || wxLv.rain > .55;
+  document.body.classList.toggle("is-dim", dim);
+  const mw = document.getElementById("map-world"); if (mw) mw.classList.toggle("lamps-on", dim);
 }
 
 window.addEventListener("load", () => {
@@ -2459,7 +3099,8 @@ window.addEventListener("load", () => {
   initTraffic();
   centerMap();
   setTimeout(() => focusDistrict(unlockedDistricts[unlockedDistricts.length - 1]), 0);
-  if (introShown < chapter && chapter < CHAPTERS.length) setTimeout(() => showIntro(chapter), 400);
+  const intro = () => { if (introShown < chapter && chapter < CHAPTERS.length) setTimeout(() => showIntro(chapter), 400); };
+  if (pendingAway) { const sec = pendingAway; pendingAway = 0; setTimeout(() => settleAway(sec, intro), 300); } else intro();
 
   fxInit(); applyAmbient();
   function animLoop() {
@@ -2472,10 +3113,13 @@ window.addEventListener("load", () => {
   requestAnimationFrame(animLoop);
 
   setInterval(() => {
+    if (document.hidden) return;
     dayTime = (dayTime + 0.003) % 1;
     invalidateProblems();
     tickConstruction();
     syncHighwayEV();
+    balanceHighway();
+    syncCruisers();
     const hour = Math.floor(dayTime * 24);
     const displayHour = hour % 12 === 0 ? 12 : hour % 12;
     const ampm = hour >= 12 ? "PM" : "AM";
