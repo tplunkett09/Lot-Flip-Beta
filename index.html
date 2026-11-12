@@ -586,6 +586,27 @@ body.is-dim .lot-art img.up-lux { opacity: 1; animation: winFlick 6s ease-in-out
 .stat-box.alert.offer { animation-name: offerGlow; } @keyframes offerGlow { 50% { box-shadow: 0 0 10px rgba(255,179,0,.6); } }
 .stat-box.crews.free { border-color: #66bb6a; color: #a5d6a7; }
 @media (prefers-reduced-motion: reduce) { .stat-box.alert { animation: none; } }
+
+/* ---- bigger prices, For Sale signs, lots owned by other people ---- */
+.lot-price { font-size: 14px; padding: 3px 8px; }
+.lot-art.empty { align-items: flex-end !important; justify-content: center; }
+.lot-art.empty svg.sale-sign { width: 62%; height: auto; max-height: 92%; margin-bottom: 4%; filter: drop-shadow(0 4px 4px rgba(0,0,0,.4)); overflow: visible; }
+.sale-sign .swing { transform-origin: 34px 13px; animation: signSway 4s ease-in-out infinite alternate; }
+@keyframes signSway { from { transform: rotate(-2deg); } to { transform: rotate(2deg); } }
+.lot.sold { border: 3px solid #78909c; background: #4d7a42; box-shadow: inset 0 0 18px rgba(0,0,0,.28); }
+.lot.sold .lot-art img:first-child { filter: saturate(.35) brightness(.88) drop-shadow(0 5px 6px rgba(0,0,0,.4)); }
+.lot.sold .lot-art img.up-paint, .lot.sold .lot-art img.up-roof { filter: saturate(.35) brightness(.88); }
+.lot.sold .lot-art img.up-lux, .lot.sold .lux-spark { display: none; }
+.lot.sold .lot-price { color: #cfd8dc; background: rgba(38,50,56,.9); }
+.lot-art svg.sold-sign { position: absolute; left: 4%; bottom: 4%; width: 24%; height: auto; max-height: none; z-index: 7; pointer-events: none; filter: drop-shadow(0 3px 3px rgba(0,0,0,.45)); }
+@media (prefers-reduced-motion: reduce) { .sale-sign .swing { animation: none; } }
+
+.dmg-puddle { position: absolute; left: 22%; right: 22%; bottom: 3%; height: 14%; border-radius: 50%; z-index: 6; pointer-events: none;
+  background: radial-gradient(ellipse, rgba(79,195,247,.75), rgba(41,121,255,.35) 60%, transparent 72%); animation: puddle 2.4s ease-in-out infinite alternate; }
+@keyframes puddle { to { transform: scale(1.12); } }
+.dmg-smoke { position: absolute; left: 44%; top: 26%; width: 16px; height: 16px; border-radius: 50%; background: rgba(70,70,70,.65); z-index: 7; pointer-events: none; animation: dustPuff 2s ease-out infinite; }
+.dmg-smoke.d2 { left: 52%; animation-delay: .7s; } .dmg-smoke.d3 { left: 38%; animation-delay: 1.3s; }
+#toast { max-width: min(92%, 560px); }
 </style>
 </head>
 <body>
@@ -761,19 +782,22 @@ function crewBanner(where) {
   if (crewFree()) return "";
   const c = crewCost(), can = crews < MAX_CREWS;
   return `<div class="crew-banner">👷 <b>All ${crews} crews are busy.</b> Wait for one to finish, rush a job, or hire another crew.
-    ${can ? `<div class="build-opts" style="margin-top:8px"><button class="opt-btn ${money >= c ? 'btn-ok' : 'disabled'}" onclick="hireCrew('${where}')"><b>👷 Hire crew #${crews + 1} (${fmt(c)})</b><small>One more job at a time, for good</small></button></div>` : ""}</div>`;
+    ${can ? `<div class="build-opts" style="margin-top:8px"><button class="opt-btn ${money >= c ? 'btn-ok' : 'disabled'}" onclick="hireCrew('${where}')"><b>👷 Hire crew #${crews + 1} (${fmt(c)})</b><small>One more job at a time until this chapter ends</small></button></div>` : ""}</div>`;
 }
 // Things that need you, as tappable chips in the info bar; each tap jumps to the next matching lot.
 const ALERTS = [
-  { k: "repair", cls: "", test: l => l.damage && !l.reno, label: n => `⛈️ ${n} need${n > 1 ? "" : "s"} repair` },
+  { k: "repair", cls: "", test: l => l.damage && !l.reno, label: n => `🔧 ${n} need${n > 1 ? "" : "s"} repair` },
   { k: "offer", cls: "offer", test: l => l.status === "listed" && l.offer, label: n => `💰 ${n} offer${n > 1 ? "s" : ""}` }
 ];
 let alertKey = "", alertIdx = {};
 function renderAlerts() {
   const box = document.getElementById("alerts"); if (!box) return;
   const found = ALERTS.map(a => ({ a, lots: lotsData.map((l, i) => i).filter(i => a.test(lotsData[i], i)) })).filter(o => o.lots.length);
-  const key = found.map(o => o.a.k + o.lots.length).join("|"); if (key === alertKey) return; alertKey = key;
-  box.innerHTML = found.map(o => `<div class="stat-box alert ${o.a.cls}" onclick="alertGo('${o.a.k}')" title="Tap to go to the lot">${o.a.label(o.lots.length)}</div>`).join("");
+  const back = [];
+  for (let d = 0; d < Math.min(chapter, DISTRICTS.length); d++) if (hazardActive(d)) back.push(d);
+  const key = found.map(o => o.a.k + o.lots.length).join("|") + "#" + back.map(d => d + ":" + problemLevel(d)).join(","); if (key === alertKey) return; alertKey = key;
+  box.innerHTML = found.map(o => `<div class="stat-box alert ${o.a.cls}" onclick="alertGo('${o.a.k}')" title="Tap to go to the lot">${o.a.label(o.lots.length)}</div>`).join("") +
+    back.map(d => { const P = PROBLEMS[DISTRICTS[d].problem]; return `<div class="stat-box alert" onclick="focusDistrict(${d})" title="${P.tip}">${P.icon} ${DISTRICTS[d].name.split(" ")[0]} ${problemLevel(d)}%</div>`; }).join("");
 }
 function goToLot(i) {
   const el = lotEls[i]; if (!el) return;
@@ -798,14 +822,56 @@ function openCrewSheet() {
       ${jobs.length ? jobs.map(o => `<div>• Lot #${o.i + 1}: ${o.l.status === "building" ? BUILDINGS[o.l.building].icon + " " + BUILDINGS[o.l.building].name + " · " + fmtTime(buildLeft(o.l)) : renoLabel(o.l.reno.key) + " · " + fmtTime(renoLeft(o.l))}</div>`).join("") : `<div style="color:var(--mut)">No jobs running — every crew is free.</div>`}
     </div>
     <div class="build-opts">
-      ${crews < MAX_CREWS ? `<button class="opt-btn ${money >= c ? 'btn-ok' : 'disabled'}" onclick="hireCrew('crew')"><b>👷 Hire crew #${crews + 1} (${fmt(c)})</b><small>Each crew runs one build, renovation or repair at a time</small></button>` : `<button class="opt-btn disabled"><b>👷 ${crews} crews</b><small>Maximum roster</small></button>`}
+      ${crews < MAX_CREWS ? `<button class="opt-btn ${money >= c ? 'btn-ok' : 'disabled'}" onclick="hireCrew('crew')"><b>👷 Hire crew #${crews + 1} (${fmt(c)})</b><small>One build, renovation or repair at a time · hired crews leave when the chapter ends</small></button>` : `<button class="opt-btn disabled"><b>👷 ${crews} crews</b><small>Maximum roster</small></button>`}
     </div>`;
   sheet.classList.add("active");
 }
 
 // ---- Storm damage: a storm hits homes 50–75% of the time; damaged homes pay no rent until repaired ----
-const renoLabel = k => k === "repair" ? "⛈️ Storm repairs" : RENOVATIONS[k].name;
+const renoLabel = k => k === "repair" ? "🔨 Repairs" : RENOVATIONS[k].name;
 const REPAIR_TIME = 20;
+const ISSUES = {
+  storm:   { icon: "⛈️", name: "Storm damage",        tip: "Tenants can't stay until it's repaired.", t: 1,   c: [.08, .15] },
+  pipe:    { icon: "💧", name: "Burst pipe",          tip: "Water everywhere — the tenants moved out.", t: .8, c: [.05, .09], home: true },
+  leak:    { icon: "🌧️", name: "Roof leak",           tip: "Ceilings are dripping. A Modern Roof makes this rare.", t: 1, c: [.05, .1], home: true, avoid: "roof" },
+  hvac:    { icon: "🥵", name: "Furnace / AC out",    tip: "Nobody will rent without heat and air.", t: .6, c: [.04, .08], home: true },
+  termite: { icon: "🐜", name: "Termites",            tip: "Exterminator needed. Fresh Paint keeps them away.", t: 1.3, c: [.07, .12], home: true, avoid: "paint" },
+  fire:    { icon: "🔥", name: "Kitchen fire",        tip: "Smoke damage. A Fire Station on the street cuts the risk.", t: 1.8, c: [.15, .25], home: true, rare: true },
+  equip:   { icon: "⚙️", name: "Equipment breakdown", tip: "The shop is closed for repairs.", t: .8, c: [.05, .1], biz: ["coffee", "shopping", "bank", "civic"] }
+};
+const issueOf = l => ISSUES[(l.damage && l.damage.kind) || "storm"];
+function damageLot(i, kind, quiet) {
+  const l = lotsData[i], I = ISSUES[kind];
+  l.damage = { kind, cost: Math.max(30, Math.round(calculatePropertyValue(i) * (I.c[0] + Math.random() * (I.c[1] - I.c[0])))) };
+  stats.events++;
+  paintLot(i); flashLot(i, I.icon);
+  if (selectedLotId === i) refreshSheet(i);
+  if (!quiet) toast(`${I.icon} ${I.name} at Lot #${i + 1} — repair it to get rent back`, () => goToLot(i));
+  updateHUD(); saveGame();
+}
+// Everyday wear: the more you own, the more often something breaks (about 1 a minute with a full district).
+let wearT = 25;
+function wearEvents(dt) {
+  if (storyBusy) return;
+  wearT -= dt; if (wearT > 0) return;
+  const owned = lotsData.map((l, i) => i).filter(i => { const l = lotsData[i]; return l.status === "built" && l.building && !l.reno && !l.damage && unlockedDistricts.includes(l.district); });
+  wearT = 60 / Math.min(1.2, Math.max(0.15, owned.length * 0.045)) * (0.6 + Math.random() * 0.8);
+  if (owned.length < 4) return;                      // a few buildings in, things start needing upkeep
+  const opts = [];
+  for (const i of owned) {
+    const l = lotsData[i], b = l.building, home = BUILDINGS[b].cat === "h";
+    for (const k in ISSUES) {
+      const I = ISSUES[k]; if (k === "storm") continue;
+      if (I.home && !home) continue; if (I.biz && !I.biz.includes(b)) continue;
+      let w = I.rare ? .25 : 1;
+      if (I.avoid && l.renovations.includes(I.avoid)) w *= .2;
+      if (k === "fire") { const row = Math.floor(i / 5) * 5; for (let n = row; n < row + 5; n++) if (isDone(lotsData[n]) && lotsData[n].building === "fire") w *= .25; }
+      opts.push([i, k, w]);
+    }
+  }
+  let r = Math.random() * opts.reduce((a, o) => a + o[2], 0);
+  for (const [i, k, w] of opts) { r -= w; if (r <= 0) { damageLot(i, k); return; } }
+}
 let stormT = null;
 function stormDamage() {
   const homes = lotsData.map((l, i) => i).filter(i => { const l = lotsData[i]; return l.status === "built" && l.building && BUILDINGS[l.building].cat === "h" && !l.reno && !l.damage && unlockedDistricts.includes(l.district); });
@@ -823,22 +889,17 @@ function stormDamage() {
   }
   hit.forEach((i, k) => setTimeout(() => {
     const l = lotsData[i]; if (!l || l.status !== "built" || l.damage) return;
-    l.damage = { cost: Math.max(40, Math.round(calculatePropertyValue(i) * (0.08 + Math.random() * 0.07))) };
-    stats.events++;
-    paintLot(i);
     const el = lotEls[i]; if (el) { el.classList.remove("zap"); void el.offsetWidth; el.classList.add("zap"); setTimeout(() => el.classList.remove("zap"), 700); }
-    flashLot(i, "⚡");
-    if (selectedLotId === i) refreshSheet(i);
-    updateHUD(); saveGame();
+    damageLot(i, "storm", true);
   }, k * 900));
-  toast(`⛈️ Storm damage! ${n} home${n > 1 ? "s need" : " needs"} repairs before rent resumes`);
+  toast(`⛈️ Storm damage! ${n} home${n > 1 ? "s need" : " needs"} repairs before rent resumes`, () => setTimeout(() => alertGo("repair"), 50));
 }
 function repairLot(id) {
   const l = lotsData[id]; if (!l || !l.damage || l.reno) return;
   if (!crewFree()) { crewBlocked(); refreshSheet(id); return; }
   if (money < l.damage.cost) { toast(`Need ${fmt(l.damage.cost)} for repairs`); return; }
   money -= l.damage.cost;
-  const dur = Math.round(REPAIR_TIME * (1 + 0.5 * l.district));
+  const dur = Math.round(REPAIR_TIME * issueOf(l).t * (1 + 0.5 * l.district));
   l.reno = { key: "repair", dur, end: Date.now() + dur * 1000, cost: l.damage.cost };
   toast(`🔨 Repair crew on the way — rent back in ${fmtTime(dur)}`);
   openLotSheet(id); updateHUD(); renderCity(); saveGame();
@@ -846,10 +907,38 @@ function repairLot(id) {
 function renoLeft(l) { return l.reno ? Math.max(0, (l.reno.end - Date.now()) / 1000) : 0; }
 function renoRushCost(l) { return Math.max(20, Math.round((l.reno.key === "repair" ? l.reno.cost : renoCost(l.reno.key, l.district)) * 0.5 * renoLeft(l) / (l.reno.dur || 1))); }
 // The building picture with every finished renovation layered on top.
+// Realty yard sign for empty lots (price on the hanging board) and a small SOLD sign for lots you sold.
+function saleSign(price) {
+  return `<svg class="sale-sign" viewBox="0 0 64 56" aria-hidden="true" stroke-linejoin="round">
+    <ellipse cx="14" cy="53" rx="9" ry="2.4" fill="rgba(0,0,0,.35)"/>
+    <rect x="12" y="6" width="4" height="47" rx="1" fill="#f4f1ea" stroke="#1d2a1b" stroke-width="1.2"/>
+    <rect x="12" y="6" width="50" height="4" rx="1" fill="#f4f1ea" stroke="#1d2a1b" stroke-width="1.2"/>
+    <g class="swing">
+      <path d="M24 10v4M54 10v4" stroke="#5f6a70" stroke-width="1.2"/>
+      <rect x="18" y="14" width="42" height="32" rx="2.4" fill="#ffffff" stroke="#1d2a1b" stroke-width="1.4"/>
+      <rect x="18" y="14" width="42" height="11" rx="2.4" fill="#d32f2f" stroke="#1d2a1b" stroke-width="1.4"/>
+      <text x="39" y="22.6" font-size="7.6" font-weight="900" text-anchor="middle" fill="#ffffff" font-family="system-ui,sans-serif" letter-spacing=".4">FOR SALE</text>
+      <text x="39" y="39.6" font-size="${String(price).length > 6 ? 9.5 : 12}" font-weight="900" text-anchor="middle" fill="#1d2a1b" font-family="system-ui,sans-serif">${price}</text>
+    </g>
+  </svg>`;
+}
+const SOLD_SIGN = `<svg class="sold-sign" viewBox="0 0 40 36" aria-hidden="true" stroke-linejoin="round">
+  <rect x="5" y="4" width="3" height="31" fill="#f4f1ea" stroke="#1d2a1b" stroke-width="1"/>
+  <rect x="9" y="6" width="29" height="18" rx="1.6" fill="#ffffff" stroke="#1d2a1b" stroke-width="1.2"/>
+  <rect x="9" y="6" width="29" height="7" rx="1.6" fill="#1565c0" stroke="#1d2a1b" stroke-width="1.2"/>
+  <text x="23.5" y="11.4" font-size="5" font-weight="900" text-anchor="middle" fill="#fff" font-family="system-ui,sans-serif">REALTY</text>
+  <text x="23.5" y="21.6" font-size="8" font-weight="900" text-anchor="middle" fill="#d32f2f" font-family="system-ui,sans-serif" transform="rotate(-8 23.5 18)">SOLD</text>
+</svg>`;
+const OWNERS = ["Hendersons", "Nguyens", "Garcias", "Patels", "Okafors", "Johnsons", "Kowalskis", "Murphys", "Chens", "Rossis", "Larsens", "Abernathys"];
 function upImg(b64, cls) { return `<img class="${cls}" src="data:image/png;base64,${b64}" alt="" draggable="false">`; }
 function spriteStack(l) {
   const U = UPG_ART[l.building], r = l.renovations || [];
   let h = SPRITES[l.building] || "";
+  if (l.damage && !l.reno && l.damage.kind && l.damage.kind !== "storm") {
+    const k = l.damage.kind, I = ISSUES[k];
+    const fx = k === "pipe" ? `<i class="dmg-puddle"></i>` : k === "fire" ? `<i class="dmg-smoke"></i><i class="dmg-smoke d2"></i><i class="dmg-smoke d3"></i>` : "";
+    return h + fx + `<span class="dmg-warn">${I.icon}</span><span class="dmg-bit" style="left:58%;top:16%">⚠️</span>`;
+  }
   if (l.damage && !l.reno) {
     return h + (U ? upImg(U.roof, "tarp") : "") + `<span class="dmg-bit" style="left:12%;bottom:8%">🪵</span><span class="dmg-bit" style="right:14%;bottom:14%">🌿</span><span class="dmg-bit" style="left:38%;bottom:4%">🧱</span><span class="dmg-warn">⚠️</span>`;
   }
@@ -917,20 +1006,22 @@ const LIST_FEE = 40, SALE_FEE = 0.06;
 // Buildings unlock as you finish story chapters (value = chapters completed)
 const CH_UNLOCK = { ranch:0, colonial:0, coffee:0, park:0, police:0, mansion:1, shopping:1, bank:1, apartment:1, pool:2, school:2, fire:3, civic:4, hospital:5 };
 let tickN = 0;
-function getBuiltCount() { return lotsData.filter(l => l.status !== "empty").length; }
+function getBuiltCount() { return lotsData.filter(l => l.status !== "empty" && l.status !== "sold").length; }
 function hazardActive(di) { return !!DISTRICTS[di].problem && problemLevel(di) >= PROBLEM_CLEAR; }
 function landPrice(lot) { return Math.round(lot.land * (hazardActive(lot.district) ? 0.6 : 1)); }
 let toastTimer = null;
-function toast(msg) {
+function toast(msg, act) {
   const t = document.getElementById("toast"); if (!t) return;
-  t.textContent = msg; t.classList.add("show");
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+  t.textContent = msg + (act ? "  ›" : ""); t.classList.add("show");
+  t.style.pointerEvents = act ? "auto" : "none"; t.style.cursor = act ? "pointer" : "";
+  t.onclick = act ? () => { t.classList.remove("show"); act(); } : null;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.classList.remove("show"); t.style.pointerEvents = "none"; }, act ? 5000 : 2600);
 }
 const SAVE_KEY = "lotflip2_save";
 let resetting = false;
 function saveGame() {
   if (resetting) return;
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify({ money, crews, unlockedDistricts, chapter, stats, introShown, dayTime, t: Date.now(), lotsData: lotsData.map(l => ({ ...l, anim: null })) })); } catch (e) {}
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify({ money, crews, creep, creepGrace, unlockedDistricts, chapter, stats, introShown, dayTime, t: Date.now(), lotsData: lotsData.map(l => ({ ...l, anim: null })) })); } catch (e) {}
 }
 function loadGame() {
   try {
@@ -941,6 +1032,7 @@ function loadGame() {
     chapter = Number.isInteger(s.chapter) ? s.chapter : Math.max(0, (s.unlockedDistricts || [0]).length - 1);
     stats = Object.assign({ sales: 0, events: 0 }, s.stats || {});
     crews = Math.max(2, Math.min(MAX_CREWS, s.crews || 2));
+    creep = s.creep || {}; creepGrace = s.creepGrace || {};
     introShown = Number.isInteger(s.introShown) ? s.introShown : -1;
     syncUnlocks(); invalidateProblems();
     let inc = 0;
@@ -1044,7 +1136,7 @@ function problemLevel(di) {
   if (probCache[di] != null) return probCache[di];
   const P = PROBLEMS[DISTRICTS[di].problem];
   if (!P) return (probCache[di] = 0);
-  let v = P.base;
+  let v = P.base + Math.round(creep[di] || 0);
   for (const l of lotsData) {
     if (l.district !== di || !isDone(l) || !l.building) continue;
     v -= P.fix[l.building] || 0;
@@ -1120,6 +1212,27 @@ const CHAPTERS = [
 ];
 
 let chapter = 0;          // chapters completed (0 = playing chapter 1)
+// After a neighborhood is turned around, its old problem slowly creeps back (+1 point every 30 s of play,
+// after a 4-minute grace period, up to +55), so it eventually needs a second round of fixes.
+let creep = {}, creepGrace = {}, wasHaz = {};
+const CREEP_MAX = 55, CREEP_GRACE = 240;
+function tickCreep(dt) {
+  for (let d = 0; d < Math.min(chapter, DISTRICTS.length); d++) {
+    if (creepGrace[d] == null) creepGrace[d] = CREEP_GRACE;
+    if (creepGrace[d] > 0) { creepGrace[d] -= dt; continue; }
+    creep[d] = Math.min(CREEP_MAX, (creep[d] || 0) + dt / 30);
+  }
+  invalidateProblems();
+  for (let d = 0; d < Math.min(chapter, DISTRICTS.length); d++) {
+    const h = hazardActive(d);
+    if (h && wasHaz[d] === false) {
+      const P = PROBLEMS[DISTRICTS[d].problem];
+      toast(`${P.icon} ${P.name} is creeping back into ${DISTRICTS[d].name} (${problemLevel(d)}%) — build more fixes`, () => focusDistrict(d));
+      renderCity();
+    } else if (!h && wasHaz[d] === true) renderCity();
+    wasHaz[d] = h;
+  }
+}
 let stats = { sales: 0, events: 0 };
 let introShown = -1;      // last chapter whose intro was shown
 let storyBusy = false, storyPrimed = false, questOpen = false, resetArmed = false, lastQuestHTML = "";
@@ -1158,10 +1271,11 @@ function completeChapter() {
   storyBusy = true;
   money += C.reward;
   chapter++;
+  const hired = crews - 2; crews = 2;          // hired crews are contracted for one chapter only
   syncUnlocks(); saveGame(); renderCity();
   const more = chapter < CHAPTERS.length;
   showStory({
-    kicker: `Chapter ${c + 1} complete!`, title: C.title, text: C.outro,
+    kicker: `Chapter ${c + 1} complete!`, title: C.title, text: C.outro + (hired > 0 ? `<br><br>👷 Your ${hired} hired crew${hired > 1 ? "s" : ""} finished ${hired > 1 ? "their contracts" : "its contract"} — you're back to 2 crews.` : ""),
     reward: `+${fmt(C.reward)} bonus`,
     btn: more ? `Unlock ${DISTRICTS[chapter].name} →` : "Keep building 🏙️",
     onClose: () => {
@@ -1389,6 +1503,7 @@ function calculateLotRent(i) {
   if (lot.status !== "built" || !lot.building) return 0;
   const b = BUILDINGS[lot.building];
   
+  if (lot.damage || lot.reno) return 0;
   if (b.cat === "i") return Math.round((b.rev || 0) * vm(lot.district));
   if (lot.reno || lot.damage) return 0;   // crew on site / storm-damaged — no tenants until it's fixed
 
@@ -1403,7 +1518,7 @@ function calculateLotRent(i) {
 }
 
 function getBuildingCount(key) {
-  return lotsData.filter(l => l.status !== "empty" && l.building === key).length;
+  return lotsData.filter(l => l.status !== "empty" && l.status !== "sold" && l.building === key).length;
 }
 
 let scale = 0.45;
@@ -1605,20 +1720,21 @@ function paintLot(i) {
   if (!el) return;
   const unlocked = unlockedDistricts.includes(lot.district);
   let st = "";
-  if (lot.offer) st = "has-offer"; else if (lot.status === "listed") st = "listed"; else if (lot.reno) st = "renovating"; else if (lot.damage) st = "damaged"; else if (lot.status === "built") st = "purchased"; else if (lot.status === "building") st = "constructing";
+  if (lot.offer) st = "has-offer"; else if (lot.status === "listed") st = "listed"; else if (lot.status === "sold") st = "sold"; else if (lot.reno) st = "renovating"; else if (lot.damage) st = "damaged"; else if (lot.status === "built") st = "purchased"; else if (lot.status === "building") st = "constructing";
   const an = lot.anim === "build" ? "anim-build" : lot.anim === "demo" ? "anim-demo" : lot.anim === "reno" ? "anim-reno" : "";
-  const P = (isDone(lot) || lot.status === "building") && lot.building ? PARK[lot.building] : null;
+  const P = (isDone(lot) || lot.status === "building" || lot.status === "sold") && lot.building ? PARK[lot.building] : null;
   if (lot.status === "building") { el.style.setProperty("--d", (lot.buildDur || 1) + "s"); el.style.setProperty("--e", (-Math.min(lot.buildDur || 1, (lot.buildDur || 1) - buildLeft(lot))).toFixed(2) + "s"); }
   el.className = `lot ${P ? "has-nub" : ""} ${st} ${an} ${unlocked ? "" : "locked-lot"}`;
   let price, art;
   if (lot.offer) price = fmt(lot.offer);
   else if (lot.status === "listed") price = `<span style="color:var(--blue)">LISTED</span>`;
   else if (lot.status === "building") price = `<span class="cons-time">🏗️ ${fmtTime(buildLeft(lot))}</span>`;
+  else if (lot.status === "sold") price = `🔒 ${lot.owner ? "The " + lot.owner : "Private"}`;
   else if (lot.reno) price = `<span class="reno-time">🔧 ${fmtTime(renoLeft(lot))}</span>`;
-  else if (lot.damage) price = `<span class="dmg-time">⛈️ Repair</span>`;
+  else if (lot.damage) price = `<span class="dmg-time">${issueOf(lot).icon} Repair</span>`;
   else if (lot.status === "built") price = `$${calculateLotRent(i)}/3s`;
   else price = `$${landPrice(lot)}`;
-  art = lot.status === "building" ? consArt(lot) : lot.reno ? renoArt(lot) : P ? `<div class="lot-art stack${(lot.renovations || []).includes("luxury") ? " lux" : ""}">${spriteStack(lot)}</div>` : `<div class="lot-art empty">LOT</div>`;
+  art = lot.status === "building" ? consArt(lot) : lot.reno ? renoArt(lot) : P ? `<div class="lot-art stack${(lot.renovations || []).includes("luxury") ? " lux" : ""}">${spriteStack(lot)}${lot.status === "sold" ? SOLD_SIGN : ""}</div>` : `<div class="lot-art empty">${saleSign(fmt(landPrice(lot)))}</div>`;
   el.innerHTML = `<div class="lot-header"><span class="lot-num">#${i + 1}</span><span class="lot-stars">${"⭐".repeat(lot.renovations.length)}</span><div class="lot-price">${price}</div></div>` + art + (an === "anim-build" ? `<i class="build-ring"></i>` : "");
   if (P) {
     const R = spriteRect(lot.building), w = P.kind === "lot" ? 34 : P.kind === "drive" ? 18 : 10;
@@ -1718,7 +1834,7 @@ function finishReno(i) {
   else if (!l.renovations.includes(k)) l.renovations.push(k);
   l.anim = "reno";
   announceSolved(l.district, wasBad);
-  toast(`✨ ${k === "repair" ? "Storm repairs" : renoLabel(k)} finished at Lot #${i + 1} — rent is back on`);
+  toast(`✨ ${k === "repair" ? "Repairs" : renoLabel(k)} finished at Lot #${i + 1} — rent is back on`);
   renderCity();
   if (lotEls[i]) triggerSmokeEffect(lotEls[i]);
   refreshSheet(i); updateHUD(); saveGame();
@@ -1825,6 +1941,18 @@ function openLotSheet(id) {
     });
     optsHTML += `</div>`;
     body.innerHTML = optsHTML;
+  } else if (lot.status === "sold") {
+    const b = BUILDINGS[lot.building], bb = buyBackPrice(id);
+    body.innerHTML = `
+      <div style="margin-bottom:12px; font-size:13px; line-height:1.5;">
+        <p style="margin:0 0 4px 0;">${b.icon} <b>${b.name}</b> · owned by <b>the ${lot.owner || "new owners"}</b></p>
+        <p style="margin:0; color:var(--mut); font-size:12px;">You sold this ${lot.soldFor ? "for " + fmt(lot.soldFor) : "property"}. It earns you nothing now, and you can't build here unless you buy it back.</p>
+      </div>
+      <div class="build-opts">
+        <button class="opt-btn ${money >= bb ? 'btn-ok' : 'disabled'}" onclick="buyBack(${id})">
+          <b>🏠 Make them an offer (${fmt(bb)})</b><small>They'll sell for 20% over today's value</small>
+        </button>
+      </div>`;
   } else if (lot.status === "building") {
     const b = BUILDINGS[lot.building], c = rushCost(lot);
     body.innerHTML = `
@@ -1864,12 +1992,12 @@ function openLotSheet(id) {
     }
 
     if (lot.damage && !lot.reno) {
-      html += `<div class="crew-banner" style="background:rgba(239,83,80,.14);border-color:#ef5350">⛈️ <b style="color:#ff8a80">Storm damage.</b> Tenants can't stay until it's repaired — no rent from this home.</div>`;
+      html += `<div class="crew-banner" style="background:rgba(239,83,80,.14);border-color:#ef5350">${issueOf(lot).icon} <b style="color:#ff8a80">${issueOf(lot).name}.</b> ${issueOf(lot).tip} No ${BUILDINGS[lot.building].cat === "h" ? "rent" : "income"} until it's fixed.</div>`;
     }
     if ((lot.damage && !lot.reno) || (BUILDINGS[lot.building].cat === "h" && lot.status === "built" && !lot.reno)) html += crewBanner("lot");
     html += `<div class="build-opts">`;
     if (lot.damage && !lot.reno) {
-      const rd = Math.round(REPAIR_TIME * (1 + 0.5 * lot.district)), ok = money >= lot.damage.cost && crewFree();
+      const rd = Math.round(REPAIR_TIME * issueOf(lot).t * (1 + 0.5 * lot.district)), ok = money >= lot.damage.cost && crewFree();
       html += `
         <button class="opt-btn ${ok ? 'btn-ok' : 'disabled'}" onclick="repairLot(${id})">
           <b>🔨 Repair (${fmt(lot.damage.cost)})</b><small style="color:#81d4fa">⏱ ${fmtTime(rd)} · rent resumes when done</small>
@@ -2002,16 +2130,27 @@ function acceptOffer(id) {
   money += Math.round(lot.offer * (1 - SALE_FEE));
   stats.sales++;
   delete lot.reno; delete lot.damage;
-  lot.status = "empty";
-  lot.building = null;
-  lot.renovations = [];
+  lot.status = "sold";                       // the building stays — it just belongs to someone else now
+  lot.owner = OWNERS[Math.floor(Math.random() * OWNERS.length)];
+  lot.soldFor = lot.offer;
   lot.offer = null;
+  toast(`🤝 Sold Lot #${id + 1} to the ${lot.owner}!`);
 
   document.getElementById("sheet").classList.remove("active");
   updateHUD();
   renderCity();
 }
 
+function buyBackPrice(id) { return Math.round(calculatePropertyValue(id) * 1.2); }
+function buyBack(id) {
+  const lot = lotsData[id]; if (!lot || lot.status !== "sold") return;
+  const p = buyBackPrice(id); if (money < p) { toast(`Need ${fmt(p)} to buy it back`); return; }
+  money -= p; toast(`🔑 The ${lot.owner || "owners"} accepted — Lot #${id + 1} is yours again`);
+  lot.status = "built"; delete lot.owner; delete lot.soldFor; lot.anim = "build";
+  document.getElementById("sheet").classList.remove("active");
+  invalidateProblems(); updateHUD(); renderCity(); saveGame();
+  setTimeout(() => { lot.anim = null; }, 700);
+}
 function rejectOffer(id) {
   const lot = lotsData[id];
   lot.offer = null;
@@ -2046,7 +2185,7 @@ function demolishLot() {
 }
 
 function updateHUD() {
-  const builtCount = lotsData.filter(l => l.status !== "empty").length;
+  const builtCount = lotsData.filter(l => l.status !== "empty" && l.status !== "sold").length;
   let totalIncomePerSec = 0;
 
   lotsData.forEach((l, i) => {
@@ -3107,7 +3246,7 @@ window.addEventListener("load", () => {
     updateTraffic();
     stepVisitors();
     const nowT = performance.now(), fdt = Math.min(.05, (nowT - (fx.last || nowT)) / 1000); fx.last = nowT;
-    wxStep(fdt); fxDraw(fdt); problemEvents(fdt);
+    wxStep(fdt); fxDraw(fdt); problemEvents(fdt); wearEvents(fdt);
     requestAnimationFrame(animLoop);
   }
   requestAnimationFrame(animLoop);
@@ -3117,6 +3256,7 @@ window.addEventListener("load", () => {
     dayTime = (dayTime + 0.003) % 1;
     invalidateProblems();
     tickConstruction();
+    tickCreep(0.5);
     syncHighwayEV();
     balanceHighway();
     syncCruisers();
