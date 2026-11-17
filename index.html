@@ -603,6 +603,66 @@ body.is-dim .lot-art img.up-lux { opacity: 1; animation: winFlick 6s ease-in-out
 .dmg-smoke.d2 { left: 52%; animation-delay: .7s; } .dmg-smoke.d3 { left: 38%; animation-delay: 1.3s; }
 #toast { max-width: min(92%, 560px); }
 
+/* ---- district scenery & ground ---- */
+.district-scene { position: absolute; left: 0; right: 0; top: 0; height: 58px; border-radius: 8px 8px 0 0; background-repeat: repeat-x; background-size: 320px 58px; background-position: left bottom; pointer-events: none; z-index: 1; box-shadow: inset 0 -6px 8px -4px rgba(0,0,0,.35); }
+.district-header, .district-hazards { z-index: 20; }
+/* grass on every lot: mowing stripes + little clover/flower specks */
+.lot { background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.04) 0 20px, rgba(0,0,0,.04) 20px 40px),
+    radial-gradient(rgba(24,64,14,.38) 1px, transparent 1.6px), radial-gradient(rgba(190,235,130,.28) 1px, transparent 1.6px);
+  background-size: auto, 9px 9px, 14px 14px; background-position: 0 0, 0 0, 5px 7px; }
+.lot.sold { background-color: #4d7a42; }
+/* empty lots look like that neighborhood's ground: lawn, cracked pavement, dirt, sandy grass, old garden, bare concrete */
+.theme-1 .lot.empty-lot { background-color: #6b6860; background-image: linear-gradient(115deg, transparent 46%, rgba(30,30,30,.35) 47%, transparent 48.5%), linear-gradient(35deg, transparent 62%, rgba(30,30,30,.28) 63%, transparent 64%), radial-gradient(rgba(110,160,70,.5) 1.2px, transparent 2px); background-size: auto, auto, 23px 17px; }
+.theme-2 .lot.empty-lot { background-color: #7a6d52; background-image: radial-gradient(rgba(60,50,35,.45) 1.2px, transparent 2px), radial-gradient(rgba(200,185,150,.35) 1px, transparent 1.6px), radial-gradient(ellipse 30px 12px at 30% 70%, rgba(100,130,60,.45), transparent); background-size: 8px 8px, 13px 13px, auto; background-position: 0 0, 4px 6px, 0 0; }
+.theme-3 .lot.empty-lot { background-color: #8fae5c; background-image: radial-gradient(rgba(225,205,150,.55) 1.3px, transparent 2px), radial-gradient(rgba(60,100,30,.35) 1px, transparent 1.6px); background-size: 7px 7px, 12px 12px; background-position: 0 0, 3px 5px; }
+.theme-4 .lot.empty-lot { background-color: #4c8538; background-image: radial-gradient(rgba(255,214,90,.6) 1.2px, transparent 2px), radial-gradient(rgba(240,140,160,.5) 1.2px, transparent 2px), radial-gradient(rgba(20,60,14,.35) 1px, transparent 1.6px); background-size: 17px 19px, 23px 21px, 9px 9px; background-position: 3px 4px, 11px 9px, 0 0; }
+.theme-5 .lot.empty-lot { background-color: #7d8285; background-image: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 38px), repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 1px, transparent 1px 38px), radial-gradient(rgba(255,255,255,.12) 1px, transparent 1.6px); background-size: auto, auto, 6px 6px; }
+.lot.empty-lot.locked-lot { background-image: none; }
+/* each district's own ground between and around the lots */
+.district { background-color: rgba(0,0,0,.08); }
+.district.theme-0 { background: #4f8a3c radial-gradient(rgba(255,255,255,.07) 1px, transparent 1.6px) 0 0 / 12px 12px; }
+.district.theme-1 { background: #706a5f repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 1px, transparent 1px 22px); }
+.district.theme-2 { background: #5e5747 radial-gradient(rgba(255,255,255,.1) 1px, transparent 1.8px) 0 0 / 7px 7px, radial-gradient(rgba(0,0,0,.2) 1.2px, transparent 2px) 3px 4px / 11px 11px; }
+.district.theme-3 { background: #d6c08c radial-gradient(rgba(120,90,40,.22) 1px, transparent 1.6px) 0 0 / 8px 8px; }
+.district.theme-4 { background: #8f5a47 repeating-linear-gradient(0deg, rgba(230,210,190,.35) 0 1px, transparent 1px 9px), repeating-linear-gradient(90deg, rgba(230,210,190,.25) 0 1px, transparent 1px 18px); }
+.district.theme-5 { background: #4e555c repeating-linear-gradient(0deg, rgba(255,255,255,.08) 0 1px, transparent 1px 30px), repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 1px, transparent 1px 30px); }
+.district.locked { background-color: rgba(10,15,8,0.82); }
+/* sidewalks along every street */
+.local-road-h { box-shadow: inset 0 0 4px rgba(0,0,0,.4), 0 -5px 0 0 #b9b2a0, 0 6px 0 0 #b9b2a0, 0 8px 0 0 rgba(0,0,0,.18); }
+.district.theme-3 .local-road-h { box-shadow: inset 0 0 4px rgba(0,0,0,.4), 0 -5px 0 0 #a8774f, 0 6px 0 0 #a8774f, 0 8px 0 0 rgba(0,0,0,.18); }
+.district.theme-4 .local-road-h { box-shadow: inset 0 0 4px rgba(0,0,0,.4), 0 -5px 0 0 #b98a74, 0 6px 0 0 #b98a74, 0 8px 0 0 rgba(0,0,0,.18); }
+/* dividers between lots: hedges, planters, fences, dune grass, stone walls, bollards */
+.gap-deco { position: absolute; width: 10px; margin-left: -5px; pointer-events: none; z-index: 4; border-radius: 5px; }
+.theme-0 .gap-deco { background: radial-gradient(circle at 50% 6px, #5aad4b 0 2px, #3d8a35 2.5px 5px, transparent 5.5px) 0 0 / 10px 10px; filter: drop-shadow(1px 2px 0 rgba(0,0,0,.3)); }
+.theme-1 .gap-deco, .theme-5 .gap-deco { background: radial-gradient(circle at 50% 9px, #55ad4d 0 3px, #2f7d32 3.5px 7px, #1d2a1b 7px 7.6px, transparent 8px) 0 0 / 10px 44px; width: 16px; margin-left: -8px; }
+.theme-2 .gap-deco { width: 6px; margin-left: -3px; border-radius: 0; border-left: 1.5px solid #6f777d; border-right: 1.5px solid #6f777d;
+  background: repeating-linear-gradient(45deg, rgba(200,208,214,.7) 0 1px, transparent 1px 4px), repeating-linear-gradient(-45deg, rgba(200,208,214,.7) 0 1px, transparent 1px 4px); }
+.theme-3 .gap-deco { background: radial-gradient(ellipse at 50% 100%, #9cb84c 0 3px, transparent 3.5px) 0 0 / 10px 8px, radial-gradient(ellipse at 30% 100%, #c8b45a 0 2px, transparent 2.5px) 0 3px / 10px 8px; }
+.theme-4 .gap-deco { width: 8px; margin-left: -4px; border-radius: 2px; background: #b3aa9c repeating-linear-gradient(0deg, rgba(60,40,30,.45) 0 1px, transparent 1px 7px); box-shadow: 1px 2px 0 rgba(0,0,0,.3); }
+/* smog haze over the Industrial Zone, thinning as the meter drops */
+.district-haze { position: absolute; inset: 0; border-radius: 10px; pointer-events: none; z-index: 9; opacity: .8; transition: opacity 2s ease;
+  background: radial-gradient(ellipse at 20% 30%, rgba(140,115,70,.75), transparent 55%), radial-gradient(ellipse at 75% 60%, rgba(125,105,65,.7), transparent 58%), radial-gradient(ellipse at 45% 85%, rgba(150,128,85,.65), transparent 50%), linear-gradient(rgba(120,100,60,.35), rgba(120,100,60,.35));
+  will-change: transform; animation: hazeDrift 24s ease-in-out infinite alternate; }
+@keyframes hazeDrift { from { transform: translate3d(-2.5%, -1.5%, 0) scale(1.03); } to { transform: translate3d(2.5%, 1.5%, 0) scale(1.03); } }
+.district.locked .district-haze { display: none; }
+/* flooded streets in Waterfront Bay while it rains and the flood risk is unsolved */
+.district.flooding .local-road-h { background-image: radial-gradient(ellipse 46px 10px at 50% 55%, rgba(110,195,245,.9) 55%, rgba(60,140,210,.5) 80%, transparent 100%), radial-gradient(ellipse 26px 7px at 50% 45%, rgba(140,210,250,.85) 55%, transparent 100%);
+  background-size: 150px 36px, 95px 36px; background-position: 20px 0, 70px 0; background-repeat: repeat-x; animation: floodShimmer 3s ease-in-out infinite alternate; }
+.district.flooding .lot-row .lot:not(.purchased):not(.listed):not(.has-offer) { box-shadow: inset 0 -14px 18px -8px rgba(80,170,230,.45); }
+@keyframes floodShimmer { to { filter: brightness(1.15) saturate(1.2); } }
+@media (prefers-reduced-motion: reduce) { .district-haze, .district.flooding .local-road-h { animation: none; } }
+
+/* ---- drawn icons, mayor, sound button ---- */
+svg.ico { width: 1em; height: 1em; display: block; overflow: visible; }
+.dmg-warn svg.ico, .lot-alert svg.ico { filter: drop-shadow(0 2px 2px rgba(0,0,0,.5)); }
+.dmg-warn { background: rgba(255,255,255,.92); border: 2px solid #ef5350; border-radius: 50%; padding: 4px; line-height: 0; }
+.story-mayor, .tip-face { overflow: hidden; padding: 0; }
+.story-mayor svg.mayor-art, .tip-face svg.mayor-art { width: 100%; height: 100%; display: block; transform: translateY(6%) scale(1.08); }
+.reno-tool { font-size: 24px; }
+.lux-spark, .reno-spark { font-size: 13px; }
+.stat-box.sound-box { cursor: pointer; min-width: 30px; justify-content: center; }
+.stat-box.sound-box.muted { opacity: .6; }
+
 /* ---- first-time tips ---- */
 #tip { position: fixed; left: 0; top: 0; z-index: 250; width: min(280px, calc(100vw - 16px)); display: none; gap: 10px; align-items: flex-start;
   background: var(--card); border: 2px solid var(--gold); border-radius: 14px; padding: 10px 12px; box-shadow: 0 10px 28px rgba(0,0,0,.7);
@@ -664,6 +724,7 @@ body.is-dim .lot-art img.up-lux { opacity: 1; animation: winFlick 6s ease-in-out
       <div class="stat-box"><span id="stat-weather">🌤️<span class="lbl"> Clear</span></span></div>
       <div class="stat-box lots-box">🏗️ <span id="stat-lots">0 / 150</span></div>
       <div class="stat-box crews" id="stat-crews-box" onclick="openCrewSheet()">👷 <span id="stat-crews">0/2</span></div>
+      <div class="stat-box sound-box" id="stat-sound" onclick="toggleSound()" title="Sound">🔊</div>
     </div>
   </header>
 
@@ -822,7 +883,7 @@ function crewBlocked() { toast(`👷 All ${crews} crews are busy — hire anothe
 function hireCrew(reopen) {
   if (crews >= MAX_CREWS) { toast("👷 That's the biggest crew roster the city allows"); return; }
   const c = crewCost(); if (money < c) { toast(`Need ${fmt(c)} to hire crew #${crews + 1}`); return; }
-  money -= c; crews++; toast(`👷 Crew #${crews} hired — ${crews} jobs can run at once`);
+  money -= c; crews++; sfx("spend"); toast(`👷 Crew #${crews} hired — ${crews} jobs can run at once`);
   updateHUD(); saveGame();
   if (reopen === "crew") openCrewSheet(); else if (selectedLotId != null) refreshSheet(selectedLotId);
 }
@@ -892,7 +953,7 @@ function damageLot(i, kind, quiet) {
   const l = lotsData[i], I = ISSUES[kind];
   l.damage = { kind, cost: Math.max(30, Math.round(calculatePropertyValue(i) * (I.c[0] + Math.random() * (I.c[1] - I.c[0])))) };
   stats.events++;
-  paintLot(i); flashLot(i, I.icon);
+  paintLot(i); flashLot(i, I.icon); sfx("damage");
   if (selectedLotId === i) refreshSheet(i);
   if (!quiet) toast(`${I.icon} ${I.name} at Lot #${i + 1} — repair it to get rent back`, () => goToLot(i));
   setTimeout(() => tip("repair", () => document.querySelector("#alerts .stat-box.alert") || lotEls[i]), 600);
@@ -947,7 +1008,7 @@ function repairLot(id) {
   const l = lotsData[id]; if (!l || !l.damage || l.reno) return;
   if (!crewFree()) { crewBlocked(); refreshSheet(id); return; }
   if (money < l.damage.cost) { toast(`Need ${fmt(l.damage.cost)} for repairs`); return; }
-  money -= l.damage.cost;
+  money -= l.damage.cost; sfx("build");
   const dur = Math.round(REPAIR_TIME * issueOf(l).t * (1 + 0.5 * l.district));
   l.reno = { key: "repair", dur, end: Date.now() + dur * 1000, cost: l.damage.cost };
   toast(`🔨 Repair crew on the way — rent back in ${fmtTime(dur)}`);
@@ -987,14 +1048,14 @@ function spriteStack(l) {
   if (l.damage && !l.reno && l.damage.kind && l.damage.kind !== "storm") {
     const k = l.damage.kind, I = ISSUES[k];
     const fx = k === "pipe" ? `<i class="dmg-puddle"></i>` : k === "fire" ? `<i class="dmg-smoke"></i><i class="dmg-smoke d2"></i><i class="dmg-smoke d3"></i>` : "";
-    return h + fx + `<span class="dmg-warn">${I.icon}</span><span class="dmg-bit" style="left:58%;top:16%">⚠️</span>`;
+    return h + fx + `<span class="dmg-warn">${ico(I.icon)}</span><span class="dmg-bit" style="left:58%;top:16%">${ico("⚠️")}</span>`;
   }
   if (l.damage && !l.reno) {
-    return h + (U ? upImg(U.roof, "tarp") : "") + `<span class="dmg-bit" style="left:12%;bottom:8%">🪵</span><span class="dmg-bit" style="right:14%;bottom:14%">🌿</span><span class="dmg-bit" style="left:38%;bottom:4%">🧱</span><span class="dmg-warn">⚠️</span>`;
+    return h + (U ? upImg(U.roof, "tarp") : "") + `<span class="dmg-bit" style="left:12%;bottom:8%">${ico("🪵")}</span><span class="dmg-bit" style="right:14%;bottom:14%">${ico("🌿")}</span><span class="dmg-bit" style="left:38%;bottom:4%">${ico("🧱")}</span><span class="dmg-warn">${ico("⚠️")}</span>`;
   }
   if (U && r.includes("paint")) h += upImg(U.paint, "up-paint");
   if (U && r.includes("roof")) h += upImg(U.roof, "up-roof");
-  if (U && r.includes("luxury")) h += upImg(U.lux, "up-lux") + `<span class="lux-spark" style="left:18%;top:22%">✨</span><span class="lux-spark s2" style="left:70%;top:14%">✨</span><span class="lux-spark s3" style="left:46%;top:44%">✨</span>`;
+  if (U && r.includes("luxury")) h += upImg(U.lux, "up-lux") + `<span class="lux-spark" style="left:18%;top:22%">${ico("✨")}</span><span class="lux-spark s2" style="left:70%;top:14%">${ico("✨")}</span><span class="lux-spark s3" style="left:46%;top:44%">${ico("✨")}</span>`;
   return h;
 }
 function renoArt(l) {
@@ -1004,12 +1065,12 @@ function renoArt(l) {
   let fx = "";
   if (k === "paint") fx = [22, 48, 72].map((x, n) => `<i class="reno-drip" style="left:${x}%;background:${["#9cc79a", "#a9cbe8", "#f3d7a3"][n]};animation-delay:${n * .45}s"></i>`).join("");
   else if (k === "roof" || k === "repair") fx = [30, 55, 74].map((x, n) => `<i class="reno-chip" style="left:${x}%;animation-delay:${n * .35}s"></i>`).join("");
-  else fx = [[24, 30], [62, 20], [44, 52]].map(([x, y], n) => `<span class="reno-spark" style="left:${x}%;top:${y}%;animation-delay:${n * .5}s">✨</span>`).join("");
+  else fx = [[24, 30], [62, 20], [44, 52]].map(([x, y], n) => `<span class="reno-spark" style="left:${x}%;top:${y}%;animation-delay:${n * .5}s">${ico("✨")}</span>`).join("");
   return `<div class="lot-art stack reno-${k}" style="--d:${dur}s;--e:${(-done).toFixed(2)}s">
     ${spriteStack(l)}
     ${layer ? `<div class="reno-wipe">${upImg(layer, "")}</div>` : ""}
     <div class="reno-scaf">${SPRITES[l.building] || ""}</div>
-    <span class="reno-tool">${tool}</span>${fx}
+    <span class="reno-tool">${ico(tool)}</span>${fx}
     <div class="reno-bar"><i></i></div></div>`;
 }
 
@@ -1168,6 +1229,294 @@ window.addEventListener("pagehide", saveGame);
 
 
 
+// ================= DRAWN ICONS & MAYOR =================
+// Hand-drawn replacements for the emoji that appear on the map, in the same outlined style as the
+// buildings. ico("🔥") returns the drawing for that emoji (or the emoji itself if there's no drawing).
+const IO = `stroke="${OL}" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"`;
+const cloudPath = (y = 0, f = "#cfd8dc") => `<path d="M6 ${15 + y}a4 4 0 0 1 .5-8 5.5 5.5 0 0 1 10.5-1.5 4 4 0 0 1 1 9.5z" fill="${f}" ${IO}/>`;
+const ICONS = {
+  "⚠️": `<path d="M12 2.5L22.5 21h-21z" fill="#ffc933" ${IO}/><path d="M12 9v6" stroke="${OL}" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="18" r="1.3" fill="${OL}"/>`,
+  "⛈️": cloudPath(0, "#90a4ae") + `<path d="M12 13l-3 5h3l-2 5 5-7h-3l2-3z" fill="#ffd54a" ${IO}/>`,
+  "💧": `<path d="M12 2.5C8 8.5 5.5 11.5 5.5 15a6.5 6.5 0 0 0 13 0c0-3.5-2.5-6.5-6.5-12.5z" fill="#4fc3f7" ${IO}/><path d="M9 15a3 3 0 0 0 2 3" stroke="#e1f5fe" stroke-width="1.6" fill="none" stroke-linecap="round"/>`,
+  "🌧️": cloudPath(-1, "#b0bec5") + [7, 12, 17].map((x, i) => `<path d="M${x} ${17 + i % 2}l-1.2 3.5" stroke="#29b6f6" stroke-width="2" stroke-linecap="round"/>`).join(""),
+  "🥵": `<rect x="9.5" y="2.5" width="5" height="13" rx="2.5" fill="#eceff1" ${IO}/><circle cx="12" cy="17.5" r="4.2" fill="#e53935" ${IO}/><rect x="11" y="7" width="2" height="9" fill="#e53935"/><path d="M17 5q2 1 0 2.5t0 2.5M19.5 4q2 1 0 2.5t0 2.5" stroke="#ff7043" stroke-width="1.3" fill="none"/>`,
+  "🐜": `<g ${IO} fill="none"><path d="M8 9L4 6M8 13H3.5M8 16l-3.5 3M16 9l4-3M16 13h4.5M16 16l3.5 3M10.5 5L9 2.5M13.5 5L15 2.5"/></g><ellipse cx="12" cy="7" rx="2.8" ry="2.4" fill="#6d4c41" ${IO}/><ellipse cx="12" cy="12" rx="3" ry="2.8" fill="#8d6e63" ${IO}/><ellipse cx="12" cy="18" rx="3.6" ry="4" fill="#6d4c41" ${IO}/>`,
+  "🔥": `<path d="M12 22c-4.5 0-7-3-7-6.5 0-4 3-5.5 3.5-9.5 2 1.5 2.5 3.5 2.5 5 1-2 1.5-5 .5-8.5C16 5 19 9.5 19 15c0 4-2.5 7-7 7z" fill="#ff7043" ${IO}/><path d="M12 21c-2 0-3.2-1.4-3.2-3.2 0-2 1.6-2.8 2-4.8 2.4 1.6 4.4 3.2 4.4 5.2 0 1.6-1.2 2.8-3.2 2.8z" fill="#ffd54a"/>`,
+  "⚙️": `<g fill="#90a4ae" ${IO}>${[0, 45, 90, 135].map(a => `<rect x="10" y="1.8" width="4" height="20.4" rx="1" transform="rotate(${a} 12 12)"/>`).join("")}</g><circle cx="12" cy="12" r="6.5" fill="#b0bec5" ${IO}/><circle cx="12" cy="12" r="2.6" fill="#546e7a" ${IO}/>`,
+  "🚨": `<path d="M5 19v-6a7 7 0 0 1 14 0v6z" fill="#e53935" ${IO}/><path d="M8.5 12a3.5 3.5 0 0 1 3.5-3.5" stroke="#ffcdd2" stroke-width="1.6" fill="none" stroke-linecap="round"/><rect x="3" y="19" width="18" height="3" rx="1" fill="#546e7a" ${IO}/><path d="M12 1.5v2.5M3.5 5l1.8 1.8M20.5 5l-1.8 1.8" stroke="#ff5252" stroke-width="1.8" stroke-linecap="round"/>`,
+  "😷": cloudPath(1, "#a1887f") + `<path d="M4 20.5h16M6.5 23h11" stroke="#8d6e63" stroke-width="1.6" stroke-linecap="round"/>`,
+  "🌊": `<path d="M1.5 15c3-6 7-8 11-5.5-2.5 0-3.5 2-2.5 3.5 1.5 2 5 1 6.5-1 1 3 3.5 4 6 3v6.5h-21z" fill="#29b6f6" ${IO}/><path d="M3 20c2-1 4 1 6 0s4 1 6 0 4 1 6 0" stroke="#e1f5fe" stroke-width="1.3" fill="none"/>`,
+  "⚡": `<path d="M14 1.5L4.5 13.5h6L9 22.5l10-13h-6.5z" fill="#ffd54a" ${IO}/>`,
+  "🚦": `<rect x="7" y="1.5" width="10" height="21" rx="3" fill="#37474f" ${IO}/><circle cx="12" cy="6.5" r="2.3" fill="#ff5252"/><circle cx="12" cy="12" r="2.3" fill="#ffd54a"/><circle cx="12" cy="17.5" r="2.3" fill="#66bb6a"/>`,
+  "🏚️": `<rect x="3" y="4" width="18" height="16" rx="1" fill="#455a64" ${IO}/><path d="M2 8l20 3M2 15l20-3" stroke="#a1887f" stroke-width="3.2" stroke-linecap="round"/><path d="M2 8l20 3M2 15l20-3" stroke="${OL}" stroke-width=".6" opacity=".6"/>`,
+  "🖌️": `<rect x="3" y="3" width="15" height="6" rx="2" fill="#81c784" ${IO}/><path d="M18 6h2.5v5.5H11v3" fill="none" ${IO}/><rect x="9" y="14.5" width="4" height="8" rx="1.5" fill="#8d6e63" ${IO}/><path d="M5 9.5v2" stroke="#81c784" stroke-width="2" stroke-linecap="round"/>`,
+  "🔨": `<rect x="10.5" y="8" width="3.4" height="14.5" rx="1.2" fill="#a1887f" ${IO} transform="rotate(-30 12 15)"/><path d="M3.5 6.5l9-5 2.5 4.3-9 5z" fill="#90a4ae" ${IO}/><path d="M12.5 1.5l3.5 1-1 2.8" fill="#78909c" ${IO}/>`,
+  "🛋️": `<rect x="4" y="6" width="16" height="9" rx="3" fill="#ba68c8" ${IO}/><rect x="1.5" y="10" width="5" height="9" rx="2" fill="#ab47bc" ${IO}/><rect x="17.5" y="10" width="5" height="9" rx="2" fill="#ab47bc" ${IO}/><rect x="6" y="13" width="12" height="6" rx="1.5" fill="#ce93d8" ${IO}/><path d="M4 19v2.5M20 19v2.5" stroke="${OL}" stroke-width="1.6"/>`,
+  "✨": `<path d="M12 1.5c.8 5.5 2.7 7.6 9.5 10.5-6.8 2.9-8.7 5-9.5 10.5-.8-5.5-2.7-7.6-9.5-10.5 6.8-2.9 8.7-5 9.5-10.5z" fill="#ffe082" ${IO}/><path d="M12 7v10M7 12h10" stroke="#fff8e1" stroke-width="1.2" stroke-linecap="round"/>`,
+  "🪵": `<rect x="1.5" y="8" width="21" height="7" rx="1.5" fill="#a1887f" ${IO} transform="rotate(-18 12 12)"/><path d="M5 12.5l11-3.5M8 15l9-3" stroke="#6d4c41" stroke-width=".9" transform="rotate(0)"/>`,
+  "🌿": `<path d="M4 21C6 11 12 5 21 3c-1 9-7 15-17 18z" fill="#66bb6a" ${IO}/><path d="M4 21C9 15 13 10 18 6" stroke="#2e7d32" stroke-width="1.3" fill="none"/>`,
+  "🧱": `<g fill="#c0603e" ${IO}><rect x="2" y="13" width="9" height="5" rx=".5"/><rect x="11.5" y="13" width="9" height="5" rx=".5"/><rect x="6.5" y="8" width="9" height="5" rx=".5"/></g><path d="M3 21h17" stroke="#8d6e63" stroke-width="2" stroke-linecap="round"/>`
+};
+function ico(e) { const s = ICONS[e]; return s ? `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${s}</svg>` : e; }
+
+// Mayor Dana Reyes: navy blazer, gold city pin, hair in a bun
+const MAYOR_SVG = `<svg class="mayor-art" viewBox="0 0 64 64" aria-hidden="true">
+  <circle cx="32" cy="11" r="6.5" fill="#2b1d16" stroke="${OL}" stroke-width="1.2"/>
+  <path d="M6 66Q7 48 22 44.5h20Q57 48 58 66z" fill="#1f3a68" stroke="${OL}" stroke-width="1.3"/>
+  <path d="M24 44.5L32 57l8-12.5z" fill="#fbfaf6" stroke="${OL}" stroke-width="1"/>
+  <path d="M22 44.5L32 59l-4.5 6M42 44.5L32 59l4.5 6" fill="#2a4c84" stroke="${OL}" stroke-width="1.1"/>
+  <path d="M30 48l2 3 2-3" fill="#e53935" stroke="${OL}" stroke-width=".7"/>
+  <rect x="27" y="37" width="10" height="9" rx="2" fill="#b07048" stroke="${OL}" stroke-width="1.1"/>
+  <circle cx="20.6" cy="29.5" r="2.3" fill="#b97a50" stroke="${OL}" stroke-width="1"/><circle cx="43.4" cy="29.5" r="2.3" fill="#b97a50" stroke="${OL}" stroke-width="1"/>
+  <ellipse cx="32" cy="27.5" rx="11.5" ry="13" fill="#c68a5e" stroke="${OL}" stroke-width="1.3"/>
+  <path d="M20.4 27Q19.5 14 32 13.5T43.6 27Q41 19.5 33 18.5 26 19 20.4 27z" fill="#2b1d16" stroke="${OL}" stroke-width="1.1"/>
+  <circle cx="20.6" cy="33.5" r="1.4" fill="#ffc933" stroke="${OL}" stroke-width=".6"/><circle cx="43.4" cy="33.5" r="1.4" fill="#ffc933" stroke="${OL}" stroke-width=".6"/>
+  <path d="M25 24.5q2.5-1.5 5 0M34 24.5q2.5-1.5 5 0" stroke="#2b1d16" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+  <ellipse cx="27.6" cy="28" rx="1.5" ry="1.8" fill="#2b1d16"/><ellipse cx="36.4" cy="28" rx="1.5" ry="1.8" fill="#2b1d16"/>
+  <circle cx="28.1" cy="27.4" r=".5" fill="#fff"/><circle cx="36.9" cy="27.4" r=".5" fill="#fff"/>
+  <ellipse cx="25.5" cy="32.5" rx="2.2" ry="1.3" fill="#e0876b" opacity=".55"/><ellipse cx="38.5" cy="32.5" rx="2.2" ry="1.3" fill="#e0876b" opacity=".55"/>
+  <path d="M32 29v3.2l-1.2.6" stroke="#9a5f3d" stroke-width="1" fill="none" stroke-linecap="round"/>
+  <path d="M27.5 34.6q4.5 3.8 9 0" stroke="#7a3b2a" stroke-width="1.5" fill="#fff" stroke-linejoin="round"/>
+  <circle cx="46" cy="52" r="2.6" fill="#ffc933" stroke="${OL}" stroke-width=".8"/><path d="M46 50.4l.5 1.1 1.2.1-.9.8.3 1.2-1.1-.6-1.1.6.3-1.2-.9-.8 1.2-.1z" fill="#b8860b"/>
+</svg>`;
+
+// ================= SOUND =================
+// Every sound is synthesized with Web Audio (no sound files). The audio engine starts on the first
+// tap, because phones block sound until the player touches the screen. Mute is remembered on this device.
+const MUTE_KEY = "lotflip2_mute";
+const SFX = { ctx: null, master: null, noise: null, rainGain: null, muted: false, last: {} };
+try { SFX.muted = localStorage.getItem(MUTE_KEY) === "1"; } catch (e) {}
+function sfxInit() {
+  if (SFX.ctx) { if (SFX.ctx.state === "suspended" && !document.hidden) SFX.ctx.resume().catch(() => {}); return; }
+  const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+  try {
+    const c = SFX.ctx = new AC();
+    SFX.master = c.createGain(); SFX.master.gain.value = SFX.muted ? 0 : 0.55; SFX.master.connect(c.destination);
+    const len = c.sampleRate * 2, buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    SFX.noise = buf;
+    // rain bed: looping filtered noise whose volume follows the weather
+    const src = c.createBufferSource(); src.buffer = buf; src.loop = true;
+    const hp = c.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 900;
+    const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 5200;
+    SFX.rainGain = c.createGain(); SFX.rainGain.gain.value = 0;
+    src.connect(hp); hp.connect(lp); lp.connect(SFX.rainGain); SFX.rainGain.connect(SFX.master); src.start();
+  } catch (e) { SFX.ctx = null; }
+}
+function tone(f, t, dur, type = "sine", vol = .2, f2 = null, attack = .005) {
+  const c = SFX.ctx, o = c.createOscillator(), g = c.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + attack); g.gain.exponentialRampToValueAtTime(.0008, t + dur);
+  o.connect(g); g.connect(SFX.master); o.start(t); o.stop(t + dur + .05);
+}
+function burst(t, dur, vol = .2, freq = 1200, type = "lowpass", q = 1, f2 = null) {
+  const c = SFX.ctx, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+  s.buffer = SFX.noise; f.type = type; f.frequency.setValueAtTime(freq, t); if (f2) f.frequency.exponentialRampToValueAtTime(f2, t + dur); f.Q.value = q;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0008, t + dur);
+  s.connect(f); f.connect(g); g.connect(SFX.master); s.start(t, Math.random() * 1.5); s.stop(t + dur + .05);
+}
+function sfx(name) {
+  if (!SFX.ctx || SFX.muted || document.hidden) return;
+  const now = performance.now(); if (SFX.last[name] && now - SFX.last[name] < 140) return; SFX.last[name] = now;   // don't stack the same sound
+  const t = SFX.ctx.currentTime + .01;
+  switch (name) {
+    case "tap": tone(900, t, .05, "triangle", .06); break;
+    case "build":     // three hammer knocks
+      [0, .13, .26].forEach(d => { burst(t + d, .07, .28, 2200, "bandpass", 4); tone(180, t + d, .08, "triangle", .12, 90); }); break;
+    case "done":      // cheerful rising chime
+      [523, 659, 784, 1047].forEach((f, k) => tone(f, t + k * .075, .32, "triangle", .13)); break;
+    case "reno":
+      [659, 880].forEach((f, k) => tone(f, t + k * .09, .3, "sine", .12)); tone(1319, t + .2, .4, "sine", .05); break;
+    case "cash":      // ka-ching
+      burst(t, .05, .15, 6000, "highpass"); tone(1568, t + .03, .12, "square", .06); tone(2093, t + .1, .35, "square", .06);
+      tone(2637, t + .1, .35, "sine", .05); break;
+    case "spend": tone(700, t, .08, "triangle", .07, 520); break;
+    case "offer": tone(1175, t, .5, "sine", .14); tone(1760, t + .02, .45, "sine", .06); break;
+    case "alarm":     // short siren wail
+      { const c = SFX.ctx, o = c.createOscillator(), g = c.createGain(); o.type = "sawtooth";
+        o.frequency.setValueAtTime(700, t); for (let k = 0; k < 4; k++) { o.frequency.linearRampToValueAtTime(1150, t + k * .3 + .15); o.frequency.linearRampToValueAtTime(700, t + k * .3 + .3); }
+        const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1800;
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.06, t + .05); g.gain.setValueAtTime(.06, t + 1.05); g.gain.linearRampToValueAtTime(0, t + 1.2);
+        o.connect(lp); lp.connect(g); g.connect(SFX.master); o.start(t); o.stop(t + 1.25); } break;
+    case "damage":    // thud + crack + warning blip
+      tone(110, t, .3, "sine", .25, 45); burst(t, .18, .22, 900, "lowpass"); tone(880, t + .2, .1, "square", .045); tone(660, t + .32, .14, "square", .045); break;
+    case "problem": tone(330, t, .18, "triangle", .1, 220); tone(247, t + .16, .25, "triangle", .1, 165); break;
+    case "demolish": burst(t, .7, .35, 600, "lowpass", 1, 120); tone(70, t, .5, "sine", .3, 35); break;
+    case "thunder": burst(t, 2.4, .45, 380, "lowpass", 1, 70); burst(t + .05, .25, .25, 2500, "lowpass", 1, 400); break;
+    case "goal": tone(784, t, .18, "triangle", .1); tone(1175, t + .1, .3, "triangle", .1); break;
+    case "fanfare":   // chapter complete
+      [[523, 0], [659, .12], [784, .24], [1047, .4]].forEach(([f, d]) => { tone(f, t + d, .5, "triangle", .14); tone(f / 2, t + d, .5, "sine", .08); });
+      [1047, 1319, 1568].forEach(f => tone(f, t + .62, 1.1, "triangle", .08)); break;
+    case "tip": tone(1320, t, .09, "sine", .07); tone(1760, t + .07, .12, "sine", .06); break;
+  }
+}
+// follow the weather with the rain bed (called every frame)
+function sfxRain() {
+  if (!SFX.ctx || !SFX.rainGain) return;
+  const want = SFX.muted || document.hidden ? 0 : Math.min(.16, wxLv.rain * .16);
+  SFX.rainGain.gain.setTargetAtTime(want, SFX.ctx.currentTime, .4);
+}
+function toggleSound() {
+  SFX.muted = !SFX.muted;
+  try { localStorage.setItem(MUTE_KEY, SFX.muted ? "1" : "0"); } catch (e) {}
+  sfxInit();
+  if (SFX.master) SFX.master.gain.setTargetAtTime(SFX.muted ? 0 : .55, SFX.ctx.currentTime, .05);
+  paintSoundBtn();
+  if (!SFX.muted) sfx("tap");
+}
+function paintSoundBtn() {
+  const b = document.getElementById("stat-sound"); if (!b) return;
+  b.textContent = SFX.muted ? "🔇" : "🔊"; b.title = SFX.muted ? "Sound off — tap to turn on" : "Sound on — tap to mute";
+  b.classList.toggle("muted", SFX.muted);
+}
+["pointerdown", "keydown"].forEach(ev => document.addEventListener(ev, sfxInit, { passive: true }));
+document.addEventListener("visibilitychange", () => { if (!SFX.ctx) return; if (document.hidden) SFX.ctx.suspend().catch(() => {}); else SFX.ctx.resume().catch(() => {}); });
+
+// ================= DISTRICT SCENERY =================
+// Each neighborhood gets its own look: a painted strip along its top edge, its own ground,
+// and matching dividers between lots. Everything is drawn here as small SVG/CSS, so nothing
+// heavy is added to the page. Same outline colour and top-left light as the buildings.
+const SC_W = 320, SC_H = 58;
+const scR = (x, y, w, h, f, rx = 0, sw = 1) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${f}" stroke="${sw ? OL : "none"}" stroke-width="${sw}"/>`;
+const scC = (x, y, r, f, sw = 1) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" stroke="${sw ? OL : "none"}" stroke-width="${sw}"/>`;
+const scP = (pts, f, sw = 1) => `<polygon points="${pts}" fill="${f}" stroke="${sw ? OL : "none"}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+const scTree = (x, y, s = 1, c = "#2f7d32") => scR(x - 2 * s, y, 4 * s, 12 * s, "#6a4a35", 0, .8) + scC(x, y - 4 * s, 11 * s, c) + scC(x - 4 * s, y - 8 * s, 5 * s, "#55ad4d", 0);
+// a little bit of seeded randomness so repeated tiles don't all look stamped
+function scRand(seed) { let s = seed; return () => (s = (s * 9301 + 49297) % 233280) / 233280; }
+
+const SCENES = [
+  // 0 Suburban Springs: lawn, white picket fence, hedges, a mailbox and shade trees
+  () => {
+    let s = scR(0, 0, SC_W, SC_H, "#5c9c46", 0, 0);
+    s += `<path d="M0 6h${SC_W}" stroke="#6fb055" stroke-width="10" opacity=".35"/>`;
+    s += scTree(42, 26, 1.1) + scTree(210, 24, 1.2, "#357f33") + scTree(292, 28, .9);
+    for (let x = 0; x < SC_W; x += 26) s += `<ellipse cx="${x + 13}" cy="46" rx="15" ry="7" fill="#3d8a35" stroke="${OL}" stroke-width=".8"/>` + scC(x + 9, 43, 3, "#5aad4b", 0);
+    s += scR(0, 34, SC_W, 2.6, "#f4f1ea", 0, .6) + scR(0, 41, SC_W, 2.6, "#f4f1ea", 0, .6);
+    for (let x = 3; x < SC_W; x += 14) s += scP(`${x},50 ${x},33 ${x + 3},29 ${x + 6},33 ${x + 6},50`, "#fbfaf6", .8);
+    s += scR(124, 30, 3, 20, "#6a4a35", 0, .7) + scR(118, 24, 14, 8, "#2f5fae", 3, .8) + scR(131, 25, 1.5, 5, "#e53935", 0, 0);
+    s += scC(170, 52, 3, "#ffd54a", .6) + scC(176, 53, 2.5, "#ff8a80", .6) + scC(250, 52, 3, "#fff", .6);
+    return s;
+  },
+  // 1 Downtown Core: brick storefronts with striped awnings and a paved sidewalk
+  () => {
+    const shops = [["#c9604d", "#d64a2c"], ["#e3d5b5", "#2fa8c9"], ["#7a8fa6", "#ffd54a"], ["#b070c4", "#43a047"], ["#d9a35a", "#e53935"]];
+    let s = scR(0, 0, SC_W, SC_H, "#6d675c", 0, 0);
+    shops.forEach(([wall, awn], k) => {
+      const x = k * 64;
+      s += scR(x + 2, 4, 60, 44, wall, 1, 1);
+      s += scR(x + 2, 4, 60, 5, shade(wall, -.25), 0, .8);
+      [10, 26, 42].forEach(wx => s += scR(x + wx, 12, 10, 8, "#bfe4f2", 0, .7));
+      s += scR(x + 8, 30, 30, 16, "#cfeaf5", 0, .9) + `<path d="M${x + 23} 30v16" stroke="${OL}" stroke-width=".7"/>`;
+      s += scR(x + 44, 30, 12, 18, shade(wall, -.45), 0, .9);
+      let aw = "";
+      for (let i = 0; i < 6; i++) aw += `<polygon points="${x + 4 + i * 9.6},24 ${x + 13.6 + i * 9.6},24 ${x + 15.6 + i * 9.6},30 ${x + 2 + i * 9.6},30" fill="${i % 2 ? "#fff" : awn}"/>`;
+      s += aw + `<path d="M${x + 2} 30h60" stroke="${OL}" stroke-width=".9"/><path d="M${x + 4} 24h56" stroke="${OL}" stroke-width=".8"/>`;
+    });
+    s += scR(0, 48, SC_W, 10, "#bdb6a3", 0, 0);
+    for (let x = 0; x < SC_W; x += 16) s += `<path d="M${x} 48v10" stroke="#a39c8a" stroke-width="1"/>`;
+    s += scR(60, 44, 6, 8, "#5d4037", 1, .7) + scTree(63, 42, .7, "#3d8a35");
+    s += scR(188, 44, 6, 8, "#5d4037", 1, .7) + scTree(191, 42, .7, "#3d8a35");
+    return s;
+  },
+  // 2 Industrial Zone: sawtooth-roof factories, striped smokestacks, pipes and gravel
+  () => {
+    const r = scRand(7);
+    let s = scR(0, 0, SC_W, SC_H, "#5f5848", 0, 0);
+    for (let i = 0; i < 40; i++) s += scC(r() * SC_W, 40 + r() * 18, .8 + r(), "#7d7562", 0);
+    const fac = (x, w, c) => {
+      let t = "", p = `${x},30`;
+      for (let k = 0; k < w; k += 16) p += ` ${x + k},18 ${x + k + 16},30`;
+      t += scP(p + ` ${x + w},30`, shade(c, -.2), .9) + scR(x, 30, w, 20, c, 0, 1);
+      for (let k = 6; k < w - 6; k += 14) t += scR(x + k, 35, 8, 6, "#9fb4c0", 0, .6);
+      return t;
+    };
+    const stack = (x, h) => {
+      let t = scR(x, 50 - h, 10, h, "#c9c3b3", 0, .9);
+      for (let y = 50 - h + 3; y < 46; y += 9) t += scR(x, y, 10, 4, "#c0392b", 0, 0);
+      return t + scR(x - 1, 49 - h, 12, 3, "#555", 0, .7);
+    };
+    s += stack(20, 46) + fac(36, 96, "#8d8270") + stack(140, 40) + stack(156, 30) + fac(172, 112, "#7f7a72") + stack(290, 44);
+    s += `<path d="M132 44h40M132 40h40" stroke="#9aa3ab" stroke-width="2.4"/><path d="M132 44h40M132 40h40" stroke="${OL}" stroke-width=".5" opacity=".6"/>`;
+    s += scR(0, 50, SC_W, 8, "#4e4a3e", 0, 0);
+    for (let x = 4; x < SC_W; x += 22) s += `<path d="M${x} 53h12" stroke="#e8c547" stroke-width="2"/>`;
+    return s;
+  },
+  // 3 Waterfront Bay: open water with waves, a wooden dock, a sailboat and a strip of beach
+  () => {
+    let s = scR(0, 0, SC_W, SC_H, "#2f86b8", 0, 0) + scR(0, 0, SC_W, 18, "#3d98c9", 0, 0);
+    for (let y = 8; y < 42; y += 9) for (let x = (y % 2) * 14; x < SC_W; x += 28) s += `<path d="M${x} ${y}q4-3 8 0t8 0" fill="none" stroke="#bfe6fa" stroke-width="1.2" opacity=".7"/>`;
+    s += scR(96, 16, 58, 26, "#a8774f", 0, 1);
+    for (let x = 100; x < 152; x += 6) s += `<path d="M${x} 16v26" stroke="#7a5236" stroke-width=".8"/>`;
+    [98, 150].forEach(x => s += scR(x - 2, 12, 5, 32, "#6a4a35", 1, .8));
+    s += scP("212,30 252,30 246,38 218,38", "#f4f1ea", 1) + `<path d="M232 30V4" stroke="${OL}" stroke-width="1.2"/>` + scP("233,6 233,28 250,28", "#ffffff", .9) + scP("231,8 231,28 217,28", "#ffd54a", .9);
+    s += scR(0, 44, SC_W, 14, "#e1cc98", 0, 0) + `<path d="M0 44q20 4 40 0t40 0t40 0t40 0t40 0t40 0t40 0t40 0" fill="none" stroke="#f4fbff" stroke-width="2"/>`;
+    s += scC(40, 52, 4, "#e53935", .7) + `<path d="M36 52h8" stroke="#fff" stroke-width="1"/>` + scP("286,56 296,40 306,56", "#ff8a4c", .8) + `<path d="M296 40v16" stroke="${OL}" stroke-width=".8"/>`;
+    return s;
+  },
+  // 4 Historic Heights: old brick wall with stone caps, an arched iron gate, lanterns and elms
+  () => {
+    let s = scR(0, 0, SC_W, SC_H, "#4f7a3c", 0, 0) + scTree(60, 18, 1.1, "#2c6a2e") + scTree(250, 16, 1.2, "#2c6a2e");
+    s += scR(0, 24, SC_W, 26, "#9a5442", 0, 1);
+    for (let y = 24; y < 50; y += 6.5) {
+      s += `<path d="M0 ${y}h${SC_W}" stroke="#d8c6b4" stroke-width=".6" opacity=".7"/>`;
+      for (let x = ((y / 6.5) % 2) * 7; x < SC_W; x += 14) s += `<path d="M${x} ${y}v6.5" stroke="#d8c6b4" stroke-width=".6" opacity=".7"/>`;
+    }
+    s += scR(0, 21, SC_W, 4, "#cfc6b8", 0, .9);
+    for (let x = 0; x < SC_W; x += 80) s += scR(x + 2, 17, 12, 33, "#d8d0c2", 0, .9) + scR(x, 15, 16, 3, "#bfb6a8", 0, .8);
+    s += `<path d="M140 50V30a20 20 0 0 1 40 0v20z" fill="#2b3a2b" stroke="${OL}" stroke-width="1"/>`;
+    for (let x = 144; x < 178; x += 5) s += `<path d="M${x} 50V${32 - (x < 160 ? (x - 144) / 2 : (176 - x) / 2)}" stroke="#1d2a1b" stroke-width="1"/>`;
+    [108, 212].forEach(x => s += scR(x, 26, 2.4, 24, "#2d2f30", 0, 0) + scR(x - 3, 18, 8.4, 9, "#ffe08a", 1, .9) + scP(`${x - 4},18 ${x + 1.2},13 ${x + 6.4},18`, "#2d2f30", .6));
+    s += scR(0, 50, SC_W, 8, "#a99c88", 0, 0);
+    for (let x = 0; x < SC_W; x += 10) s += `<path d="M${x} 50l5 8" stroke="#8d806d" stroke-width=".8"/>`;
+    return s;
+  },
+  // 5 Metropolis Hub: a skyline of glass towers with lit windows
+  () => {
+    const r = scRand(11);
+    let s = scR(0, 0, SC_W, SC_H, "#4c5e74", 0, 0) + scR(0, 0, SC_W, 22, "#5d7189", 0, 0);
+    const cols = ["#2f4f6f", "#3c5f7f", "#34495e", "#4a6c8c", "#283c52", "#5b7a96"];
+    let x = 0, k = 0;
+    while (x < SC_W) {
+      const w = 22 + Math.floor(r() * 22), h = 22 + Math.floor(r() * 32), c = cols[k++ % cols.length], top = 50 - h;
+      s += scR(x, top, w, h, c, 0, .9);
+      if (r() < .4) s += scR(x + w / 2 - 1, top - 8, 2, 8, "#9aa5ae", 0, 0) + scC(x + w / 2, top - 9, 1.4, "#ff5252", 0);
+      for (let wy = top + 4; wy < 46; wy += 6) for (let wx = x + 3; wx < x + w - 4; wx += 6) s += scR(wx, wy, 3, 3, r() < .45 ? "#ffe9a0" : "#9fc6e0", 0, 0);
+      x += w + 2;
+    }
+    s += scR(0, 50, SC_W, 8, "#3a3f44", 0, 0);
+    for (let x2 = 6; x2 < SC_W; x2 += 24) s += `<path d="M${x2} 54h12" stroke="#e9e9e1" stroke-width="1.6"/>`;
+    return s;
+  }
+];
+const sceneURL = SCENES.map(f => `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SC_W} ${SC_H}" width="${SC_W}" height="${SC_H}" stroke-linecap="round">${f()}</svg>`)}")`);
+
+// dividers between the lots of a row, plus the scenery strip and (Industrial) smog haze
+function addScenery(distEl, d) {
+  const cv = distEl.querySelector(".district-canvas"); if (!cv) return;
+  distEl.classList.add(`theme-${d.id}`);
+  const scene = document.createElement("div");
+  scene.className = "district-scene"; scene.style.backgroundImage = sceneURL[d.id] || "";
+  distEl.insertBefore(scene, distEl.firstChild);
+  let html = "";
+  cv.querySelectorAll(".lot-row").forEach(row => {
+    const y = row.offsetTop, h = row.offsetHeight;
+    [1, 2, 3, 4].forEach(c => html += `<div class="gap-deco" style="left:calc(${c} * (100% - 64px) / 5 + ${16 * c - 8}px);top:${y + 14}px;height:${h - 28}px"></div>`);
+  });
+  cv.insertAdjacentHTML("beforeend", html);
+  if (d.problem === "smog") distEl.insertAdjacentHTML("beforeend", `<div class="district-haze"></div>`);
+}
+// problems you can see: haze thins as smog drops; Waterfront streets flood when it rains and the flood risk is unsolved
+function updateProblemVisuals() {
+  DISTRICTS.forEach(d => {
+    const el = document.getElementById(`district-${d.id}`); if (!el) return;
+    if (d.problem === "smog") {
+      const lv = problemLevel(d.id), hz = el.querySelector(".district-haze");
+      if (hz) hz.style.opacity = (hazardActive(d.id) ? .25 + .55 * lv / 100 : lv / 100 * .4).toFixed(2);
+    }
+    if (d.problem === "flood") el.classList.toggle("flooding", hazardActive(d.id) && wxLv.rain > .3);
+  });
+}
+
 // ================= FIRST-TIME TIPS =================
 // Short mayor bubbles that explain a control the first time it matters. Each shows once (saved with the
 // game), closes with a tap, never pauses play, and only one is on screen at a time; the rest wait in line.
@@ -1195,7 +1544,7 @@ function pumpTips() {
   const m = document.getElementById("story-modal"); if (storyBusy || (m && m.classList.contains("show"))) return;
   const ts = document.getElementById("toast"); if (ts && ts.classList.contains("show")) return;   // let the current message clear first
   const t = tipQueue.shift(); if (tipsSeen[t.id]) return pumpTips();
-  tipsSeen[t.id] = true; tipNow = t; saveGame();
+  tipsSeen[t.id] = true; tipNow = t; saveGame(); sfx("tip");
   const el = document.getElementById("tip");
   el.innerHTML = `<div class="tip-face">${MAYOR.face}</div><div class="tip-body"><div class="tip-text">${TIPS[t.id]}</div>
     <div class="tip-btns"><button type="button" data-t="ok">Got it</button><button type="button" class="tip-off" data-t="off">Hide tips</button></div></div>`;
@@ -1278,7 +1627,7 @@ const inD = (di, keys) => lotsData.filter(l => l.district === di && isDone(l) &&
 let lastIncome = 0;
 const districtIncome = di => lotsData.reduce((a, l, i) => a + (l.district === di && l.status === "built" ? calculateLotRent(i) / 3 : 0), 0);
 
-const MAYOR = { face: "🧑🏽‍💼", name: "Mayor Dana Reyes" };
+const MAYOR = { face: MAYOR_SVG, name: "Mayor Dana Reyes" };
 const CHAPTERS = [
   { title: "Lock Your Doors", reward: 1000,
     intro: "Welcome to Suburban Springs! Land here is dirt-cheap — because a wave of break-ins has scared every family off. Get homes on these streets and a police presence in the neighborhood. Make Springs safe, and I'll open Downtown to you.",
@@ -1385,7 +1734,7 @@ function checkStory() {
   let all = true;
   C.goals.forEach((g, gi) => {
     const info = goalInfo(g), key = chapter + ":" + gi;
-    if (info.done && !goalSeen[key]) { goalSeen[key] = true; if (storyPrimed && !storyBusy) toast(`✅ Goal done: ${info.t}`); }
+    if (info.done && !goalSeen[key]) { goalSeen[key] = true; if (storyPrimed && !storyBusy) { toast(`✅ Goal done: ${info.t}`); sfx("goal"); } }
     if (!info.done) { all = false; goalSeen[key] = false; }
   });
   storyPrimed = true;
@@ -1395,7 +1744,7 @@ function checkStory() {
 function completeChapter() {
   const c = chapter, C = CHAPTERS[c];
   storyBusy = true;
-  money += C.reward;
+  money += C.reward; sfx("fanfare");
   chapter++;
   const hired = crews - 2; crews = 2;          // hired crews are contracted for one chapter only
   syncUnlocks(); saveGame(); renderCity();
@@ -1550,6 +1899,7 @@ function problemEvent(di, key) {
   if (loss <= 0) return false;
   money -= loss; stats.events++;
   if (key === "flood" && lot.renovations.includes("paint")) { lot.renovations = lot.renovations.filter(r => r !== "paint"); paintLot(i); }
+  sfx(key === "crime" ? "alarm" : "problem");
   const cops = key === "crime" && dispatchPolice(i);
   toast(EVENT_MSG[key](i, fmt(loss)) + (cops ? " · 🚓 Police on the way" : ""));
   flashLot(i, EVENT_ICON[key]);
@@ -1559,7 +1909,7 @@ function problemEvent(di, key) {
 function flashLot(i, icon) {
   const el = lotEls[i]; if (!el) return;
   el.classList.remove("alert"); void el.offsetWidth; el.classList.add("alert");
-  const b = document.createElement("div"); b.className = "lot-alert"; b.textContent = icon; el.appendChild(b);
+  const b = document.createElement("div"); b.className = "lot-alert"; b.innerHTML = ico(icon); el.appendChild(b);
   setTimeout(() => { b.remove(); el.classList.remove("alert"); }, 2000);
 }
 
@@ -1785,6 +2135,7 @@ function buildCity(layer) {
       <div class="district-canvas" id="canvas-dist-${d.id}">${rows}<div class="local-road-h" id="road-${d.id}-5"></div></div>`;
     layer.appendChild(distEl);
     if (isUnlocked) addStreetLights(distEl);
+    addScenery(distEl, d);
     const col = d.gridPos[1] / 2;
     distEl.querySelectorAll(".local-road-h").forEach(r => r.insertAdjacentHTML("beforeend",
       (col > 0 ? `<i class="xwalk l"></i><i class="stop l"></i>` : "") + (col < 2 ? `<i class="xwalk r"></i><i class="stop r"></i>` : "")));
@@ -1798,7 +2149,7 @@ function buildCity(layer) {
         lotEl.onclick = (e) => {
           if (isPanning) return;
           e.stopPropagation();
-          if (unlockedDistricts.includes(d.id)) openLotSheet(i);
+          if (unlockedDistricts.includes(d.id)) { sfx("tap"); openLotSheet(i); }
           else toast(`🔒 ${lockMsg(d.id)}`);
         };
         rowEl.appendChild(lotEl);
@@ -1815,6 +2166,7 @@ function refreshCity() {
     if (top && top._html !== h) { top.innerHTML = h; top._html = h; }
     el.classList.toggle("power-out", d.problem === "outage" && hazardActive(d.id));
   });
+  updateProblemVisuals();
   lotEls.forEach((_, i) => paintLot(i));
 }
 
@@ -1855,7 +2207,7 @@ function paintLot(i) {
   const an = lot.anim === "build" ? "anim-build" : lot.anim === "demo" ? "anim-demo" : lot.anim === "reno" ? "anim-reno" : "";
   const P = (isDone(lot) || lot.status === "building" || lot.status === "sold") && lot.building ? PARK[lot.building] : null;
   if (lot.status === "building") { el.style.setProperty("--d", (lot.buildDur || 1) + "s"); el.style.setProperty("--e", (-Math.min(lot.buildDur || 1, (lot.buildDur || 1) - buildLeft(lot))).toFixed(2) + "s"); }
-  const cls = `lot ${P ? "has-nub" : ""} ${st} ${an} ${unlocked ? "" : "locked-lot"}`;
+  const cls = `lot ${P ? "has-nub" : ""} ${st} ${an} ${unlocked ? "" : "locked-lot"}${lot.status === "empty" ? " empty-lot" : ""}`;
   if (el.className !== cls) el.className = cls;
   let price, art;
   if (lot.offer) price = fmt(lot.offer);
@@ -1945,7 +2297,7 @@ function finishBuild(i) {
   const wasBad = hazardActive(l.district), b = BUILDINGS[l.building];
   l.status = "built"; l.anim = "build"; delete l.buildEnd; delete l.buildDur;
   announceSolved(l.district, wasBad);
-  toast(`${b.icon} ${b.name} finished at Lot #${i + 1}!`);
+  toast(`${b.icon} ${b.name} finished at Lot #${i + 1}!`); sfx("done");
   if (b.cat === "h") tip("rent", tipLot(i));
   renderCity();
   if (lotEls[i]) triggerSmokeEffect(lotEls[i]);
@@ -1968,6 +2320,7 @@ function finishReno(i) {
   else if (!l.renovations.includes(k)) l.renovations.push(k);
   l.anim = "reno";
   announceSolved(l.district, wasBad);
+  sfx(k === "repair" ? "done" : "reno");
   toast(`✨ ${k === "repair" ? "Repairs" : renoLabel(k)} finished at Lot #${i + 1} — rent is back on`);
   renderCity();
   if (lotEls[i]) triggerSmokeEffect(lotEls[i]);
@@ -2208,6 +2561,7 @@ function buildOnLot(key) {
   lot.building = key;
   lot.buildDur = buildSecs(key, lot.district);
   lot.buildEnd = Date.now() + lot.buildDur * 1000;
+  sfx("build");
   toast(`🏗️ Construction started — ${b.name} ready in ${fmtTime(lot.buildDur)}`);
   tip("crews", () => document.getElementById("stat-crews-box"));
 
@@ -2231,7 +2585,7 @@ function upgradeLot(key) {
   if (money < rc || lot.renovations.includes(key) || lot.reno || lot.damage || lot.status !== "built") return;
   if (!crewFree()) { crewBlocked(); refreshSheet(selectedLotId); return; }
 
-  money -= rc;
+  money -= rc; sfx("build");
   const dur = RENO_TIME[key] || 30;
   lot.reno = { key, dur, end: Date.now() + dur * 1000 };
   toast(`👷 ${r.name} started — rent paused for ${fmtTime(dur)}`);
@@ -2268,7 +2622,7 @@ function acceptOffer(id) {
   const lot = lotsData[id];
   if (!lot.offer) return;
 
-  money += Math.round(lot.offer * (1 - SALE_FEE));
+  money += Math.round(lot.offer * (1 - SALE_FEE)); sfx("cash");
   stats.sales++;
   delete lot.reno; delete lot.damage;
   lot.status = "sold";                       // the building stays — it just belongs to someone else now
@@ -2286,7 +2640,7 @@ function buyBackPrice(id) { return Math.round(calculatePropertyValue(id) * 1.2);
 function buyBack(id) {
   const lot = lotsData[id]; if (!lot || lot.status !== "sold") return;
   const p = buyBackPrice(id); if (money < p) { toast(`Need ${fmt(p)} to buy it back`); return; }
-  money -= p; toast(`🔑 The ${lot.owner || "owners"} accepted — Lot #${id + 1} is yours again`);
+  money -= p; sfx("spend"); toast(`🔑 The ${lot.owner || "owners"} accepted — Lot #${id + 1} is yours again`);
   lot.status = "built"; delete lot.owner; delete lot.soldFor; lot.anim = "build";
   document.getElementById("sheet").classList.remove("active");
   invalidateProblems(); updateHUD(); renderCity(); saveGame();
@@ -2314,7 +2668,7 @@ function demolishLot() {
     return;
   }
   demoArm = null; clearTimeout(demoTimer);
-  money -= c;
+  money -= c; sfx("demolish");
   lot.anim = "demo";
 
   document.getElementById("sheet").classList.remove("active");
@@ -3266,7 +3620,7 @@ function fxDraw(dt) {
   } else fx.splashes.length = 0;
   if (wxType === "storm" && L.rain > .6) {
     boltT -= dt;
-    if (boltT <= 0) { boltT = 5 + Math.random() * 9; flash = 1; bolt = makeBolt(w, h); setTimeout(() => { flash = Math.max(flash, .75); }, 140); setTimeout(() => { bolt = null; }, 420); }
+    if (boltT <= 0) { boltT = 5 + Math.random() * 9; flash = 1; bolt = makeBolt(w, h); setTimeout(() => sfx("thunder"), 250 + Math.random() * 600); setTimeout(() => { flash = Math.max(flash, .75); }, 140); setTimeout(() => { bolt = null; }, 420); }
   }
   if (flash > .01) {
     ctx.globalAlpha = Math.min(.55, flash * .5); ctx.fillStyle = "rgb(225,232,255)"; ctx.fillRect(0, 0, w, h);
@@ -3367,6 +3721,7 @@ window.addEventListener("load", () => {
     ["pointerdown", "pointermove", "wheel"].forEach(t => tipEl.addEventListener(t, e => e.stopPropagation(), { passive: true }));
     tipEl.addEventListener("click", e => { e.stopPropagation(); const b = e.target.closest("[data-t]"); closeTip(b && b.dataset.t === "off"); });
   }
+  paintSoundBtn();
   loadGame();
   syncUnlocks();
   updateHUD();
@@ -3384,7 +3739,7 @@ window.addEventListener("load", () => {
     updateTraffic();
     stepVisitors();
     const nowT = performance.now(), fdt = Math.min(.05, (nowT - (fx.last || nowT)) / 1000); fx.last = nowT;
-    wxStep(fdt); fxDraw(fdt); problemEvents(fdt); wearEvents(fdt); if (tipNow) placeTip();
+    wxStep(fdt); fxDraw(fdt); problemEvents(fdt); wearEvents(fdt); if (tipNow) placeTip(); sfxRain();
     requestAnimationFrame(animLoop);
   }
   requestAnimationFrame(animLoop);
@@ -3418,7 +3773,7 @@ window.addEventListener("load", () => {
         if (Math.random() < 0.05) {
           const val = calculatePropertyValue(i);
           l.offer = Math.round(val * (0.8 + Math.random() * 0.35));
-          l.offerTtl = OFFER_TICKS;
+          l.offerTtl = OFFER_TICKS; sfx("offer");
           toast(`💰 Offer on Lot #${i + 1}: ${fmt(l.offer)} — tap to review (good for ${OFFER_TICKS / 2}s)`, () => goToLot(i));
           paintLot(i);
           refreshSheet(i);
@@ -3427,7 +3782,7 @@ window.addEventListener("load", () => {
     });
 
     updateHUD();
-    pumpTips();
+    pumpTips(); updateProblemVisuals();
     if (++tickN % 10 === 0) saveGame();
   }, 500);
 });
