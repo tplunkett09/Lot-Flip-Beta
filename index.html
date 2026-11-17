@@ -603,6 +603,22 @@ body.is-dim .lot-art img.up-lux { opacity: 1; animation: winFlick 6s ease-in-out
 .dmg-smoke.d2 { left: 52%; animation-delay: .7s; } .dmg-smoke.d3 { left: 38%; animation-delay: 1.3s; }
 #toast { max-width: min(92%, 560px); }
 
+/* ---- first-time tips ---- */
+#tip { position: fixed; left: 0; top: 0; z-index: 250; width: min(280px, calc(100vw - 16px)); display: none; gap: 10px; align-items: flex-start;
+  background: var(--card); border: 2px solid var(--gold); border-radius: 14px; padding: 10px 12px; box-shadow: 0 10px 28px rgba(0,0,0,.7);
+  font-size: 13px; line-height: 1.4; touch-action: manipulation; }
+#tip.show { display: flex; animation: tipIn .3s cubic-bezier(.2,.9,.3,1.2); }
+@keyframes tipIn { from { opacity: 0; } }
+#tip::before { content: ""; position: absolute; left: calc(var(--ax, 50%) - 8px); width: 14px; height: 14px; background: var(--card); border: 2px solid var(--gold); transform: rotate(45deg); display: none; }
+#tip.down::before { display: block; top: -9px; border-right: 0; border-bottom: 0; }
+#tip.up::before { display: block; bottom: -9px; border-left: 0; border-top: 0; }
+.tip-face { width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; font-size: 19px; background: radial-gradient(circle at 35% 30%, #3b5534, #1a2618); }
+.tip-text b { color: var(--gold); }
+.tip-btns { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+.tip-btns button { min-height: 32px; padding: 5px 14px; border-radius: 9px; border: none; background: var(--gold); color: #1a1200; font-weight: 900; font-size: 12px; cursor: pointer; }
+.tip-btns .tip-off { background: none; color: var(--mut); font-weight: 700; padding: 5px 4px; }
+@media (prefers-reduced-motion: reduce) { #tip.show { animation: none; } }
+
 /* ---- review fixes: sheet sizing, labels, locked districts, phone layout ---- */
 #sheet { display: flex; flex-direction: column; max-height: min(64dvh, 560px); }
 #sheet-body { overflow-y: auto; min-height: 0; overscroll-behavior: contain; }
@@ -694,6 +710,7 @@ body.is-dim .lot-art img.up-lux { opacity: 1; animation: winFlick 6s ease-in-out
 </div>
 
 <div id="toast"></div>
+<div id="tip" role="status"></div>
 <div id="story-modal"><div class="story-card" id="story-card"></div></div>
 <div id="sheet">
   <div class="sheet-header">
@@ -878,6 +895,7 @@ function damageLot(i, kind, quiet) {
   paintLot(i); flashLot(i, I.icon);
   if (selectedLotId === i) refreshSheet(i);
   if (!quiet) toast(`${I.icon} ${I.name} at Lot #${i + 1} — repair it to get rent back`, () => goToLot(i));
+  setTimeout(() => tip("repair", () => document.querySelector("#alerts .stat-box.alert") || lotEls[i]), 600);
   updateHUD(); saveGame();
 }
 // Everyday wear: the more you own, the more often something breaks (about 1 a minute with a full district).
@@ -1054,6 +1072,7 @@ function toast(msg, act) {
   // sit just under the quest bar so it never covers the money/stat boxes
   const q = document.getElementById("quest"), qb = q ? q.getBoundingClientRect().bottom : 0;
   if (qb > 0) t.style.top = Math.round(qb + 8) + "px";
+  if (tipNow) t.style.top = Math.round(window.innerHeight - 150) + "px";   // a tip is up there — show messages lower down
   t.textContent = msg + (act ? "  ›" : ""); t.classList.add("show");
   t.style.pointerEvents = act ? "auto" : "none"; t.style.cursor = act ? "pointer" : "";
   t.onclick = act ? () => { t.classList.remove("show"); act(); } : null;
@@ -1063,7 +1082,7 @@ const SAVE_KEY = "lotflip2_save";
 let resetting = false;
 function saveGame() {
   if (resetting) return;
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify({ money, crews, creep, creepGrace, unlockedDistricts, chapter, stats, introShown, dayTime, t: Date.now(), lotsData: lotsData.map(l => ({ ...l, anim: null })) })); } catch (e) {}
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify({ money, crews, creep, creepGrace, unlockedDistricts, chapter, stats, introShown, tipsSeen, tipsOff, dayTime, t: Date.now(), lotsData: lotsData.map(l => ({ ...l, anim: null })) })); } catch (e) {}
 }
 function loadGame() {
   try {
@@ -1075,6 +1094,7 @@ function loadGame() {
     stats = Object.assign({ sales: 0, events: 0 }, s.stats || {});
     crews = Math.max(2, Math.min(MAX_CREWS, s.crews || 2));
     creep = s.creep || {}; creepGrace = s.creepGrace || {};
+    tipsSeen = s.tipsSeen || {}; tipsOff = !!s.tipsOff;
     introShown = Number.isInteger(s.introShown) ? s.introShown : -1;
     syncUnlocks(); invalidateProblems();
     lotsData.forEach(l => { if (l.offer && !l.offerTtl) l.offerTtl = OFFER_TICKS; });
@@ -1146,6 +1166,71 @@ document.addEventListener("visibilitychange", () => {
 });
 window.addEventListener("pagehide", saveGame);
 
+
+
+// ================= FIRST-TIME TIPS =================
+// Short mayor bubbles that explain a control the first time it matters. Each shows once (saved with the
+// game), closes with a tap, never pauses play, and only one is on screen at a time; the rest wait in line.
+let tipsSeen = {}, tipsOff = false;
+const tipQueue = []; let tipNow = null;
+const TIPS = {
+  start:  "Drag to move around the city, pinch (or scroll) to zoom. Tap a <b>For Sale</b> lot to build on it.",
+  quest:  "Tap this bar to open your goals, the problem meter and <b>📍 Go there</b>.",
+  crews:  "Every build, renovation and repair needs a free crew. Tap <b>👷</b> to see their jobs or hire another.",
+  rent:   "Homes pay rent every second. Tap a building to renovate it, list it for sale, or demolish it.",
+  crime:  "Break-ins cost you money until crime drops below 30%. <b>Police Stations</b> and <b>Parks</b> bring it down.",
+  repair: "Red chips up top are tappable — they jump straight to the lot that needs you. Messages with <b>›</b> can be tapped too.",
+  reno:   "No rent while a crew is working. Open the lot and pay to <b>⚡ Rush</b> it if you're in a hurry.",
+  offer:  "Buyers make an offer within about a minute. A gold chip appears up top — accept before they walk away."
+};
+// anchor: a function returning the element the bubble points at (or null for a centred bubble)
+function tip(id, anchor) {
+  if (tipsOff || tipsSeen[id] || !TIPS[id] || (tipNow && tipNow.id === id) || tipQueue.some(t => t.id === id)) return;
+  tipQueue.push({ id, anchor: anchor || null });
+  pumpTips();
+}
+const tipLot = i => () => lotEls[i] || null;
+function pumpTips() {
+  if (tipNow || !tipQueue.length || tipsOff) return;
+  const m = document.getElementById("story-modal"); if (storyBusy || (m && m.classList.contains("show"))) return;
+  const ts = document.getElementById("toast"); if (ts && ts.classList.contains("show")) return;   // let the current message clear first
+  const t = tipQueue.shift(); if (tipsSeen[t.id]) return pumpTips();
+  tipsSeen[t.id] = true; tipNow = t; saveGame();
+  const el = document.getElementById("tip");
+  el.innerHTML = `<div class="tip-face">${MAYOR.face}</div><div class="tip-body"><div class="tip-text">${TIPS[t.id]}</div>
+    <div class="tip-btns"><button type="button" data-t="ok">Got it</button><button type="button" class="tip-off" data-t="off">Hide tips</button></div></div>`;
+  el.classList.add("show"); placeTip();
+}
+function closeTip(off) {
+  const el = document.getElementById("tip"); if (el) el.classList.remove("show", "up", "down");
+  tipNow = null;
+  if (off) { tipsOff = true; tipQueue.length = 0; questKey = ""; renderTracker(); toast("💡 Tips are off — turn them back on in the goals panel"); }
+  saveGame();
+  setTimeout(pumpTips, 700); setTimeout(pumpTips, 3000);
+}
+// Keep the bubble next to its target as the map moves; if the target is off screen or under the
+// lot menu, park the bubble just under the quest bar instead.
+function placeTip() {
+  if (!tipNow) return;
+  const el = document.getElementById("tip"); if (!el || !el.classList.contains("show")) return;
+  const vw = window.innerWidth, vh = window.innerHeight, w = el.offsetWidth, h = el.offsetHeight;
+  const a = tipNow.anchor && tipNow.anchor(), r = a && a.getBoundingClientRect();
+  const sh = document.getElementById("sheet"), sr = sh && sh.classList.contains("active") ? sh.getBoundingClientRect() : null;
+  const q = document.getElementById("quest"), qb = q ? q.getBoundingClientRect().bottom : 60;
+  let ok = r && r.width > 4 && r.bottom > 0 && r.top < vh && r.right > 0 && r.left < vw;
+  if (ok && sr) { const cy = (r.top + r.bottom) / 2; if (cy > sr.top) ok = false; }
+  let x, y, cls = "";
+  if (ok) {
+    const cx = Math.max(10, Math.min(vw - 10, (Math.max(r.left, 0) + Math.min(r.right, vw)) / 2));
+    x = Math.max(8, Math.min(vw - w - 8, cx - w / 2));
+    if (r.bottom + h + 14 < (sr ? sr.top : vh)) { y = r.bottom + 10; cls = "down"; }
+    else if (r.top - h - 14 > 0) { y = r.top - h - 10; cls = "up"; }
+    else { y = Math.min(vh - h - 8, Math.max(8, r.top + 8)); }
+    el.style.setProperty("--ax", Math.max(16, Math.min(w - 16, cx - x)) + "px");
+  } else { x = (vw - w) / 2; y = qb + 10; }
+  el.classList.toggle("down", cls === "down"); el.classList.toggle("up", cls === "up");
+  el.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+}
 
 // ================= STORY MODE: neighborhood chapters & community challenges =================
 const PROBLEM_CLEAR = 30;   // a district's problem is "solved" when its meter drops below this
@@ -1335,7 +1420,10 @@ function showIntro(c) {
     kicker: `Chapter ${c + 1} · ${DISTRICTS[c].name}`, title: C.title, text: C.intro,
     goals: C.goals.map(g => goalInfo(g).t), problem: `${P.icon} Problem: ${P.name} — ${problemTip(P, c)}`,
     btn: "Let's do it!",
-    onClose: () => { storyBusy = false; focusDistrict(c); saveGame(); updateHUD(); }
+    onClose: () => {
+      storyBusy = false; focusDistrict(c); saveGame(); updateHUD();
+      if (c === 0) setTimeout(() => { const e = lotsData.findIndex(l => l.district === 0 && l.status === "empty"); tip("start", e >= 0 ? tipLot(e) : null); tip("quest", () => document.getElementById("quest")); }, 700);
+    }
   });
 }
 
@@ -1360,7 +1448,7 @@ function questShell() {
   if (chapter >= CHAPTERS.length) {
     return `<div class="q-head" data-q="toggle"><span class="q-ch">🗝️</span><span class="q-title">Story complete · freestyle</span><span class="q-x">${arrow}</span></div>
       <div class="q-body"><div class="q-tip">All six neighborhoods turned around. Keep building!</div>
-      <div class="q-btns"><button type="button" class="danger" data-q="reset">${resetArmed ? "Tap again to wipe save" : "↺ New Game"}</button></div></div>`;
+      <div class="q-btns"><button type="button" data-q="tips">💡 Tips: ${tipsOff ? "off" : "on"}</button><button type="button" class="danger" data-q="reset">${resetArmed ? "Tap again to wipe save" : "↺ New Game"}</button></div></div>`;
   }
   const C = CHAPTERS[chapter], d = DISTRICTS[chapter], P = PROBLEMS[d.problem];
   return `<div class="q-head" data-q="toggle"><span class="q-count" id="q-count">0/4</span>
@@ -1370,12 +1458,12 @@ function questShell() {
         <div class="q-bar"><i id="q-bar"></i><b style="left:${PROBLEM_CLEAR}%"></b></div></div>
       ${C.goals.map((g, gi) => `<div class="q-goal" id="q-g${gi}"><span class="ck"></span><span class="q-t">${goalInfo(g).t}</span><span class="q-p"></span></div>`).join("")}
       <div class="q-tip">💡 ${problemTip(P, chapter)}</div>
-      <div class="q-btns"><button type="button" data-q="go">📍 Go there</button><button type="button" data-q="story">📜 Story</button><button type="button" class="danger" data-q="reset">${resetArmed ? "Tap again" : "↺ New Game"}</button></div>
+      <div class="q-btns"><button type="button" data-q="go">📍 Go there</button><button type="button" data-q="story">📜 Story</button><button type="button" data-q="tips">💡 Tips: ${tipsOff ? "off" : "on"}</button><button type="button" class="danger" data-q="reset">${resetArmed ? "Tap again" : "↺ New Game"}</button></div>
     </div>`;
 }
 function renderTracker() {
   const q = document.getElementById("quest"); if (!q) return;
-  const key = chapter + "|" + questOpen + "|" + resetArmed;
+  const key = chapter + "|" + questOpen + "|" + resetArmed + "|" + tipsOff;
   if (key !== questKey) { questKey = key; q.innerHTML = questShell(); q.classList.toggle("collapsed", !questOpen); }
   if (chapter >= CHAPTERS.length) return;
   // update only the changing bits, so taps never land on a node that just got replaced
@@ -1408,6 +1496,12 @@ function questClick(e) {
   if (a === "toggle") { questOpen = !questOpen; resetArmed = false; renderTracker(); return; }
   if (a === "go") { if (chapter < CHAPTERS.length) { focusDistrict(chapter); questOpen = false; renderTracker(); } return; }
   if (a === "story") { if (chapter < CHAPTERS.length) showIntro(chapter); return; }
+  if (a === "tips") {
+    tipsOff = !tipsOff;
+    if (tipsOff) { tipQueue.length = 0; if (tipNow) closeTip(); }
+    else toast("💡 Tips back on — you'll see the ones you haven't read yet");
+    renderTracker(); saveGame(); return;
+  }
   if (a === "reset") {
     if (!resetArmed) { resetArmed = true; renderTracker(); clearTimeout(resetTimer); resetTimer = setTimeout(() => { resetArmed = false; renderTracker(); }, 4000); return; }
     resetting = true; try { localStorage.removeItem(SAVE_KEY); } catch (_) {} location.reload();
@@ -1459,6 +1553,7 @@ function problemEvent(di, key) {
   const cops = key === "crime" && dispatchPolice(i);
   toast(EVENT_MSG[key](i, fmt(loss)) + (cops ? " · 🚓 Police on the way" : ""));
   flashLot(i, EVENT_ICON[key]);
+  if (key === "crime") tip("crime", tipLot(i));
   return true;
 }
 function flashLot(i, icon) {
@@ -1851,6 +1946,7 @@ function finishBuild(i) {
   l.status = "built"; l.anim = "build"; delete l.buildEnd; delete l.buildDur;
   announceSolved(l.district, wasBad);
   toast(`${b.icon} ${b.name} finished at Lot #${i + 1}!`);
+  if (b.cat === "h") tip("rent", tipLot(i));
   renderCity();
   if (lotEls[i]) triggerSmokeEffect(lotEls[i]);
   refreshSheet(i); updateHUD(); saveGame();
@@ -2113,6 +2209,7 @@ function buildOnLot(key) {
   lot.buildDur = buildSecs(key, lot.district);
   lot.buildEnd = Date.now() + lot.buildDur * 1000;
   toast(`🏗️ Construction started — ${b.name} ready in ${fmtTime(lot.buildDur)}`);
+  tip("crews", () => document.getElementById("stat-crews-box"));
 
   document.getElementById("sheet").classList.remove("active");
   updateHUD();
@@ -2138,6 +2235,7 @@ function upgradeLot(key) {
   const dur = RENO_TIME[key] || 30;
   lot.reno = { key, dur, end: Date.now() + dur * 1000 };
   toast(`👷 ${r.name} started — rent paused for ${fmtTime(dur)}`);
+  tip("reno", tipLot(selectedLotId));
 
   openLotSheet(selectedLotId);
   updateHUD();
@@ -2153,6 +2251,7 @@ function listLotForSale(id) {
   lot.status = "listed";
   lot.offer = null;
   toast(`🏷️ Lot #${id + 1} is listed — buyers usually make an offer within a minute`);
+  tip("offer", tipLot(id));
   document.getElementById("sheet").classList.remove("active");
   renderCity(); saveGame();
 }
@@ -3263,6 +3362,11 @@ window.addEventListener("load", () => {
     ["pointerdown", "pointermove", "wheel"].forEach(t => qEl.addEventListener(t, e => e.stopPropagation(), { passive: true }));
     qEl.addEventListener("pointerup", e => { e.stopPropagation(); questClick(e); });
   }
+  const tipEl = document.getElementById("tip");
+  if (tipEl) {
+    ["pointerdown", "pointermove", "wheel"].forEach(t => tipEl.addEventListener(t, e => e.stopPropagation(), { passive: true }));
+    tipEl.addEventListener("click", e => { e.stopPropagation(); const b = e.target.closest("[data-t]"); closeTip(b && b.dataset.t === "off"); });
+  }
   loadGame();
   syncUnlocks();
   updateHUD();
@@ -3272,13 +3376,15 @@ window.addEventListener("load", () => {
   setTimeout(() => focusDistrict(unlockedDistricts[unlockedDistricts.length - 1]), 0);
   const intro = () => { if (introShown < chapter && chapter < CHAPTERS.length) setTimeout(() => showIntro(chapter), 400); };
   if (pendingAway) { const sec = pendingAway; pendingAway = 0; setTimeout(() => settleAway(sec, intro), 300); } else intro();
+  // players already partway into Chapter 1 (from a save made before tips existed) still get the basics
+  if (chapter === 0 && introShown === 0) setTimeout(() => { const e = lotsData.findIndex(l => l.district === 0 && l.status === "empty"); tip("start", e >= 0 ? tipLot(e) : null); tip("quest", () => document.getElementById("quest")); }, 1500);
 
   fxInit(); applyAmbient();
   function animLoop() {
     updateTraffic();
     stepVisitors();
     const nowT = performance.now(), fdt = Math.min(.05, (nowT - (fx.last || nowT)) / 1000); fx.last = nowT;
-    wxStep(fdt); fxDraw(fdt); problemEvents(fdt); wearEvents(fdt);
+    wxStep(fdt); fxDraw(fdt); problemEvents(fdt); wearEvents(fdt); if (tipNow) placeTip();
     requestAnimationFrame(animLoop);
   }
   requestAnimationFrame(animLoop);
@@ -3321,6 +3427,7 @@ window.addEventListener("load", () => {
     });
 
     updateHUD();
+    pumpTips();
     if (++tickN % 10 === 0) saveGame();
   }, 500);
 });
