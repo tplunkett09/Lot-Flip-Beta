@@ -586,7 +586,7 @@ body.is-dim .lot-art img.up-lux { opacity: 1; animation: winFlick 6s ease-in-out
 .lot-price { font-size: 14px; padding: 3px 8px; }
 .lot-art.empty { align-items: flex-end !important; justify-content: center; }
 .lot-art.empty svg.sale-sign { width: 62%; height: auto; max-height: 92%; margin-bottom: 4%; filter: drop-shadow(0 4px 4px rgba(0,0,0,.4)); overflow: visible; }
-.sale-sign .swing { transform-origin: 34px 13px; animation: signSway 4s ease-in-out infinite alternate; }
+.sale-sign .swing { transform-origin: 40px 11px; animation: signSway 4s ease-in-out infinite alternate; }
 @keyframes signSway { from { transform: rotate(-2deg); } to { transform: rotate(2deg); } }
 .lot.sold { border: 3px solid #78909c; background: #4d7a42; box-shadow: inset 0 0 18px rgba(0,0,0,.28); }
 .lot.sold .lot-art img:first-child { filter: saturate(.35) brightness(.88) drop-shadow(0 5px 6px rgba(0,0,0,.4)); }
@@ -651,6 +651,12 @@ body.is-dim .lot-art img.up-lux { opacity: 1; animation: winFlick 6s ease-in-out
 .district.flooding .lot-row .lot:not(.purchased):not(.listed):not(.has-offer) { box-shadow: inset 0 -14px 18px -8px rgba(80,170,230,.45); }
 @keyframes floodShimmer { to { filter: brightness(1.15) saturate(1.2); } }
 @media (prefers-reduced-motion: reduce) { .district-haze, .district.flooding .local-road-h { animation: none; } }
+
+/* ---- construction materials pile ---- */
+.lot-art svg.cons-mats { position: absolute; right: 3%; bottom: 3%; width: 34%; height: auto; max-height: none; pointer-events: none; z-index: 2;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,.3)); animation: consMats var(--d) linear var(--e) forwards; }
+@keyframes consMats { 0% { opacity: 0; transform: translateY(6px); } 4% { opacity: 1; transform: none; } 45% { opacity: 1; transform: scaleY(1); } 58% { opacity: 0; transform: scaleY(.4); } 100% { opacity: 0; } }
+.lot-art svg.cons-mats { transform-origin: 50% 100%; }
 
 /* ---- drawn icons, mayor, sound button ---- */
 svg.ico { width: 1em; height: 1em; display: block; overflow: visible; }
@@ -1018,33 +1024,51 @@ function renoLeft(l) { return l.reno ? Math.max(0, (l.reno.end - Date.now()) / 1
 function renoRushCost(l) { return Math.max(20, Math.round((l.reno.key === "repair" ? l.reno.cost : renoCost(l.reno.key, l.district)) * 0.5 * renoLeft(l) / (l.reno.dur || 1))); }
 // The building picture with every finished renovation layered on top.
 // Realty yard sign for empty lots (price on the hanging board) and a small SOLD sign for lots you sold.
+// Realty yard sign for empty lots, drawn in the same 3/4 view as the buildings: the post and board have
+// thickness (lit front, shaded right side), light from the top-left, shadow falling to the bottom-right.
 function saleSign(price) {
-  return `<svg class="sale-sign" viewBox="0 0 64 56" aria-hidden="true" stroke-linejoin="round">
-    <ellipse cx="14" cy="53" rx="9" ry="2.4" fill="rgba(0,0,0,.35)"/>
-    <rect x="12" y="6" width="4" height="47" rx="1" fill="#f4f1ea" stroke="#1d2a1b" stroke-width="1.2"/>
-    <rect x="12" y="6" width="50" height="4" rx="1" fill="#f4f1ea" stroke="#1d2a1b" stroke-width="1.2"/>
+  const big = String(price).length > 6;
+  return `<svg class="sale-sign" viewBox="0 0 72 60" aria-hidden="true" stroke-linejoin="round">
+    <polygon points="13,56 24,56 68,52 58,52" fill="rgba(0,0,0,.2)"/>
+    <ellipse cx="17" cy="56" rx="7.5" ry="2.2" fill="rgba(0,0,0,.35)"/>
+    <path d="M9 57q1-4 2-1q1-5 2-.5q1-4 2 .5M19 57q1-3.5 2-.5q1.2-4 2 0" stroke="#3d8a35" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    <polygon points="16,6 19.5,3.6 19.5,53.6 16,56" fill="#bdb6a3" stroke="#1d2a1b" stroke-width="1"/>
+    <rect x="12" y="6" width="4" height="50" fill="#f4f1ea" stroke="#1d2a1b" stroke-width="1.1"/>
+    <polygon points="12,6 15.5,3.6 66.5,3.6 63,6" fill="#ffffff" stroke="#1d2a1b" stroke-width="1"/>
+    <rect x="12" y="6" width="51" height="3.6" fill="#e9e4d6" stroke="#1d2a1b" stroke-width="1"/>
+    <polygon points="63,6 66.5,3.6 66.5,7.2 63,9.6" fill="#bdb6a3" stroke="#1d2a1b" stroke-width=".9"/>
     <g class="swing">
-      <path d="M24 10v4M54 10v4" stroke="#5f6a70" stroke-width="1.2"/>
-      <rect x="18" y="14" width="42" height="32" rx="2.4" fill="#ffffff" stroke="#1d2a1b" stroke-width="1.4"/>
-      <rect x="18" y="14" width="42" height="11" rx="2.4" fill="#d32f2f" stroke="#1d2a1b" stroke-width="1.4"/>
-      <text x="39" y="22.6" font-size="7.6" font-weight="900" text-anchor="middle" fill="#ffffff" font-family="system-ui,sans-serif" letter-spacing=".4">FOR SALE</text>
-      <text x="39" y="39.6" font-size="${String(price).length > 6 ? 9.5 : 12}" font-weight="900" text-anchor="middle" fill="#1d2a1b" font-family="system-ui,sans-serif">${price}</text>
+      <path d="M25 9.6v4.6M56 9.6v4.6" stroke="#5f6a70" stroke-width="1.2"/>
+      <polygon points="18,14.4 20.6,12.6 63.6,12.6 61,14.4" fill="#ffffff" stroke="#1d2a1b" stroke-width="1"/>
+      <polygon points="61,14.4 63.6,12.6 63.6,44.4 61,46.2" fill="#b9bec3" stroke="#1d2a1b" stroke-width="1"/>
+      <rect x="18" y="14.4" width="43" height="31.8" rx="1.6" fill="#ffffff" stroke="#1d2a1b" stroke-width="1.3"/>
+      <rect x="18" y="14.4" width="43" height="11" rx="1.6" fill="#d32f2f" stroke="#1d2a1b" stroke-width="1.3"/>
+      <rect x="19" y="22.6" width="41" height="2" fill="#a52222"/>
+      <path d="M21 17h18" stroke="rgba(255,255,255,.35)" stroke-width="1.2" stroke-linecap="round"/>
+      <text x="39.5" y="22.4" font-size="7.4" font-weight="900" text-anchor="middle" fill="#ffffff" font-family="system-ui,sans-serif" letter-spacing=".4">FOR SALE</text>
+      <text x="39.5" y="40" font-size="${big ? 9.5 : 12}" font-weight="900" text-anchor="middle" fill="#1d2a1b" font-family="system-ui,sans-serif">${price}</text>
+      <path d="M20 44.4h39" stroke="#e3e6e8" stroke-width="1.2"/>
     </g>
   </svg>`;
 }
-const SOLD_SIGN = `<svg class="sold-sign" viewBox="0 0 40 36" aria-hidden="true" stroke-linejoin="round">
-  <rect x="5" y="4" width="3" height="31" fill="#f4f1ea" stroke="#1d2a1b" stroke-width="1"/>
-  <rect x="9" y="6" width="29" height="18" rx="1.6" fill="#ffffff" stroke="#1d2a1b" stroke-width="1.2"/>
-  <rect x="9" y="6" width="29" height="7" rx="1.6" fill="#1565c0" stroke="#1d2a1b" stroke-width="1.2"/>
-  <text x="23.5" y="11.4" font-size="5" font-weight="900" text-anchor="middle" fill="#fff" font-family="system-ui,sans-serif">REALTY</text>
-  <text x="23.5" y="21.6" font-size="8" font-weight="900" text-anchor="middle" fill="#d32f2f" font-family="system-ui,sans-serif" transform="rotate(-8 23.5 18)">SOLD</text>
+const SOLD_SIGN = `<svg class="sold-sign" viewBox="0 0 42 38" aria-hidden="true" stroke-linejoin="round">
+  <polygon points="6,36 11,36 40,33 35,33" fill="rgba(0,0,0,.22)"/>
+  <polygon points="8,4 10,2.6 10,34.6 8,36" fill="#bdb6a3" stroke="#1d2a1b" stroke-width=".8"/>
+  <rect x="5" y="4" width="3" height="32" fill="#f4f1ea" stroke="#1d2a1b" stroke-width=".9"/>
+  <polygon points="9,6.5 11,5 40,5 38,6.5" fill="#ffffff" stroke="#1d2a1b" stroke-width=".8"/>
+  <polygon points="38,6.5 40,5 40,23 38,24.5" fill="#b9bec3" stroke="#1d2a1b" stroke-width=".8"/>
+  <rect x="9" y="6.5" width="29" height="18" rx="1.4" fill="#ffffff" stroke="#1d2a1b" stroke-width="1.1"/>
+  <rect x="9" y="6.5" width="29" height="7" rx="1.4" fill="#1565c0" stroke="#1d2a1b" stroke-width="1.1"/>
+  <text x="23.5" y="11.9" font-size="5" font-weight="900" text-anchor="middle" fill="#fff" font-family="system-ui,sans-serif">REALTY</text>
+  <g transform="rotate(-8 23.5 19)"><rect x="12" y="15" width="23" height="8" rx="1" fill="#d32f2f" stroke="#1d2a1b" stroke-width=".8"/>
+  <text x="23.5" y="21.3" font-size="6.6" font-weight="900" text-anchor="middle" fill="#fff" font-family="system-ui,sans-serif">SOLD</text></g>
 </svg>`;
 const OWNERS = ["Hendersons", "Nguyens", "Garcias", "Patels", "Okafors", "Johnsons", "Kowalskis", "Murphys", "Chens", "Rossis", "Larsens", "Abernathys"];
 for (const b in UPG_ART) for (const k in UPG_ART[b]) UPG_ART[b][k] = b64URL(UPG_ART[b][k]);
 function upImg(src, cls) { return `<img class="${cls}" src="${src}" alt="" draggable="false">`; }
 function spriteStack(l) {
   const U = UPG_ART[l.building], r = l.renovations || [];
-  let h = SPRITES[l.building] || "";
+  let h = spriteOf(l);
   if (l.damage && !l.reno && l.damage.kind && l.damage.kind !== "storm") {
     const k = l.damage.kind, I = ISSUES[k];
     const fx = k === "pipe" ? `<i class="dmg-puddle"></i>` : k === "fire" ? `<i class="dmg-smoke"></i><i class="dmg-smoke d2"></i><i class="dmg-smoke d3"></i>` : "";
@@ -1069,7 +1093,7 @@ function renoArt(l) {
   return `<div class="lot-art stack reno-${k}" style="--d:${dur}s;--e:${(-done).toFixed(2)}s">
     ${spriteStack(l)}
     ${layer ? `<div class="reno-wipe">${upImg(layer, "")}</div>` : ""}
-    <div class="reno-scaf">${SPRITES[l.building] || ""}</div>
+    <div class="reno-scaf">${spriteOf(l)}</div>
     <span class="reno-tool">${ico(tool)}</span>${fx}
     <div class="reno-bar"><i></i></div></div>`;
 }
@@ -1279,6 +1303,85 @@ const MAYOR_SVG = `<svg class="mayor-art" viewBox="0 0 64 64" aria-hidden="true"
   <path d="M27.5 34.6q4.5 3.8 9 0" stroke="#7a3b2a" stroke-width="1.5" fill="#fff" stroke-linejoin="round"/>
   <circle cx="46" cy="52" r="2.6" fill="#ffc933" stroke="${OL}" stroke-width=".8"/><path d="M46 50.4l.5 1.1 1.2.1-.9.8.3 1.2-1.1-.6-1.1.6.3-1.2-.9-.8 1.2-.1z" fill="#b8860b"/>
 </svg>`;
+
+// ================= HOME COLOR VARIANTS =================
+// Each home type gets two extra looks (new roof colour, wall paint or brick), made by recolouring the
+// original picture once while the game loads, so the file doesn't grow. Every lot always shows the
+// same look; renovation overlays (new paint / roof) still draw on top as before.
+const VARIANT_REG = {   // where the roof and walls sit in each picture (fractions of its height) and how dark roofs get
+  ranch: { roof: .5, wall: [.3, .68], vmax: .6 },
+  colonial: { roof: .5, wall: [.25, .72], vmax: .6 },
+  mansion: { roof: .45, wall: [.15, .72], vmax: .47 },
+  apartment: { roof: .3, wall: [0, .88], vmax: .6 }
+};
+const VARIANT_SET = {   // [roof hue, saturation, brightness], [wall hue, saturation], or [brick hue, sat, brightness]
+  ranch: [{ roof: [15, .55, 1], wall: [48, .25] }, { roof: [212, .32, 1.05], wall: [200, .16] }],
+  colonial: [{ roof: [140, .28, 1], wall: [48, .22] }, { roof: [18, .5, 1], wall: [205, .18] }],
+  mansion: [{ roof: [10, .45, 1], wall: [40, .14] }, { roof: [150, .3, 1] }],
+  apartment: [{ brick: [28, .55, 1.15] }, { brick: [210, .12, .95] }]
+};
+const SPRITE_VAR = {};   // building -> [img html for variant 1, variant 2]
+function rgb2hsv(r, g, b) {
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; let h = 0;
+  if (d) h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [(h * 60 + 360) % 360 / 360, mx ? d / mx : 0, mx];
+}
+const _rgb = [0, 0, 0];
+function hsv2rgb(h, s, v) {   // writes into a shared array (no garbage per pixel)
+  const i = Math.floor(h * 6), f = h * 6 - i, p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
+  switch (((i % 6) + 6) % 6) { case 0: _rgb[0] = v; _rgb[1] = t; _rgb[2] = p; break; case 1: _rgb[0] = q; _rgb[1] = v; _rgb[2] = p; break;
+    case 2: _rgb[0] = p; _rgb[1] = v; _rgb[2] = t; break; case 3: _rgb[0] = p; _rgb[1] = q; _rgb[2] = v; break;
+    case 4: _rgb[0] = t; _rgb[1] = p; _rgb[2] = v; break; default: _rgb[0] = v; _rgb[1] = p; _rgb[2] = q; }
+  return _rgb;
+}
+// recolours in slices of rows, handing control back between slices so the game never stutters
+async function recolorSprite(img, R, V) {
+  const c = document.createElement("canvas"); c.width = img.naturalWidth; c.height = img.naturalHeight;
+  const g = c.getContext("2d", { willReadFrequently: true }); g.drawImage(img, 0, 0);
+  const D = g.getImageData(0, 0, c.width, c.height), d = D.data, W = c.width, H = c.height;
+  for (let y0 = 0; y0 < H; y0 += 24) {
+    for (let y = y0; y < Math.min(H, y0 + 24); y++) {
+      const fy = y / H;
+      for (let x = 0; x < W; x++) {
+        const o = (y * W + x) * 4; if (d[o + 3] < 30) continue;
+        const r = d[o] / 255, gg = d[o + 1] / 255, b = d[o + 2] / 255, mx = Math.max(r, gg, b), mn = Math.min(r, gg, b), v = mx, s = mx ? (mx - mn) / mx : 0;
+        let out = null;
+        if (V.roof && fy < R.roof && s < .2 && v > .14 && v < R.vmax) out = hsv2rgb(V.roof[0] / 360, V.roof[1], Math.min(1, v * V.roof[2] * 1.15));
+        else if (V.wall && fy > R.wall[0] && fy < R.wall[1] && s < .3 && v > .66) out = hsv2rgb(V.wall[0] / 360, V.wall[1] * Math.min(1, (v - .6) / .3 + .3), v);
+        else if (V.brick && fy < R.wall[1] && s > .3) {
+          const h = rgb2hsv(r, gg, b)[0];
+          if (h < .09 || h > .95) out = hsv2rgb(V.brick[0] / 360, V.brick[0] < 100 ? s * V.brick[1] / .55 : V.brick[1], Math.min(1, v * V.brick[2]));
+        }
+        if (out) { d[o] = out[0] * 255; d[o + 1] = out[1] * 255; d[o + 2] = out[2] * 255; }
+      }
+    }
+    await new Promise(r => setTimeout(r, 0));
+  }
+  g.putImageData(D, 0, 0);
+  return new Promise(res => { try { c.toBlob(bl => res(bl ? URL.createObjectURL(bl) : null), "image/png"); } catch (e) { res(null); } });
+}
+// builds the variants in the background; until they're ready every home shows its original look
+function buildVariants() {
+  Object.keys(VARIANT_SET).forEach(k => {
+    const m = /src="([^"]+)"/.exec(SPRITES[k] || ""); if (!m) return;
+    const img = new Image();
+    img.onload = async () => {
+      try {
+        const urls = [];
+        for (const V of VARIANT_SET[k]) urls.push(await recolorSprite(img, VARIANT_REG[k], V));
+        SPRITE_VAR[k] = urls.map(u => u ? `<img src="${u}" alt="" draggable="false">` : null);
+        renderCity();
+      } catch (e) {}
+    };
+    img.src = m[1];
+  });
+}
+// which look a lot gets: fixed per lot number, about a third each
+function lotVariant(l) { return ((l.id * 7 + (l.id >> 2) * 3) % 3); }
+function spriteOf(l) {
+  const v = lotVariant(l), alt = SPRITE_VAR[l.building];
+  return (v && alt && alt[v - 1]) || SPRITES[l.building] || "";
+}
 
 // ================= SOUND =================
 // Every sound is synthesized with Web Audio (no sound files). The audio engine starts on the first
@@ -2230,28 +2333,57 @@ function paintLot(i) {
     el.style.setProperty("--nc", nc);
   }
 }
-const CRANE = `<svg class="cons-crane" viewBox="0 0 72 92" aria-hidden="true">
-  <rect x="45" y="86" width="16" height="5" fill="#7a7f84" stroke="#3b3f42" stroke-width=".8"/>
-  <path d="M49 86V22h8v64" fill="none" stroke="#e8a900" stroke-width="2"/>
-  <path d="M49 86l8-8-8-8 8-8-8-8 8-8-8-8 8-8-8-8M57 86l-8-8 8-8-8-8 8-8-8-8 8-8-8-8 8-8" fill="none" stroke="#f2b705" stroke-width="1.1"/>
-  <rect x="47.5" y="15.5" width="11" height="7" rx="1" fill="#f2b705" stroke="#5a4500" stroke-width=".8"/>
-  <rect x="48.8" y="16.8" width="4.6" height="3.6" fill="#9fd3ea"/>
+const CRANE = `<svg class="cons-crane" viewBox="0 0 76 94" aria-hidden="true" stroke-linejoin="round">
+  <ellipse cx="58" cy="91.5" rx="15" ry="2.4" fill="rgba(0,0,0,.3)"/>
+  <polygon points="44,85 47.5,82.6 64.5,82.6 61,85" fill="#a3a9ad" stroke="#3b3f42" stroke-width=".8"/>
+  <polygon points="61,85 64.5,82.6 64.5,88.6 61,91" fill="#5e6367" stroke="#3b3f42" stroke-width=".8"/>
+  <rect x="44" y="85" width="17" height="6" fill="#7c8286" stroke="#3b3f42" stroke-width=".8"/>
+  <path d="M57 84V22l3-2v62" fill="#c79400" fill-opacity=".25" stroke="#b98600" stroke-width="1.6"/>
+  <path d="M57 84l3-10-3-8 3-8-3-8 3-8-3-8 3-8-3-8" fill="none" stroke="#a87a00" stroke-width=".9"/>
+  <path d="M49 84V22h8v62" fill="none" stroke="#e8a900" stroke-width="2"/>
+  <path d="M49 84l8-8-8-8 8-8-8-8 8-8-8-8 8-8-8-8M57 84l-8-8 8-8-8-8 8-8-8-8 8-8-8-8 8-8" fill="none" stroke="#f2b705" stroke-width="1.1"/>
+  <polygon points="47.5,15.5 50,13.8 61,13.8 58.5,15.5" fill="#ffd54a" stroke="#5a4500" stroke-width=".7"/>
+  <polygon points="58.5,15.5 61,13.8 61,20.8 58.5,22.5" fill="#c79400" stroke="#5a4500" stroke-width=".7"/>
+  <rect x="47.5" y="15.5" width="11" height="7" rx=".8" fill="#f2b705" stroke="#5a4500" stroke-width=".8"/>
+  <rect x="48.8" y="16.8" width="4.6" height="3.6" fill="#9fd3ea" stroke="#5a4500" stroke-width=".4"/>
+  <path d="M49.4 17.4l1.6 2.4" stroke="rgba(255,255,255,.7)" stroke-width=".6"/>
   <path d="M53 15.5V4" stroke="#5a4500" stroke-width="1.6"/>
   <circle class="beacon" cx="53" cy="3" r="1.8" fill="#ff3b30"/>
   <g class="jib">
+    <polygon points="2,11 4.5,9.3 72.5,9.3 70,11" fill="#ffe082" stroke="#5a4500" stroke-width=".7"/>
     <path d="M2 11h68v4H2z" fill="#f2b705" stroke="#5a4500" stroke-width=".8"/>
     <path d="M4 15l3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4 3-4 3 4" fill="none" stroke="#5a4500" stroke-width=".55"/>
     <path d="M53 4L6 11M53 4L69 11" stroke="#5a4500" stroke-width=".7"/>
-    <rect x="61" y="15" width="9" height="7" rx="1" fill="#6b6f73" stroke="#2f3336" stroke-width=".7"/>
+    <polygon points="61,15 63.5,13.3 72.5,13.3 70,15" fill="#9aa0a5" stroke="#2f3336" stroke-width=".6"/>
+    <polygon points="70,15 72.5,13.3 72.5,20.3 70,22" fill="#4a4f53" stroke="#2f3336" stroke-width=".6"/>
+    <rect x="61" y="15" width="9" height="7" rx=".6" fill="#6b6f73" stroke="#2f3336" stroke-width=".7"/>
     <g class="trolley">
       <rect x="9" y="14.6" width="6" height="3" rx=".8" fill="#4a4f53"/>
       <rect class="cable" x="11.6" y="17.6" width=".9" height="30" fill="#2a2a2a"/>
       <g class="load"><path d="M12 47.6v2.2" stroke="#2a2a2a" stroke-width=".8"/>
+        <polygon points="4,49.6 6,48.4 22,48.4 20,49.6" fill="#e0614f" stroke="#5c1a12" stroke-width=".4"/>
         <rect x="4" y="49.6" width="16" height="2.2" fill="#c0392b" stroke="#5c1a12" stroke-width=".5"/>
+        <polygon points="20,49.6 22,48.4 22,54.4 20,55.6" fill="#8e2a20" stroke="#5c1a12" stroke-width=".4"/>
         <rect x="4" y="53.4" width="16" height="2.2" fill="#c0392b" stroke="#5c1a12" stroke-width=".5"/>
         <rect x="11" y="51.6" width="2" height="2" fill="#a02f22"/></g>
     </g>
   </g>
+</svg>`;
+// lumber stack and a pallet of bricks that get used up during the first half of the build
+const MATERIALS = `<svg class="cons-mats" viewBox="0 0 54 30" aria-hidden="true" stroke-linejoin="round">
+  <ellipse cx="27" cy="27" rx="25" ry="2.6" fill="rgba(0,0,0,.3)"/>
+  <polygon points="2,24 6,21.5 28,21.5 24,24" fill="#c49a6c" stroke="#1d2a1b" stroke-width=".7"/>
+  <rect x="2" y="24" width="22" height="2.6" fill="#a1784f" stroke="#1d2a1b" stroke-width=".7"/>
+  <polygon points="24,24 28,21.5 28,24.1 24,26.6" fill="#7a5a3a" stroke="#1d2a1b" stroke-width=".6"/>
+  ${[0, 1, 2].map(k => `<polygon points="${3 + k},${21.5 - k * 3} ${7 + k},${19 - k * 3} ${29 + k},${19 - k * 3} ${25 + k},${21.5 - k * 3}" fill="#f0cf9a" stroke="#1d2a1b" stroke-width=".6"/>
+  <rect x="${3 + k}" y="${21.5 - k * 3}" width="22" height="2.6" fill="#ddb57e" stroke="#1d2a1b" stroke-width=".6"/>
+  <polygon points="${25 + k},${21.5 - k * 3} ${29 + k},${19 - k * 3} ${29 + k},${21.6 - k * 3} ${25 + k},${24.1 - k * 3}" fill="#b38a57" stroke="#1d2a1b" stroke-width=".5"/>`).join("")}
+  <polygon points="32,24.5 36,22 52,22 48,24.5" fill="#c49a6c" stroke="#1d2a1b" stroke-width=".6"/>
+  <rect x="32" y="24.5" width="16" height="2" fill="#a1784f" stroke="#1d2a1b" stroke-width=".6"/>
+  <polygon points="33,14 37,11.5 51,11.5 47,14" fill="#e0614f" stroke="#1d2a1b" stroke-width=".7"/>
+  <rect x="33" y="14" width="14" height="10.5" fill="#c0392b" stroke="#1d2a1b" stroke-width=".8"/>
+  <polygon points="47,14 51,11.5 51,22 47,24.5" fill="#8e2a20" stroke="#1d2a1b" stroke-width=".7"/>
+  <path d="M33 17.5h14M33 21h14M40 14v3.5M36.5 17.5v3.5M43.5 17.5v3.5M40 21v3.5" stroke="#e8b0a4" stroke-width=".5"/>
 </svg>`;
 const MIXER = `<svg class="cons-mixer" viewBox="0 0 66 32" aria-hidden="true" stroke-linejoin="round">
   <ellipse cx="33" cy="28.4" rx="31" ry="2.6" fill="rgba(0,0,0,.33)"/>
@@ -2282,13 +2414,14 @@ const MIXER = `<svg class="cons-mixer" viewBox="0 0 66 32" aria-hidden="true" st
   <circle cx="52" cy="23" r="3.5" fill="#15181a"/><circle cx="52" cy="23" r="1.5" fill="#8a9399"/>
 </svg>`;
 function consArt(l) {
-  const dur = l.buildDur || 1, done = Math.min(dur, dur - buildLeft(l)), img = SPRITES[l.building] || "";
+  const dur = l.buildDur || 1, done = Math.min(dur, dur - buildLeft(l)), img = spriteOf(l);
   return `<div class="lot-art cons" style="--d:${dur}s;--e:${(-done).toFixed(2)}s">
     <div class="cons-pad"></div>
     ${CRANE}
     <div class="cons-layer cons-scaf">${img}</div>
     <div class="cons-layer cons-bld">${img}</div>
     ${MIXER}
+    ${MATERIALS}
     <i class="cons-dust"></i><i class="cons-dust d2"></i><i class="cons-dust d3"></i>
     <div class="cons-bar"><i></i></div></div>`;
 }
@@ -3722,6 +3855,7 @@ window.addEventListener("load", () => {
     tipEl.addEventListener("click", e => { e.stopPropagation(); const b = e.target.closest("[data-t]"); closeTip(b && b.dataset.t === "off"); });
   }
   paintSoundBtn();
+  buildVariants();
   loadGame();
   syncUnlocks();
   updateHUD();
