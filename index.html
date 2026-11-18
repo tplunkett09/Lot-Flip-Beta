@@ -291,6 +291,8 @@ body.is-night .car-headlight { opacity: 1; }
 }
 .mini-district.unlocked { background: rgba(76,175,80,0.35); border-color: var(--acc); }
 .mini-district.locked { background: rgba(0,0,0,0.6); }
+#mini-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#mini-viewport { z-index: 2; }
 #mini-viewport {
   position: absolute; border: 2px solid var(--gold); background: rgba(255,179,0,0.25);
   pointer-events: none; border-radius: 2px;
@@ -651,6 +653,13 @@ body.is-dim .lot-art img.up-lux { opacity: 1; animation: winFlick 6s ease-in-out
 .district.flooding .lot-row .lot:not(.purchased):not(.listed):not(.has-offer) { box-shadow: inset 0 -14px 18px -8px rgba(80,170,230,.45); }
 @keyframes floodShimmer { to { filter: brightness(1.15) saturate(1.2); } }
 @media (prefers-reduced-motion: reduce) { .district-haze, .district.flooding .local-road-h { animation: none; } }
+
+/* drawn (SVG) landmarks: let flags and spires poke out of their box; scaffold look while building */
+.lot-art svg { overflow: visible; }
+.lot-art.stack > svg { width: 100%; height: 100%; max-height: none; }
+.cons-scaf svg { filter: brightness(0) invert(62%) sepia(95%) saturate(1200%) hue-rotate(-12deg) brightness(1.05);
+  -webkit-mask-image: repeating-linear-gradient(0deg, #000 0 1px, transparent 1px 8px), repeating-linear-gradient(90deg, #000 0 1px, transparent 1px 10px);
+          mask-image: repeating-linear-gradient(0deg, #000 0 1px, transparent 1px 8px), repeating-linear-gradient(90deg, #000 0 1px, transparent 1px 10px); }
 
 /* ---- construction materials pile ---- */
 .lot-art svg.cons-mats { position: absolute; right: 3%; bottom: 3%; width: 34%; height: auto; max-height: none; pointer-events: none; z-index: 2;
@@ -1107,9 +1116,9 @@ const RENT_RATE = 0.01;
 const COST_MULT = [1, 3, 7, 14, 25, 40];
 const VAL_MULT  = [1, 2, 3.5, 5.5, 8, 11];
 const dm = d => COST_MULT[d] || 1, vm = d => VAL_MULT[d] || 1;
-const costOf = (key, d) => Math.round(BUILDINGS[key].cost * dm(d));
+const costOf = (key, d) => Math.round(BUILDINGS[key].cost * (BUILDINGS[key].fixed ? 1 : dm(d)));
 const renoCost = (key, d) => Math.round(RENOVATIONS[key].cost * dm(d));
-const buildSecs = (key, d) => Math.round((BUILD_TIME[key] || 30) * (1 + 0.5 * d));
+const buildSecs = (key, d) => Math.round((BUILD_TIME[key] || 30) * (BUILDINGS[key].fixed ? 1 : 1 + 0.5 * d));
 // Construction time in seconds (real time, keeps going while you're away)
 const BUILD_TIME = { park: 15, ranch: 20, coffee: 25, colonial: 30, pool: 35, police: 45, fire: 50, mansion: 60, school: 60, civic: 60, shopping: 80, apartment: 90, bank: 100, hospital: 120 };
 function isDone(l) { return l.status === "built" || l.status === "listed"; }
@@ -1167,7 +1176,7 @@ const SAVE_KEY = "lotflip2_save";
 let resetting = false;
 function saveGame() {
   if (resetting) return;
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify({ money, crews, creep, creepGrace, unlockedDistricts, chapter, stats, introShown, tipsSeen, tipsOff, dayTime, t: Date.now(), lotsData: lotsData.map(l => ({ ...l, anim: null })) })); } catch (e) {}
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify({ money, crews, creep, creepGrace, unlockedDistricts, chapter, stats, introShown, tipsSeen, tipsOff, fs, dayTime, t: Date.now(), lotsData: lotsData.map(l => ({ ...l, anim: null })) })); } catch (e) {}
 }
 function loadGame() {
   try {
@@ -1180,6 +1189,7 @@ function loadGame() {
     crews = Math.max(2, Math.min(MAX_CREWS, s.crews || 2));
     creep = s.creep || {}; creepGrace = s.creepGrace || {};
     tipsSeen = s.tipsSeen || {}; tipsOff = !!s.tipsOff;
+    if (s.fs) fs = Object.assign({ ch: [], next: 1, best: 0, intro: false }, s.fs);
     introShown = Number.isInteger(s.introShown) ? s.introShown : -1;
     syncUnlocks(); invalidateProblems();
     lotsData.forEach(l => { if (l.offer && !l.offerTtl) l.offerTtl = OFFER_TICKS; });
@@ -1718,6 +1728,7 @@ function problemLevel(di) {
   for (const l of lotsData) {
     if (l.district !== di || !isDone(l) || !l.building) continue;
     v -= P.fix[l.building] || 0;
+    if (l.building === "cityhall") v -= 10;
     v += (P.worse && P.worse[l.building]) || 0;
     if (P.roof && BUILDINGS[l.building].cat === "h" && l.renovations.includes("roof")) v -= P.roof;
   }
@@ -1888,7 +1899,7 @@ function showStory(o) {
     <div class="story-who">${MAYOR.name} says:</div>
     <p class="story-text">${o.text}</p>
     ${o.reward ? `<div class="story-reward">💰 ${o.reward}</div>` : ""}
-    ${o.goals ? `<div class="story-goals"><div class="sg-h">Community challenges</div>${o.goals.map(t => `<div class="q-goal"><span class="ck">○</span><span>${t}</span></div>`).join("")}${o.problem ? `<div class="q-tip">${o.problem}</div>` : ""}</div>` : ""}
+    ${o.goals ? `<div class="story-goals"><div class="sg-h">${o.goalsTitle || "Community challenges"}</div>${o.goals.map(t => `<div class="q-goal"><span class="ck">○</span><span>${t}</span></div>`).join("")}${o.problem ? `<div class="q-tip">${o.problem}</div>` : ""}</div>` : ""}
     <button class="story-btn" id="story-btn">${o.btn}</button>`;
   m.classList.add("show");
   document.getElementById("story-btn").onclick = () => { m.classList.remove("show"); if (o.onClose) o.onClose(); };
@@ -1897,11 +1908,7 @@ function showStory(o) {
 let questKey = "";
 function questShell() {
   const arrow = questOpen ? "✕" : "▾";
-  if (chapter >= CHAPTERS.length) {
-    return `<div class="q-head" data-q="toggle"><span class="q-ch">🗝️</span><span class="q-title">Story complete · freestyle</span><span class="q-x">${arrow}</span></div>
-      <div class="q-body"><div class="q-tip">All six neighborhoods turned around. Keep building!</div>
-      <div class="q-btns"><button type="button" data-q="tips">💡 Tips: ${tipsOff ? "off" : "on"}</button><button type="button" class="danger" data-q="reset">${resetArmed ? "Tap again to wipe save" : "↺ New Game"}</button></div></div>`;
-  }
+  if (chapter >= CHAPTERS.length) return freestyleShell(arrow);
   const C = CHAPTERS[chapter], d = DISTRICTS[chapter], P = PROBLEMS[d.problem];
   return `<div class="q-head" data-q="toggle"><span class="q-count" id="q-count">0/4</span>
       <span class="q-title" id="q-next">${questOpen ? `Ch.${chapter + 1} · ${C.title}` : ""}</span><span class="q-x">${arrow}</span></div>
@@ -1917,7 +1924,7 @@ function renderTracker() {
   const q = document.getElementById("quest"); if (!q) return;
   const key = chapter + "|" + questOpen + "|" + resetArmed + "|" + tipsOff;
   if (key !== questKey) { questKey = key; q.innerHTML = questShell(); q.classList.toggle("collapsed", !questOpen); }
-  if (chapter >= CHAPTERS.length) return;
+  if (chapter >= CHAPTERS.length) { renderFreestyle(); return; }
   // update only the changing bits, so taps never land on a node that just got replaced
   const C = CHAPTERS[chapter], lv = problemLevel(chapter);
   const infos = C.goals.map(goalInfo), doneN = infos.filter(i => i.done).length;
@@ -2034,7 +2041,7 @@ function getNeighbors(i) {
 
 function getGlobalCivicBoost() {
   return lotsData.reduce((acc, l) => {
-    return acc + (isDone(l) && l.building === "civic" ? BUILDINGS.civic.globalBoost : 0);
+    return acc + (isDone(l) && l.building && BUILDINGS[l.building].globalBoost ? BUILDINGS[l.building].globalBoost : 0);
   }, 0);
 }
 
@@ -2083,7 +2090,7 @@ function calculatePropertyValue(i) {
   if (lot.status === "empty" || !lot.building) return landPrice(lot);
   const b = BUILDINGS[lot.building];
   const renoVal = lot.renovations.reduce((acc, k) => acc + RENOVATIONS[k].vb, 0);
-  const baseValue = landPrice(lot) + (b.val + renoVal) * vm(lot.district);
+  const baseValue = landPrice(lot) + (b.val + renoVal) * (b.fixed ? 1 : vm(lot.district));
   return Math.max(1, Math.round(baseValue * (1 + getLotSynergyBoost(i)) * (hazardActive(lot.district) ? 0.85 : 1) * (lot.damage ? 0.8 : 1)));
 }
 
@@ -2093,10 +2100,10 @@ function calculateLotRent(i) {
   const b = BUILDINGS[lot.building];
   
   if (lot.damage || lot.reno) return 0;
-  if (b.cat === "i") return Math.round((b.rev || 0) * vm(lot.district));
+  if (b.cat === "i") return Math.round((b.rev || 0) * (b.fixed ? 1 : vm(lot.district)));
 
   const val = calculatePropertyValue(i);
-  let rent = Math.round(val * RENT_RATE * b.rm * (1 + getLotParkRentBoost(i)));
+  let rent = Math.round(val * RENT_RATE * b.rm * (1 + getLotParkRentBoost(i)) * (lotsData.some(o => o.district === lot.district && o.building === "stadium" && isDone(o)) ? 1.25 : 1));
 
   if (hazardActive(lot.district)) {
     rent = Math.round(rent * 0.7);
@@ -2271,6 +2278,7 @@ function refreshCity() {
   });
   updateProblemVisuals();
   lotEls.forEach((_, i) => paintLot(i));
+  drawMinimap();
 }
 
 // Lamp posts stand on the far curb in the gaps between lots; bulb + light pool sit above the night shade.
@@ -2429,6 +2437,7 @@ function finishBuild(i) {
   const l = lotsData[i]; if (!l || l.status !== "building") return;
   const wasBad = hazardActive(l.district), b = BUILDINGS[l.building];
   l.status = "built"; l.anim = "build"; delete l.buildEnd; delete l.buildDur;
+  stats.builds = (stats.builds || 0) + 1; stats.built = stats.built || {}; stats.built[l.building] = (stats.built[l.building] || 0) + 1;
   announceSolved(l.district, wasBad);
   toast(`${b.icon} ${b.name} finished at Lot #${i + 1}!`); sfx("done");
   if (b.cat === "h") tip("rent", tipLot(i));
@@ -2449,8 +2458,8 @@ function finishReno(i) {
   const l = lotsData[i]; if (!l || !l.reno) return;
   const k = l.reno.key, wasBad = hazardActive(l.district);
   delete l.reno;
-  if (k === "repair") delete l.damage;
-  else if (!l.renovations.includes(k)) l.renovations.push(k);
+  if (k === "repair") { delete l.damage; stats.repairs = (stats.repairs || 0) + 1; }
+  else { if (!l.renovations.includes(k)) l.renovations.push(k); stats.renos = (stats.renos || 0) + 1; }
   l.anim = "reno";
   announceSolved(l.district, wasBad);
   sfx(k === "repair" ? "done" : "reno");
@@ -2503,28 +2512,56 @@ function refreshSheet(i) {
   if (selectedLotId === i && sh && sh.classList.contains("active")) openLotSheet(i);
 }
 
+// Live minimap: every lot as a small square coloured by what's on it, districts outlined red while their
+// problem is active, broken buildings and buyer offers blinking. Drawn on a canvas twice a second.
+let miniLots = null, miniBlink = false;
 function renderMinimap() {
-  const mini = document.getElementById("minimap");
-  const miniBox = document.getElementById("mini-viewport");
-  if (!mini || !miniBox) return;
-  
-  mini.innerHTML = "";
-  mini.appendChild(miniBox);
-
+  const mini = document.getElementById("minimap"), box = document.getElementById("mini-viewport");
+  if (!mini || !box) return;
+  if (!document.getElementById("mini-canvas")) { mini.innerHTML = `<canvas id="mini-canvas"></canvas>`; mini.appendChild(box); }
+  // where each lot sits in the world (measured once per build of the city)
+  miniLots = lotEls.map(el => { if (!el) return null; const w = worldOf(el); return [w.x, w.y, el.offsetWidth, el.offsetHeight]; });
+  drawMinimap();
+}
+const MINI_COL = { empty: "#3f6e31", home: "#ffb300", biz: "#4fc3f7", service: "#9ccc65", building: "#ff9800", reno: "#81d4fa", damage: "#ff5252", listed: "#b388ff", offer: "#ffe082", sold: "#78909c" };
+function lotMiniColor(l) {
+  if (l.offer) return miniBlink ? MINI_COL.offer : MINI_COL.listed;
+  if (l.status === "listed") return MINI_COL.listed;
+  if (l.status === "sold") return MINI_COL.sold;
+  if (l.status === "building") return MINI_COL.building;
+  if (l.damage && !l.reno) return miniBlink ? MINI_COL.damage : "#7a1f1f";
+  if (l.reno) return MINI_COL.reno;
+  if (l.status === "built") { const b = BUILDINGS[l.building]; return b.cat === "h" ? MINI_COL.home : b.rev ? MINI_COL.biz : MINI_COL.service; }
+  return MINI_COL.empty;
+}
+function drawMinimap() {
+  const cv = document.getElementById("mini-canvas"), mini = document.getElementById("minimap");
+  if (!cv || !mini || !miniLots || mini.offsetParent === null) return;
+  const W = mini.clientWidth, H = mini.clientHeight, dpr = Math.min(2, window.devicePixelRatio || 1);
+  if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const g = cv.getContext("2d"), sx = W / 3600, sy = H / 2400;
+  g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  g.fillStyle = "#2f4f27"; g.fillRect(0, 0, W, H);
+  // avenues and the overpass
+  g.fillStyle = "#555b5f"; AVE.forEach(x => g.fillRect(x * sx, 0, Math.max(1.5, 56 * sx), H)); g.fillRect(0, 1172 * sy, W, Math.max(1.5, 56 * sy));
   DISTRICTS.forEach(d => {
-    const isUnlocked = unlockedDistricts.includes(d.id);
-    const mDist = document.createElement("div");
-    mDist.className = `mini-district ${isUnlocked ? 'unlocked' : 'locked'}`;
-    
-    const col = d.gridPos[1] === 0 ? 0 : d.gridPos[1] === 2 ? 1 : 2;
-    const row = d.gridPos[0] === 0 ? 0 : 1;
-    
-    mDist.style.left = (col * 33.33) + "%";
-    mDist.style.top = (row * 50) + "%";
-    mini.appendChild(mDist);
+    const el = document.getElementById(`district-${d.id}`); if (!el) return;
+    const w = worldOf(el), x = w.x * sx, y = w.y * sy, dw = el.offsetWidth * sx, dh = el.offsetHeight * sy;
+    const open = unlockedDistricts.includes(d.id);
+    g.fillStyle = open ? "#284521" : "#141c12"; g.fillRect(x, y, dw, dh);
+    if (open) for (let i = d.id * 25; i < d.id * 25 + 25; i++) {
+      const r = miniLots[i]; if (!r) continue;
+      g.fillStyle = lotMiniColor(lotsData[i]);
+      g.fillRect(r[0] * sx, r[1] * sy, Math.max(1, r[2] * sx), Math.max(1, r[3] * sy));
+    }
+    else { g.fillStyle = "rgba(255,255,255,.25)"; g.font = `${Math.max(8, dh * .28)}px system-ui`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("🔒", x + dw / 2, y + dh / 2); }
+    if (open && d.problem) {
+      const bad = hazardActive(d.id);
+      g.strokeStyle = bad ? (miniBlink ? "#ff5252" : "#c62828") : "rgba(129,199,132,.8)"; g.lineWidth = bad ? 2 : 1;
+      g.strokeRect(x + 1, y + 1, dw - 2, dh - 2);
+    }
   });
 }
-
 function openLotSheet(id) {
   selectedLotId = id;
   const lot = lotsData[id];
@@ -2550,11 +2587,11 @@ function openLotSheet(id) {
       const isLocked = chapter < need;
       const P = PROBLEMS[DISTRICTS[d].problem];
       const cut = P && hazardActive(d) ? (P.fix[k] || 0) - ((P.worse && P.worse[k]) || 0) : 0;
-      const maxed = count >= b.limit;
+      const cityCnt = b.landmark ? landmarkCount(k) : 0, maxed = b.landmark ? cityCnt >= 1 : count >= b.limit;
       const isCapped = maxed || isLocked || noCrew;
       const total = costOf(k, d) + land, canAfford = money >= total;
       const desc = b.desc.replace("{rev}", `${fmtRate((b.rev || 0) * vm(d) / 3)}/s`);
-      const why = isLocked ? `🔒 Unlocks after Chapter ${need}` : maxed ? `Max ${b.limit} per district (${count}/${b.limit})` : noCrew ? `👷 No free crew` : !canAfford ? `<span class="need">Need ${fmt(total - money)} more</span><br>${desc}` : desc;
+      const why = isLocked ? `🔒 Unlocks after Chapter ${need}` : maxed ? (b.landmark ? "✅ Already built — one per city" : `Max ${b.limit} per district (${count}/${b.limit})`) : noCrew ? `👷 No free crew` : !canAfford ? `<span class="need">Need ${fmt(total - money)} more</span><br>${desc}` : desc;
       const warn = k === "apartment" && d === 4 && chapter === 4 && !isLocked ? `<br><span style="color:#ff8a80">⚠️ Breaks the "no apartments" challenge</span>` : "";
       optsHTML += `
         <button class="opt-btn ${(!canAfford || isCapped) ? 'disabled' : ''}"
@@ -3779,6 +3816,193 @@ function applyAmbient() {
   const mw = document.getElementById("map-world"); if (mw) mw.classList.toggle("lamps-on", dim);
 }
 
+// ================= FREESTYLE: LANDMARKS, CITY CHALLENGES, CITY RATING =================
+// Everything here switches on once all six chapters are done.
+const STORY_DONE = () => chapter >= CHAPTERS.length;
+
+// ---- Landmarks: one of each per city, fixed prices (no district multiplier), drawn in the same 3/4 view ----
+// a lawn plate under each landmark, like the painted buildings stand on
+const lmPlate = (top = "#5aad4b") => gP([[2, 82], [34, 62], [118, 70], [86, 94]], top, 1.4) + gP([[2, 82], [86, 94], [86, 98], [2, 86]], "#3f7d35", 1.1) + gP([[86, 94], [118, 70], [118, 74], [86, 98]], "#356a2c", 1.1) +
+  `<path d="M10 81l26-15M84 90l26-16" stroke="#6fc05e" stroke-width="1.6" opacity=".6"/>`;
+SPRITES.cityhall = gS(
+  lmPlate() + gP([[40, 92], [56, 82], [70, 83], [54, 94]], "#e3ddcf", .9) +
+  gBlk(12, 56, 88, 32, ["#f4f1ea", "#d4cfc2", "#e9e4d6"], 12, -7) +
+  gR(28, 86, 56, 3, "#e3ddcf", 1) + gR(24, 89, 64, 3, "#d6cfbf", 1) +
+  gR(30, 56, 52, 5, "#e9e4d6", 1) + gP([[28, 57], [56, 43], [84, 57]], "#f4f1ea") + gC(56, 51, 2.6, "#c9a227", .8) +
+  [33, 41, 49, 59, 67, 75].map(x => gR(x, 61, 4, 25, "#fbfaf6", .9) + `<path d="M${x + 1.2} 62v23" stroke="#d9d3c4" stroke-width=".8"/>`).join("") +
+  gDoor(52, 72, 8, 14, "#4b2f22") +
+  [16, 22, 88, 94].map(x => gWin(x - 1, 64, 5, 8) + gWin(x - 1, 76, 5, 8)).join("") +
+  gR(44, 30, 24, 14, "#ece7da", 1) + [47, 53, 59, 65].map(x => gR(x - 1, 33, 3, 7, "#bfe4f2", .6)).join("") +
+  `<path d="M42 31Q56 4 70 31Z" fill="#6fa89a" stroke="${OL}" stroke-width="1.4"/><path d="M47 28Q52 13 58 10" stroke="#a8d8cb" stroke-width="1.6" fill="none" stroke-linecap="round"/>` +
+  gR(53.5, 6, 5, 6, "#ece7da", .9) + `<path d="M56 6V-4" stroke="${OL}" stroke-width="1"/>` + gP([[56, -4], [66, -1], [56, 2]], "#1e88e5", .8) +
+  gTree(6, 80) + gTree(110, 78) + gShrub(26, 90, 4) + gShrub(86, 90, 4)
+);
+SPRITES.stadium = gS(lmPlate("#4f9a42") +
+  `<path d="M8 58v12a52 24 0 0 0 104 0V58z" fill="#8a9196" stroke="${OL}" stroke-width="1.4"/>` +
+  [18, 30, 42, 54, 66, 78, 90, 102].map(x => `<path d="M${x - 4} ${74 + Math.abs(60 - x) * .08}v-6a4 4 0 0 1 8 0v6" fill="#5e6367" stroke="${OL}" stroke-width=".6"/>`).join("") +
+  `<ellipse cx="60" cy="58" rx="52" ry="24" fill="#b0b6ba" stroke="${OL}" stroke-width="1.4"/>` +
+  `<ellipse cx="60" cy="58" rx="47" ry="21" fill="#d64a2c" stroke="${OL}" stroke-width=".8"/>` +
+  `<ellipse cx="60" cy="58" rx="41" ry="18" fill="#c9ced3" stroke="${OL}" stroke-width=".6"/>` +
+  `<ellipse cx="60" cy="58" rx="38" ry="16.5" fill="#1e88e5" stroke="${OL}" stroke-width=".7"/>` +
+  `<ellipse cx="60" cy="58" rx="30" ry="12.5" fill="#5aad4b" stroke="${OL}" stroke-width="1"/>` +
+  [0, 1, 2, 3, 4].map(k => `<path d="M${36 + k * 12} 47.5v21" stroke="#6cbf5a" stroke-width="5" opacity=".6"/>`).join("") +
+  `<ellipse cx="60" cy="58" rx="30" ry="12.5" fill="none" stroke="${OL}" stroke-width="1"/><path d="M60 45.5v25" stroke="#fff" stroke-width=".9"/><ellipse cx="60" cy="58" rx="5" ry="2.4" fill="none" stroke="#fff" stroke-width=".9"/>` +
+  [[14, 40], [106, 40], [22, 74], [98, 74]].map(([x, y]) => gR(x - 1.2, y - 22, 2.4, 22, "#78909c", .7) + gR(x - 5, y - 27, 10, 6, "#eceff1", .8) + [-3, 0, 3].map(o => gC(x + o, y - 24, 1, "#fff59d", 0)).join("")).join("") +
+  gP([[57, 32], [57, 24], [64, 27]], "#ffd54a", .8) + `<path d="M57 32v-9" stroke="${OL}" stroke-width=".9"/>`
+);
+SPRITES.tower = gS(
+  `<defs><linearGradient id="twG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8ec5f0"/><stop offset=".55" stop-color="#3d7fc0"/><stop offset="1" stop-color="#1f4f86"/></linearGradient></defs>` +
+  lmPlate() + `<ellipse cx="60" cy="84" rx="34" ry="8" fill="#d9d3c4" stroke="${OL}" stroke-width="1"/>` +
+  gBlk(38, 14, 34, 74, ["url(#twG)", "#1d4677", "#9fc6e8"], 16, -9) +
+  Array.from({ length: 13 }, (_, k) => `<path d="M38 ${19 + k * 5.4}h34" stroke="#cfe6f7" stroke-width=".5" opacity=".7"/><path d="M72 ${19 + k * 5.4}l16 -9" stroke="#5f8fbf" stroke-width=".5" opacity=".8"/>`).join("") +
+  [44.5, 51, 57.5, 64.5].map(x => `<path d="M${x} 14v74" stroke="#cfe6f7" stroke-width=".5" opacity=".6"/>`).join("") +
+  `<polygon points="40,16 54,16 40,52" fill="#ffffff" opacity=".22"/>` +
+  gBlk(44, 4, 22, 10, ["#3d7fc0", "#1d4677", "#9fc6e8"], 10, -6) + `<path d="M60 -2V-14" stroke="${OL}" stroke-width="1.4"/>` + gC(60, -14, 1.6, "#ff5252", 0) +
+  gR(36, 82, 38, 6, "#e9eef1", 1) + gDoor(51, 82, 10, 6, "#37515f") + gR(44, 82, 4, 6, "#bfe4f2", .6) + gR(64, 82, 4, 6, "#bfe4f2", .6) +
+  gTree(20, 84) + gTree(104, 80) + gC(92, 90, 4.5, "#4fc3f7") + gC(92, 90, 2, "#e1f5fe", 0)
+);
+Object.assign(BUILDINGS, {
+  cityhall: { name: "City Hall", cost: 150000, val: 150000, rm: 0, globalBoost: .25, fixed: true, landmark: true, cat: "i", limit: 1, icon: "🏛️", biz: true, desc: "+25% value on every lot · −10% every district's problem" },
+  stadium: { name: "Stadium", cost: 300000, val: 300000, rm: 0, rev: 1500, fixed: true, landmark: true, cat: "i", limit: 1, icon: "🏟️", biz: true, desc: "Earns {rev} · +25% rent on homes in its district" },
+  tower: { name: "Grand Tower", cost: 600000, val: 600000, rm: 0, rev: 3600, fixed: true, landmark: true, cat: "i", limit: 1, icon: "🏙️", biz: true, desc: "Earns {rev} · the city's tallest landmark" }
+});
+Object.assign(BUILD_TIME, { cityhall: 150, stadium: 210, tower: 270 });
+Object.assign(CH_UNLOCK, { cityhall: 6, stadium: 6, tower: 6 });
+Object.assign(PARK, {
+  cityhall: { ar: 1.2, spots: [], ex: .5, eyb: .93, cx: .5, cy: .85, kind: "lot", pd: null },
+  stadium: { ar: 1.2, spots: [], ex: .5, eyb: .97, cx: .5, cy: .85, kind: "lot", pd: null },
+  tower: { ar: 1.2, spots: [], ex: .5, eyb: .93, cx: .5, cy: .85, kind: "lot", pd: null }
+});
+const landmarkCount = k => lotsData.filter(l => l.building === k && l.status !== "empty" && l.status !== "sold").length;
+const hasLandmark = k => lotsData.some(l => l.building === k && isDone(l));
+
+// ---- City rating: 0–100 from how full, safe, polished and rich the city is; each new star pays a bonus ----
+function cityRating() {
+  const filled = lotsData.filter(l => isDone(l) && l.building).length / 150;
+  const solved = DISTRICTS.filter(d => !hazardActive(d.id)).length / DISTRICTS.length;
+  const homes = lotsData.filter(l => isDone(l) && l.building && BUILDINGS[l.building].cat === "h");
+  const polish = homes.length ? homes.reduce((a, l) => a + l.renovations.length, 0) / (homes.length * 3) : 0;
+  const rich = Math.min(1, Math.log10(lastIncome + 1) / Math.log10(20000));
+  const marks = ["cityhall", "stadium", "tower"].filter(hasLandmark).length / 3;
+  const parts = { filled: filled * 30, safe: solved * 25, polish: polish * 15, income: rich * 20, landmarks: marks * 10 };
+  return { score: Math.round(Object.values(parts).reduce((a, b) => a + b, 0)), parts };
+}
+const starsOf = sc => Math.floor(sc / 10) / 2;   // half-star steps
+function starText(st) { let s = ""; for (let i = 1; i <= 5; i++) s += st >= i ? "★" : "☆"; return s; }
+const STAR_BONUS = [0, 20000, 60000, 150000, 400000, 1000000];   // paid the first time you reach 1…5 whole stars
+
+// ---- City challenges: three at a time, timed in play-time (they don't run down while you're away) ----
+let fs = { ch: [], next: 1, best: 0, intro: false };
+function chCounter(type) {
+  switch (type) {
+    case "rent": return stats.rentEarned || 0;
+    case "build": return stats.builds || 0;
+    case "reno": return stats.renos || 0;
+    case "sale": return stats.sales || 0;
+    case "repair": return stats.repairs || 0;
+    default: return type.startsWith("type:") ? ((stats.built || {})[type.slice(5)] || 0) : 0;
+  }
+}
+function newChallenge() {
+  const base = Math.max(8000, Math.round(lastIncome * 150 / 100) * 100);
+  const taken = fs.ch.map(c => c.type);
+  const pool = [];
+  const rentGoal = Math.max(5000, Math.round(lastIncome * 300 / 1000) * 1000);
+  pool.push({ type: "rent", t: `Collect ${fmt(rentGoal)} in rent`, goal: rentGoal, secs: 600, reward: Math.round(rentGoal * .3) });
+  const nb = 3 + Math.floor(Math.random() * 3);
+  pool.push({ type: "build", t: `Finish ${nb} new buildings`, goal: nb, secs: 720, reward: base * 1.2 });
+  const homes = lotsData.filter(l => l.status === "built" && l.building && BUILDINGS[l.building].cat === "h" && l.renovations.length < 3).length;
+  if (homes >= 3) { const n = Math.min(4, homes); pool.push({ type: "reno", t: `Complete ${n} renovations`, goal: n, secs: 720, reward: base }); }
+  if (lotsData.some(l => l.status === "built" && l.building)) pool.push({ type: "sale", t: "Sell 2 properties", goal: 2, secs: 900, reward: base * .8 });
+  pool.push({ type: "repair", t: "Fix 3 broken buildings", goal: 3, secs: 900, reward: base * .9 });
+  const svc = ["park", "school", "police", "fire", "pool", "hospital", "civic"][Math.floor(Math.random() * 7)];
+  const ns = svc === "hospital" || svc === "civic" ? 1 : 2;
+  pool.push({ type: "type:" + svc, t: `Open ${ns === 1 ? "a new" : ns} ${BUILDINGS[svc].name}${ns > 1 ? "s" : ""}`, goal: ns, secs: 720, reward: base });
+  const bad = DISTRICTS.filter(d => hazardActive(d.id));
+  if (bad.length) {
+    const d = bad[Math.floor(Math.random() * bad.length)], P = PROBLEMS[d.problem];
+    pool.push({ type: "fix:" + d.id, t: `Get ${P.name.toLowerCase()} in ${d.name} below ${PROBLEM_CLEAR}%`, goal: 1, secs: 900, reward: base * 2 });
+  }
+  const opts = pool.filter(c => !taken.includes(c.type));
+  const pick = opts[Math.floor(Math.random() * opts.length)] || pool[0];
+  return { ...pick, id: fs.next++, reward: Math.round(pick.reward / 100) * 100, left: pick.secs, start: chCounter(pick.type) };
+}
+function chProgress(c) {
+  if (c.type.startsWith("fix:")) { const d = +c.type.slice(4); return hazardActive(d) ? 0 : 1; }
+  return Math.max(0, chCounter(c.type) - c.start);
+}
+let fsTick = 0;
+function tickFreestyle(dt) {
+  if (!STORY_DONE()) return;
+  if (!fs.intro) { if (!storyBusy) showFreestyleIntro(); return; }
+  if (storyBusy) return;
+  while (fs.ch.length < 3) fs.ch.push(newChallenge());
+  fs.ch.forEach((c, k) => {
+    if (c.done) { if ((c.left -= dt) <= -6) fs.ch[k] = newChallenge(); return; }
+    if (chProgress(c) >= c.goal) {
+      c.done = true; c.left = 0; money += c.reward; sfx("cash");
+      toast(`🏆 Challenge done: ${c.t} · +${fmt(c.reward)}`);
+    } else if ((c.left -= dt) <= 0) {
+      toast(`⌛ Challenge expired: ${c.t}`);
+      fs.ch[k] = newChallenge();
+    }
+  });
+  // rating stars
+  const st = Math.floor(starsOf(cityRating().score));
+  if (st > fs.best) {
+    for (let s = fs.best + 1; s <= st; s++) money += STAR_BONUS[s] || 0;
+    const bonus = STAR_BONUS.slice(fs.best + 1, st + 1).reduce((a, b) => a + b, 0);
+    fs.best = st; sfx("fanfare");
+    toast(`⭐ Your city reached ${st} star${st > 1 ? "s" : ""}! +${fmt(bonus)} from the council`);
+  }
+  if (++fsTick % 4 === 0) saveGame();
+}
+function showFreestyleIntro() {
+  fs.intro = true; saveGame(); storyBusy = true;
+  showStory({
+    kicker: "Freestyle", title: "The city is yours",
+    text: "Every neighborhood is back on its feet, so now it's about making this the best city in the state. The council will post <b>city challenges</b> with cash rewards, and your <b>city rating</b> earns a bonus every time it gains a star. And you've earned the right to build our <b>landmarks</b>: City Hall, a Stadium and the Grand Tower, one of each.",
+    goals: ["Finish city challenges for cash", "Raise your city rating to 5 stars", "Build all three landmarks"], goalsTitle: "What's next",
+    btn: "Let's build 🏙️",
+    onClose: () => { storyBusy = false; questOpen = true; questKey = ""; renderTracker(); }
+  });
+}
+function fmtLeft(sec) { sec = Math.max(0, Math.ceil(sec)); return sec >= 60 ? `${Math.floor(sec / 60)}m ${String(sec % 60).padStart(2, "0")}s` : `${sec}s`; }
+function freestyleShell(arrow) {
+  return `<div class="q-head" data-q="toggle"><span class="q-count" id="fs-stars">★</span><span class="q-title" id="q-next">${questOpen ? "Freestyle · city goals" : ""}</span><span class="q-x">${arrow}</span></div>
+    <div class="q-body">
+      <div class="q-meter"><div class="q-meter-top"><span>🏙️ City rating</span><span id="fs-score"></span></div>
+        <div class="q-bar"><i id="fs-bar" style="background:var(--gold)"></i></div>
+        <div class="q-tip" id="fs-parts"></div></div>
+      <div class="sg-h" style="font-weight:800;color:var(--gold);margin:8px 0 2px">City challenges</div>
+      ${[0, 1, 2].map(k => `<div class="q-goal" id="fs-c${k}"><span class="ck"></span><span class="q-t"></span><span class="q-p"></span></div>`).join("")}
+      <div class="q-tip" id="fs-marks"></div>
+      <div class="q-btns"><button type="button" data-q="tips">💡 Tips: ${tipsOff ? "off" : "on"}</button><button type="button" class="danger" data-q="reset">${resetArmed ? "Tap again to wipe save" : "↺ New Game"}</button></div>
+    </div>`;
+}
+function renderFreestyle() {
+  const set = (id, prop, v) => { const e = document.getElementById(id); if (e && e[prop] !== v) e[prop] = v; };
+  const R = cityRating(), st = starsOf(R.score);
+  set("fs-stars", "textContent", `${starText(st)}`);
+  const open = fs.ch.filter(c => !c.done);
+  if (!questOpen) { const c = open[0]; set("q-next", "textContent", c ? `${c.t} · ${fmtLeft(c.left)}` : "New challenges coming…"); return; }
+  set("fs-score", "textContent", `${R.score}/100`);
+  const bar = document.getElementById("fs-bar"); if (bar) bar.style.width = R.score + "%";
+  const P = R.parts, nextStar = Math.min(5, Math.floor(st) + 1);
+  set("fs-parts", "innerHTML", `Full lots ${Math.round(P.filled)}/30 · Problems solved ${Math.round(P.safe)}/25 · Renovations ${Math.round(P.polish)}/15 · Income ${Math.round(P.income)}/20 · Landmarks ${Math.round(P.landmarks)}/10` +
+    (fs.best < 5 ? `<br>⭐ Next whole star (${nextStar}) pays ${fmt(STAR_BONUS[Math.max(fs.best + 1, nextStar)] || 0)}` : "<br>⭐ Five stars — the best city in the state!"));
+  fs.ch.forEach((c, k) => {
+    const row = document.getElementById("fs-c" + k); if (!row) return;
+    row.classList.toggle("done", !!c.done);
+    const prog = c.type.startsWith("fix:") ? (c.done ? "✓" : `${problemLevel(+c.type.slice(4))}%`) : c.type === "rent" ? `${fmt(Math.min(c.goal, chProgress(c)))}` : `${Math.min(c.goal, chProgress(c))}/${c.goal}`;
+    const ck = row.querySelector(".ck"), t = row.querySelector(".q-t"), p = row.querySelector(".q-p");
+    const ckv = c.done ? "✅" : "○", tv = `${c.t} · +${fmt(c.reward)}${c.done ? "" : ` · ⏱ ${fmtLeft(c.left)}`}`;
+    if (ck.textContent !== ckv) ck.textContent = ckv; if (t.textContent !== tv) t.textContent = tv; if (p.textContent !== prog) p.textContent = prog;
+  });
+  const marks = ["cityhall", "stadium", "tower"].map(k => `${hasLandmark(k) ? "✅" : "○"} ${BUILDINGS[k].name} (${fmt(BUILDINGS[k].cost)})`).join(" · ");
+  set("fs-marks", "textContent", `🏛️ Landmarks: ${marks}`);
+}
+
 window.addEventListener("load", () => {
   const viewport = document.getElementById("viewport");
   
@@ -3900,7 +4124,7 @@ window.addEventListener("load", () => {
 
     lotsData.forEach((l, i) => {
       if (l.status === "built") {
-        money += calculateLotRent(i) / 6;
+        const r6 = calculateLotRent(i) / 6; money += r6; stats.rentEarned = (stats.rentEarned || 0) + r6;
       } else if (l.status === "listed" && l.offer) {
         if (--l.offerTtl <= 0) { l.offer = null; paintLot(i); refreshSheet(i); toast(`⌛ The buyer for Lot #${i + 1} walked away`); }
       } else if (l.status === "listed" && !l.offer) {
@@ -3916,7 +4140,7 @@ window.addEventListener("load", () => {
     });
 
     updateHUD();
-    pumpTips(); updateProblemVisuals();
+    pumpTips(); tickFreestyle(0.5); updateProblemVisuals(); miniBlink = !miniBlink; drawMinimap();
     if (++tickN % 10 === 0) saveGame();
   }, 500);
 });
